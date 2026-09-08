@@ -39,5 +39,5 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = "dk.dtu.roborally.App"
+    mainClass = "dk.dtu.roborally.Main"
 }
