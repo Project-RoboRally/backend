@@ -2,31 +2,32 @@ package dk.dtu.roborally.objects;
 
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Represents a single tile on the Robo Rally board.
+ * A tile has a fixed position and may contain multiple board elements.
+ *
+ * @author Matthias
+ */
 public class Tile {
-    private Vector2D position;
 
     @Getter
-    private List<BoardElement> boardElementsList;
+    private final Vector2D position;
 
-    public Vector2D getPosition() {
-        return position;
-    }
+    @Getter
+    private final List<BoardElement> boardElements = new ArrayList<>();
 
-    public void setPosition(Vector2D new_position) {
-        position.set(new_position);
-    }
-
-    public void setPosition(int x, int y) {
-        position.set(x, y);
+    public Tile(Vector2D position) {
+        this.position = position;
     }
 
     public void addBoardElement(BoardElement boardElement) {
-        boardElementsList.add(boardElement);
+        boardElements.add(boardElement);
     }
 
     public void removeBoardElement(BoardElement boardElement) {
-        boardElementsList.remove(boardElement);
+        boardElements.remove(boardElement);
     }
 }
