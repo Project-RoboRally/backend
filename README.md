@@ -8,8 +8,9 @@
 
 ## Get started
 
+run the following command to install all deppendencies
 ```bash
-run `./gradle clean install` to install all deppendencies
+gradle clean install
 ```
 
 ## Development
@@ -19,13 +20,13 @@ run `./gradle clean install` to install all deppendencies
 To run the project, use the following command
 
 ```bash
-./gradle run
+gradle run
 ```
 
 ### Run Unit tests
 To run unit tests using JUnit 4 run
 
 ```bash
-./gradle test
+gradle test
 ```
 
