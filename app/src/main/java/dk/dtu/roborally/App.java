@@ -11,6 +11,12 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
+
+/**
+ * Aapp of project where everything is initialized
+ *
+ * @author Elias
+ */
 public class App {
 
     @Getter
