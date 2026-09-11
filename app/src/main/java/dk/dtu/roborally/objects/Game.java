@@ -15,7 +15,8 @@ import java.util.Set;
  */
 public class Game {
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private GameState gameState = GameState.WAITING;
 
     @Getter
@@ -26,6 +27,10 @@ public class Game {
 
     public Game(Board board) {
         this.board = board;
+    }
+
+    public boolean start() {
+        return true;
     }
 
     public void addPlayerToGame(Player player) {

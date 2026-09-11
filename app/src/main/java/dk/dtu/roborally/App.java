@@ -11,12 +11,12 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
-
 /**
  * Aapp of project where everything is initialized
  *
  * @author Elias
  */
+
 public class App {
 
     @Getter
@@ -42,14 +42,13 @@ public class App {
         };
         gatewayThread.start();
 
-
         gson = new Gson();
     }
 
     public void run() {
         System.out.println(getGreeting());
 
-        while(true) {
+        while (true) {
             // GameLoop
         }
     }
