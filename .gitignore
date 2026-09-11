@@ -1,38 +1,48 @@
+### Gradle ###
 .gradle
 **/build/
+**/bin/
 !**/src/**/build/
-
-.idea/**
-.idea
-
-# Ignore Gradle GUI config
-gradle-app.setting
-
-# Avoid ignoring Gradle wrapper jar file (.jar files are usually ignored)
 !gradle-wrapper.jar
-
-# Avoid ignore Gradle wrappper properties
 !gradle-wrapper.properties
-
-# Cache of project
+gradle-app.setting
 .gradletasknamecache
 
-# Eclipse Gradle plugin generated files
-# Eclipse Core
-.project
-# JDT-specific (Eclipse Java Development Tools)
+### Kotlin ###
+.kotlin
+
+### IDEs ###
+.idea/
+.vscode/
 .classpath
+.project
+.settings/
 
-# Ignore Gradle build output directory
-build
+### OS ###
+.DS_Store
+Thumbs.db
 
-# Devenv
+### Logs & crash dumps ###
+*.log
+hs_err_pid*
+replay_pid*
+*.hprof
+
+### Local env / secrets ###
+.env
+local.properties
+
+### Editor swap files ###
+*~
+*.swp
+
+### Devenv ###
 .devenv*
 devenv.local.nix
 devenv.local.yaml
 
-# direnv
+### direnv ###
 .direnv
 
-# pre-commit
+### pre-commit ###
 .pre-commit-config.yaml
