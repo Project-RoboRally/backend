@@ -3,6 +3,12 @@ package dk.dtu.roborally.gateway;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
+
+/**
+ * Gateway for ZMQ (websocket connections)
+ *
+ * @author Elias
+ */
 public class ZmqGateway {
 
     public void init() {
