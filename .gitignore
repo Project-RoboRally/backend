@@ -11,6 +11,9 @@ gradle-app.setting
 ### Kotlin ###
 .kotlin
 
+### Metals ###
+.metals/
+
 ### IDEs ###
 .idea/
 .vscode/
