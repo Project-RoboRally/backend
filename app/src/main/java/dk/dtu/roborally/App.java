@@ -3,7 +3,29 @@
  */
 package dk.dtu.roborally;
 
+import com.google.gson.Gson;
+import dk.dtu.roborally.gateway.ZmqGateway;
+import dk.dtu.roborally.objects.Game;
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+/**
+ * Aapp of project where everything is initialized
+ *
+ * @author Elias
+ */
 public class App {
+
+    @Getter
+    private ZmqGateway zmqGateway;
+
+    @Getter
+    private final Gson gson;
+
+    private List<Game> games = new ArrayList<>();
 
     public String getGreeting() {
         return "Hello World!";
@@ -11,9 +33,24 @@ public class App {
 
     public App() {
 
+        // Make new thread for the zmq gateway such that it doesnt block the main thread
+        Thread gatewayThread = new Thread() {
+            public void run() {
+                zmqGateway = new ZmqGateway();
+                zmqGateway.init();
+            }
+        };
+        gatewayThread.start();
+
+
+        gson = new Gson();
     }
 
     public void run() {
         System.out.println(getGreeting());
+
+        while(true) {
+            // GameLoop
+        }
     }
 }
