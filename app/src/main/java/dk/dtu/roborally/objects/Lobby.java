@@ -20,7 +20,7 @@ public class Lobby {
 
     @Getter
     @Setter
-    private List<Game> games = new ArrayList<>();
+    private Game game;
 
     public void addPlayerToLobby(Player player) {
         playersInLobby.add(player);
