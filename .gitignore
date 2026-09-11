@@ -25,3 +25,14 @@ gradle-app.setting
 
 # Ignore Gradle build output directory
 build
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
