@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.gson)
     implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.websocket)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
