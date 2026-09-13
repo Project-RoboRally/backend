@@ -6,7 +6,6 @@ guava = "33.3.1-jre"
 junit = "4.13.2"
 lombok = "1.18.48"
 gson = "2.14.0"
-jeromq = "0.6.0"
 spring-boot = "4.1.1"
 
 [libraries]
@@ -14,7 +13,6 @@ guava = { module = "com.google.guava:guava", version.ref = "guava" }
 junit = { module = "junit:junit", version.ref = "junit" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
-jeromq = { module = "org.zeromq:jeromq", version.ref = "jeromq" }
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }

@@ -34,7 +34,6 @@ dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
     implementation(libs.gson)
-    implementation(libs.jeromq)
     implementation(libs.spring.boot.starter.web)
 
     compileOnly(libs.lombok)
