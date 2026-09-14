@@ -8,6 +8,6 @@ package dk.dtu.roborally;
 public class Main {
 
     public static void main(String[] args) {
-        BackendApplication.main(args);
+        new App(args);
     }
 }
