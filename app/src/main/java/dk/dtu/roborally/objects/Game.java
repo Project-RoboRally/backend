@@ -8,27 +8,28 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents an active or pending Robo Rally game.
- * Holds the players, board and current game state.
+ * Represents an active or pending Robo Rally game. Holds the players, board and
+ * current game state.
  *
  * @author Elias, Matthias
  */
 public class Game {
 
-    @Getter @Setter
-    private GameState gameState = GameState.WAITING;
+	@Getter
+	@Setter
+	private GameState gameState = GameState.WAITING;
 
-    @Getter
-    private final Set<Player> playersInGame = new HashSet<>();
+	@Getter
+	private final Set<Player> playersInGame = new HashSet<>();
 
-    @Getter
-    private Board board;
+	@Getter
+	private Board board;
 
-    public Game(Board board) {
-        this.board = board;
-    }
+	public Game(Board board) {
+		this.board = board;
+	}
 
-    public void addPlayerToGame(Player player) {
-        playersInGame.add(player);
-    }
+	public void addPlayerToGame(Player player) {
+		playersInGame.add(player);
+	}
 }

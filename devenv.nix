@@ -3,11 +3,14 @@
 {
   packages = with pkgs; [
     git
-    gradle
+    gradle_9
     jdk25
   ];
 
-  languages.java.enable = true;
+  languages.java = {
+    enable = true;
+    jdk.package = pkgs.jdk25;
+  };
 
   scripts.build.exec = ''
     gradle build
@@ -19,6 +22,10 @@
 
   scripts.run.exec = ''
     gradle run
+  '';
+
+  scripts.format.exec = ''
+    gradle spotlessApply
   '';
 
   enterShell = ''

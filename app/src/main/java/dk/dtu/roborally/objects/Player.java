@@ -12,18 +12,19 @@ import javax.annotation.Nullable;
  */
 public class Player {
 
-    @Nullable
-    @Getter @Setter
-    private Robot robot;
+	@Nullable
+	@Getter
+	@Setter
+	private Robot robot;
 
-    @Getter
-    private final int playerID;
+	@Getter
+	private final int playerID;
 
-    @Getter
-    private final PlayerMat playerMat;
+	@Getter
+	private final PlayerMat playerMat;
 
-    public Player(int playerID) {
-        this.playerID = playerID;
-        this.playerMat = new PlayerMat();
-    }
+	public Player(int playerID) {
+		this.playerID = playerID;
+		this.playerMat = new PlayerMat();
+	}
 }
