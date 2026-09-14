@@ -8,6 +8,17 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    java
+    id("com.diffplug.spotless") version "8.0.0"
+}
+
+spotless {
+    java {
+        eclipse().configFile("config/eclipse-java-formatter.xml")
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
 }
 
 repositories {

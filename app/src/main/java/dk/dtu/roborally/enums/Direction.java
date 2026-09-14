@@ -6,8 +6,5 @@ package dk.dtu.roborally.enums;
  * @author Matthias
  */
 public enum Direction {
-    NORTH,
-    EAST,
-    SOUTH,
-    WEST
+	NORTH, EAST, SOUTH, WEST
 }

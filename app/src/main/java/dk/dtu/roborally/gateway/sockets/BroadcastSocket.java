@@ -8,10 +8,10 @@ import org.zeromq.ZMQ;
  * @author Elias
  */
 public class BroadcastSocket extends AbstractSocket {
-    public BroadcastSocket(ZMQ.Socket socket) {
-        super(socket);
-    }
+	public BroadcastSocket(ZMQ.Socket socket) {
+		super(socket);
+	}
 
-
-    // todo: Setup zmq and make function to broadcast messages to users in specific games.
+	// todo: Setup zmq and make function to broadcast messages to users in
+	// specific games.
 }
