@@ -7,18 +7,18 @@ import java.util.Map;
 import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
-import dk.dtu.roborally.objects.Board;
-import dk.dtu.roborally.objects.Checkpoint;
-import dk.dtu.roborally.objects.ConveyorBelt;
-import dk.dtu.roborally.objects.EnergySpace;
-import dk.dtu.roborally.objects.Gear;
-import dk.dtu.roborally.objects.LaserEmitter;
-import dk.dtu.roborally.objects.Pit;
-import dk.dtu.roborally.objects.PushPanel;
-import dk.dtu.roborally.objects.StartingPoint;
-import dk.dtu.roborally.objects.Tile;
-import dk.dtu.roborally.objects.Vector2D;
-import dk.dtu.roborally.objects.Wall;
+import dk.dtu.roborally.models.Board;
+import dk.dtu.roborally.models.Checkpoint;
+import dk.dtu.roborally.models.ConveyorBelt;
+import dk.dtu.roborally.models.EnergySpace;
+import dk.dtu.roborally.models.Gear;
+import dk.dtu.roborally.models.LaserEmitter;
+import dk.dtu.roborally.models.Pit;
+import dk.dtu.roborally.models.PushPanel;
+import dk.dtu.roborally.models.StartingPoint;
+import dk.dtu.roborally.models.Tile;
+import dk.dtu.roborally.models.Vector2D;
+import dk.dtu.roborally.models.Wall;
 
 /**
  * This class loads the data from Level.java into the correct classes from the

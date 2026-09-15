@@ -8,9 +8,6 @@ import dk.dtu.roborally.repository.inmemory.InMemoryPlayerRepository;
 import dk.dtu.roborally.models.Server;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Main class for the application.
  * Here we intialize the game engine and start the Spring API.
