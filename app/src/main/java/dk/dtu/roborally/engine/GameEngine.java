@@ -4,21 +4,27 @@ import dk.dtu.roborally.engine.services.GameService;
 import dk.dtu.roborally.engine.services.PlayerService;
 import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.PlayerRepository;
+import lombok.Getter;
 
 /**
  * Game Engine entry point.
  * Initializes from App.java
  *
- * @param playerService Services
  * @author Elias
  */
-public record GameEngine(GameService gameService, PlayerService playerService) {
+public class GameEngine {
 
-    public GameEngine(GameRepository gameService, PlayerRepository playerService) {
+    // Services
+    @Getter
+    private final PlayerService playerService;
+    @Getter
+    private final GameService gameService;
+
+    public GameEngine(GameRepository gameRepository, PlayerRepository playerRepository) {
 
         // Setup services
-        this.playerService = new PlayerService(playerService);
-        this.gameService = new GameService(gameService);
+        this.playerService = new PlayerService(playerRepository);
+        this.gameService = new GameService(gameRepository);
     }
 
 }
