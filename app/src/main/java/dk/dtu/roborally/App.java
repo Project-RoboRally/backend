@@ -6,6 +6,7 @@ package dk.dtu.roborally;
 import com.google.gson.Gson;
 import dk.dtu.roborally.gateway.ZmqGateway;
 import dk.dtu.roborally.objects.Game;
+import dk.dtu.roborally.objects.Server;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public class App {
         gatewayThread.start();
 
         gson = new Gson();
+        new Server();
     }
 
     public void run() {
