@@ -8,6 +8,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import dk.dtu.roborally.loaders.Config;
+import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.loaders.LevelData;
+import dk.dtu.roborally.loaders.LevelLoader;
+
 /**
  * The Server needs to hold n lobbies, and every lobby can hold a singular game.
  *
@@ -21,9 +26,15 @@ public class Lobby {
     @Getter
     @Setter
     private Game game;
+    private String levelPath;
+    private Board level;
+    private Config config;
 
-    public Lobby() {
-
+    public Lobby(Config config) {
+        // Create the JsonLoader
+        this.config = config;
+        this.levelPath = config.levels.level_0;
+        this.level = LevelLoader.load(levelPath);
     }
 
     public void addPlayerToLobby(Player player) {
