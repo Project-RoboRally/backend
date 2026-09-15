@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -12,18 +12,17 @@ import javax.annotation.Nullable;
  */
 public class Player {
 
-    @Nullable
-    @Getter @Setter
-    private Robot robot;
-
     @Getter
-    private final int playerID;
-
+    private final String username;
     @Getter
     private final PlayerMat playerMat;
+    @Nullable
+    @Getter
+    @Setter
+    private Robot robot;
 
-    public Player(int playerID) {
-        this.playerID = playerID;
+    public Player(String username) {
+        this.username = username;
         this.playerMat = new PlayerMat();
     }
 }
