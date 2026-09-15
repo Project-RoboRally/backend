@@ -25,6 +25,7 @@ public class Server {
 
     public Server() {
         // We make the server here, and allows people to sign into it
+        addLobby(new Lobby());
     }
 
     public void addLobby(Lobby lobby) {
