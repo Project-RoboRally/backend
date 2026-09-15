@@ -10,23 +10,13 @@
   languages.java = {
     enable = true;
     jdk.package = pkgs.jdk25;
+    gradle.enable = true;
   };
 
-  scripts.build.exec = ''
-    gradle build
-  '';
-
-  scripts.test.exec = ''
-    gradle test
-  '';
-
-  scripts.run.exec = ''
-    gradle run
-  '';
-
-  scripts.format.exec = ''
-    gradle spotlessApply
-  '';
+  scripts.build.exec = "./gradlew build";
+  scripts.test.exec = "./gradlew test";
+  scripts.run.exec = "./gradlew run";
+  scripts.format.exec = "./gradlew spotlessApply";
 
   enterShell = ''
     gradle install
