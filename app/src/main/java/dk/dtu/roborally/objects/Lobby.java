@@ -22,6 +22,10 @@ public class Lobby {
     @Setter
     private Game game;
 
+    public Lobby() {
+
+    }
+
     public void addPlayerToLobby(Player player) {
         playersInLobby.add(player);
     }
