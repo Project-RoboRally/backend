@@ -5,6 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * Entry point of the backend: starts the Spring Boot REST API
+ * This in called from App.java but can also be called directly for testing.
  *
  * @author Nicoleta
  */
