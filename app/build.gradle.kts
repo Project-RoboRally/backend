@@ -8,6 +8,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
+    alias(libs.plugins.spring.boot)
 }
 
 repositories {
@@ -16,18 +17,34 @@ repositories {
 }
 
 dependencies {
+    // Manage dependency versions using Spring Boot's BOM (applies to implementation
+    // and, since testImplementation extends it, to the test classpath too).
+    implementation(platform(libs.spring.boot.bom))
+
     // Use JUnit test framework.
     testImplementation(libs.junit)
+    testImplementation(libs.spring.boot.starter.test)
+    // Spring Boot 4 modularized web-MVC test support (@WebMvcTest, MockMvc) out of
+    // spring-boot-starter-test and into its own starter.
+    testImplementation(libs.spring.boot.starter.webmvc.test)
+    // Lets the legacy JUnit 4 tests above keep running on the JUnit Platform
+    // that spring-boot-starter-test pulls in (JUnit 5).
+    testRuntimeOnly(libs.junit.vintage.engine)
 
     // This dependency is used by the application.
     implementation(libs.guava)
     implementation(libs.gson)
-    implementation(libs.jeromq)
+    implementation(libs.spring.boot.starter.web)
+    implementation(libs.spring.boot.starter.websocket)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
+}
+
+tasks.named<Test>("test") {
+    useJUnitPlatform()
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -40,4 +57,8 @@ java {
 application {
     // Define the main class for the application.
     mainClass = "dk.dtu.roborally.Main"
+}
+
+springBoot {
+    mainClass.set("dk.dtu.roborally.BackendApplication")
 }
