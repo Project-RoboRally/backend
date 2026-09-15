@@ -1,4 +1,4 @@
-package dk.dtu.roborally.handlers;
+package dk.dtu.roborally.loaders;
 
 /**
  * This object is used to store the loaded info from the config
@@ -6,9 +6,9 @@ package dk.dtu.roborally.handlers;
  * @author Victor
  */
 public class Config {
-    public Levels levels;
+    public LevelsData levels;
 
-    public static class Levels {
+    public static class LevelsData {
         public String level_0;
     }
 }

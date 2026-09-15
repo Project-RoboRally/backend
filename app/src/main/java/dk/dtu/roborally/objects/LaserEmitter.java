@@ -7,9 +7,7 @@ import lombok.Getter;
  * Represents a laser emitter placed on the game board.
  * A laser emitter fires in a specified direction and can damage robots.
  *
- * NOTE: Laser.java is left open in case we want to do a class for the "bullet".
- *
- * @author Matthias
+ * @author Matthias, Victor
  */
 public class LaserEmitter extends BoardElement {
 
@@ -17,10 +15,14 @@ public class LaserEmitter extends BoardElement {
     private final Direction direction;
 
     @Getter
+    private final Vector2D position;
+
+    @Getter
     private final int damage;
 
-    public LaserEmitter(Direction direction, int damage) {
+    public LaserEmitter(Vector2D position, Direction direction) {
+        this.position = position;
         this.direction = direction;
-        this.damage = damage;
+        this.damage = 1;
     }
 }

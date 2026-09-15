@@ -1,4 +1,4 @@
-package dk.dtu.roborally.handlers;
+package dk.dtu.roborally.loaders;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -35,7 +35,7 @@ public class JsonLoader {
         }
     }
 
-    public static Level loadLevel(String levelPath) {
+    public static LevelData loadLevel(String levelPath) {
         try {
             // Load variables into a object instance
             Gson gson = new Gson();
@@ -50,7 +50,7 @@ public class JsonLoader {
 
                 return gson.fromJson(
                         new InputStreamReader(input),
-                        Level.class);
+                        LevelData.class);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to load " + levelPath, e);
