@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 /**
  * Represents a pit on the game board.
