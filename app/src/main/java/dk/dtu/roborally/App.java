@@ -8,26 +8,25 @@ import dk.dtu.roborally.repository.inmemory.InMemoryPlayerRepository;
 import lombok.Getter;
 
 /**
- * Main class for the application.
- * Here we intialize the game engine and start the Spring API.
+ * Main class for the application. Here we intialize the game engine and start
+ * the Spring API.
  *
  * @author Elias & Nicoleta
  */
 public class App {
 
-    @Getter
-    private final GameEngine gameEngine;
+	@Getter
+	private final GameEngine gameEngine;
 
-    public App(String[] args) {
-        // Initialise repositories
-        GameRepository gameRepository = new InMemoryGameRepository();
-        PlayerRepository playerRepository = new InMemoryPlayerRepository();
+	public App(String[] args) {
+		// Initialise repositories
+		GameRepository gameRepository = new InMemoryGameRepository();
+		PlayerRepository playerRepository = new InMemoryPlayerRepository();
 
+		// Setup GameEngine
+		this.gameEngine = new GameEngine(gameRepository, playerRepository);
 
-        // Setup GameEngine
-        this.gameEngine = new GameEngine(gameRepository, playerRepository);
-
-        // Start Backend API
-        BackendApplication.main(args);
-    }
+		// Start Backend API
+		BackendApplication.main(args);
+	}
 }
