@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -17,13 +17,13 @@ public class Player {
     private Robot robot;
 
     @Getter
-    private final int playerID;
+    private final String username;
 
     @Getter
     private final PlayerMat playerMat;
 
-    public Player(int playerID) {
-        this.playerID = playerID;
+    public Player(String username) {
+        this.username = username;
         this.playerMat = new PlayerMat();
     }
 }

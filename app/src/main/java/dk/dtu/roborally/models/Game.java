@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 import dk.dtu.roborally.enums.GameState;
 import lombok.Getter;
@@ -15,6 +15,9 @@ import java.util.Set;
  */
 public class Game {
 
+    @Getter
+    private final String gameID;
+
     @Getter @Setter
     private GameState gameState = GameState.WAITING;
 
@@ -24,7 +27,8 @@ public class Game {
     @Getter
     private Board board;
 
-    public Game(Board board) {
+    public Game(String gameID, Board board) {
+        this.gameID = gameID;
         this.board = board;
     }
 

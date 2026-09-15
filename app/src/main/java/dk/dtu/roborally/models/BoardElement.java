@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 /**
  * Base class for elements that can be placed on a board tile,

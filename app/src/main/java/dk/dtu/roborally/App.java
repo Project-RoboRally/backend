@@ -1,6 +1,11 @@
 package dk.dtu.roborally;
 
 import dk.dtu.roborally.engine.GameEngine;
+import dk.dtu.roborally.repository.GameRepository;
+import dk.dtu.roborally.repository.PlayerRepository;
+import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
+import dk.dtu.roborally.repository.inmemory.InMemoryPlayerRepository;
+import lombok.Getter;
 
 /**
  * Main class for the application.
@@ -10,14 +15,19 @@ import dk.dtu.roborally.engine.GameEngine;
  */
 public class App {
 
+    @Getter
     private final GameEngine gameEngine;
 
     public App(String[] args) {
-        this.gameEngine = new GameEngine();
-        BackendApplication.main(args);
-    }
+        // Initialise repositories
+        GameRepository gameRepository = new InMemoryGameRepository();
+        PlayerRepository playerRepository = new InMemoryPlayerRepository();
 
-    public GameEngine getGameEngine() {
-        return gameEngine;
+
+        // Setup GameEngine
+        this.gameEngine = new GameEngine(gameRepository, playerRepository);
+
+        // Start Backend API
+        BackendApplication.main(args);
     }
 }
