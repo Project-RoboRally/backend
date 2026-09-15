@@ -7,7 +7,7 @@ package dk.dtu.roborally;
  */
 public class Main {
 
-    static void main(String[] args) {
-        new App(args);
-    }
+	static void main(String[] args) {
+		new App(args);
+	}
 }

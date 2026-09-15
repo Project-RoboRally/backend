@@ -15,20 +15,20 @@ import java.util.Set;
  */
 public class Game {
 
-    @Getter
-    private final String gameID;
-    @Getter
-    private final Set<Player> playersInGame = new HashSet<>();
-    @Getter
-    @Setter
-    private GameState gameState = GameState.WAITING;
-    @Getter
-    private final Board board;
+	@Getter
+	private final String gameID;
+	@Getter
+	private final Set<Player> playersInGame = new HashSet<>();
+	@Getter
+	@Setter
+	private GameState gameState = GameState.WAITING;
+	@Getter
+	private final Board board;
 
-    public Game(String gameID, Board board) {
-        this.gameID = gameID;
-        this.board = board;
-    }
+	public Game(String gameID, Board board) {
+		this.gameID = gameID;
+		this.board = board;
+	}
 
 	public void addPlayerToGame(Player player) {
 		playersInGame.add(player);
