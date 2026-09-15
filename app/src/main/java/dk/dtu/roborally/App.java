@@ -5,7 +5,6 @@ import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.PlayerRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryPlayerRepository;
-import dk.dtu.roborally.models.Server;
 import lombok.Getter;
 
 /**
@@ -34,7 +33,6 @@ public class App {
 
         // Start Backend API
         BackendApplication.main(args);
-        new Server();
     }
 
     public void run() {
