@@ -3,14 +3,10 @@ package dk.dtu.roborally.objects;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import dk.dtu.roborally.loaders.Config;
-import dk.dtu.roborally.loaders.JsonLoader;
-import dk.dtu.roborally.loaders.LevelData;
 import dk.dtu.roborally.loaders.LevelLoader;
 
 /**
