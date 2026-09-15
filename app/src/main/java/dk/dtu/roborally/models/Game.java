@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 import dk.dtu.roborally.enums.GameState;
 import lombok.Getter;
@@ -16,16 +16,17 @@ import java.util.Set;
 public class Game {
 
     @Getter
-    @Setter
-    private GameState gameState = GameState.WAITING;
-
+    private final String gameID;
     @Getter
     private final Set<Player> playersInGame = new HashSet<>();
-
     @Getter
-    private Board board;
+    @Setter
+    private GameState gameState = GameState.WAITING;
+    @Getter
+    private final Board board;
 
-    public Game(Board board) {
+    public Game(String gameID, Board board) {
+        this.gameID = gameID;
         this.board = board;
     }
 

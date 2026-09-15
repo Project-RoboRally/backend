@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 import dk.dtu.roborally.enums.Command;
 import lombok.Getter;
@@ -14,7 +14,8 @@ public class Register {
     @Getter
     private final int index;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Command command;
 
     public Register(int index) {
