@@ -13,11 +13,12 @@ import java.util.Optional;
  * @author Elias
  */
 public class InMemoryGameRepository implements GameRepository {
-    private List<Game> games = new ArrayList<>();
+    private final List<Game> games = new ArrayList<>();
 
 
     /**
      * Adds a game to the list of all games
+     *
      * @param game Instance of games
      * @return true if added, false if gameID already exists
      */

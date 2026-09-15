@@ -17,15 +17,13 @@ public class Game {
 
     @Getter
     private final String gameID;
-
-    @Getter @Setter
-    private GameState gameState = GameState.WAITING;
-
     @Getter
     private final Set<Player> playersInGame = new HashSet<>();
-
     @Getter
-    private Board board;
+    @Setter
+    private GameState gameState = GameState.WAITING;
+    @Getter
+    private final Board board;
 
     public Game(String gameID, Board board) {
         this.gameID = gameID;

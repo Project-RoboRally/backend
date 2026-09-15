@@ -14,16 +14,20 @@ public class Robot {
     @Getter
     private Vector2D position;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Direction direction;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private int lives;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private int damage;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private boolean active = true;
 
     public Robot(Vector2D position, Direction direction, int lives) {

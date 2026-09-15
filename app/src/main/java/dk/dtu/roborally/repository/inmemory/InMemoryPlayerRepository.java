@@ -13,10 +13,11 @@ import java.util.Optional;
  * @author Elias
  */
 public class InMemoryPlayerRepository implements PlayerRepository {
-    private List<Player> players = new ArrayList<>();
+    private final List<Player> players = new ArrayList<>();
 
     /**
      * Adds a player to the list of all players
+     *
      * @param player Instance of player
      * @return true if added, false if username already exists
      */

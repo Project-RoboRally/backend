@@ -14,7 +14,8 @@ public class Register {
     @Getter
     private final int index;
 
-    @Getter @Setter
+    @Getter
+    @Setter
     private Command command;
 
     public Register(int index) {
