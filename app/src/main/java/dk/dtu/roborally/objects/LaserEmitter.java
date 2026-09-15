@@ -20,9 +20,9 @@ public class LaserEmitter extends BoardElement {
     @Getter
     private final int damage;
 
-    public LaserEmitter(Vector2D position, Direction direction) {
+    public LaserEmitter(Vector2D position, Direction direction, int damage) {
         this.position = position;
         this.direction = direction;
-        this.damage = 1;
+        this.damage = damage;
     }
 }

@@ -1,4 +1,8 @@
 {
+    "_metadata": {
+        "author": "Victor",
+        "description": "Roborally Board Level 0"
+    },
     "squares": [
         {
             "x1": 0,
@@ -19,23 +23,60 @@
     "start_points": [
         {
             "x": 3,
-            "y": 3
+            "y": 2
+        }
+    ],
+    "checkpoints": [
+        {
+            "x": 4,
+            "y": 2,
+            "number": 0
+        }
+    ],
+    "gears": [
+        {
+            "x": 1,
+            "y": 2,
+            "rotation_direction": "counterclockwise"
+        }
+    ],
+    "push_panels": [
+        {
+            "x": 3,
+            "y": 2,
+            "push_direction": "south"
         }
     ],
     "walls": [
         {
             "x1": 2,
-            "y1": 2,
+            "y1": 1,
             "x2": 2,
-            "y2": 8,
+            "y2": 2,
             "direction": "east"
         }
     ],
     "laser_emitters": [
         {
-            "x": 2,
+            "x": 0,
             "y": 2,
+            "amount": 1,
             "direction": "east"
+        }
+    ],
+    "pits": [
+        {
+            "x1": 4,
+            "y1": 1,
+            "x2": 4,
+            "y2": 2
+        }
+    ],
+    "energy_spaces": [
+        {
+            "x": 1,
+            "y": 1,
+            "energy_cubes": 1
         }
     ]
 }
