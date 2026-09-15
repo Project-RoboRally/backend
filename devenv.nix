@@ -8,7 +8,10 @@
   languages.java = {
     enable = true;
     jdk.package = pkgs.jdk25;
-    gradle.enable = true;
+    gradle = {
+      enable = true;
+      package = pkgs.gradle_9;
+    };
   };
 
   scripts.build.exec = "./gradlew build";
