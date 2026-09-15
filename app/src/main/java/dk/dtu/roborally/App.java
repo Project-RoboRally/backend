@@ -10,7 +10,7 @@ import lombok.Getter;
 /**
  * Main class for the application.
  * Here we intialize the game engine and start the Spring API.
- * 
+ *
  * @author Elias & Nicoleta
  */
 public class App {

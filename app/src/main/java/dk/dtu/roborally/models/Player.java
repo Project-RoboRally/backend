@@ -12,15 +12,14 @@ import javax.annotation.Nullable;
  */
 public class Player {
 
-    @Nullable
-    @Getter @Setter
-    private Robot robot;
-
     @Getter
     private final String username;
-
     @Getter
     private final PlayerMat playerMat;
+    @Nullable
+    @Getter
+    @Setter
+    private Robot robot;
 
     public Player(String username) {
         this.username = username;

@@ -12,8 +12,12 @@ import java.util.Optional;
  */
 public interface GameRepository {
     boolean add(Game game);
+
     boolean exists(String gameID);
+
     Optional<Game> getById(String gameID);
+
     List<Game> getAll();
+
     void delete(String gameID);
 }
