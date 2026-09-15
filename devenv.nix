@@ -3,8 +3,6 @@
 {
   packages = with pkgs; [
     git
-    gradle_9
-    jdk25
   ];
 
   languages.java = {
