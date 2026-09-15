@@ -1,4 +1,4 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
 import dk.dtu.roborally.enums.Direction;
 import lombok.Getter;
@@ -14,21 +14,21 @@ public class Robot {
 	@Getter
 	private Vector2D position;
 
-	@Getter
-	@Setter
-	private Direction direction;
+    @Getter
+    @Setter
+    private Direction direction;
 
-	@Getter
-	@Setter
-	private int lives;
+    @Getter
+    @Setter
+    private int lives;
 
-	@Getter
-	@Setter
-	private int damage;
+    @Getter
+    @Setter
+    private int damage;
 
-	@Getter
-	@Setter
-	private boolean active = true;
+    @Getter
+    @Setter
+    private boolean active = true;
 
 	public Robot(Vector2D position, Direction direction, int lives) {
 		this.position = position;

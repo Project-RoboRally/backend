@@ -1,7 +1,7 @@
-package dk.dtu.roborally.objects;
+package dk.dtu.roborally.models;
 
-import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.ConveyorBeltType;
+import dk.dtu.roborally.enums.Direction;
 import lombok.Getter;
 
 /**
