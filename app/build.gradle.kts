@@ -9,6 +9,7 @@ plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     application
     java
+    alias(libs.plugins.spring.boot)
     id("com.diffplug.spotless") version "8.0.0"
 }
 
@@ -19,7 +20,6 @@ spotless {
         trimTrailingWhitespace()
         endWithNewline()
     }
-    alias(libs.plugins.spring.boot)
 }
 
 repositories {
