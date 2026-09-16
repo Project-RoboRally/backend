@@ -13,28 +13,30 @@ import java.util.Map;
 @RestController
 public class AuthController {
 
-    @PostMapping("/api/login")
-    public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO payload) {
-        String username = payload.username();
+	@PostMapping("/api/login")
+	public ResponseEntity<LoginResponseDTO> login(
+			@RequestBody LoginDTO payload) {
+		String username = payload.username();
 
-        // TODO: replace with actual login functionality
-        if (username.equals("password")) {
-            throw new LoginException("Wrong username");
-        }
+		// TODO: replace with actual login functionality
+		if (username.equals("password")) {
+			throw new LoginException("Wrong username");
+		}
 
-        return ResponseEntity.ok(new LoginResponseDTO(username));
-    }
+		return ResponseEntity.ok(new LoginResponseDTO(username));
+	}
 
-    @ExceptionHandler(LoginException.class)
-    public ResponseEntity<Map<String, String>> handleLoginException(LoginException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", ex.getMessage()));
-    }
+	@ExceptionHandler(LoginException.class)
+	public ResponseEntity<Map<String, String>> handleLoginException(
+			LoginException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", ex.getMessage()));
+	}
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, String>> handleMissingBody(HttpMessageNotReadableException ex) {
-        return ResponseEntity.badRequest().body(Map.of(
-                "error",
-                "Request body is required. Send JSON with Content-Type application/json, e.g. {\"username\":\"alice\",\"password\":\"password\"}."
-        ));
-    }
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<Map<String, String>> handleMissingBody(
+			HttpMessageNotReadableException ex) {
+		return ResponseEntity.badRequest().body(Map.of("error",
+				"Request body is required. Send JSON with Content-Type application/json, e.g. {\"username\":\"alice\",\"password\":\"password\"}."));
+	}
 }
