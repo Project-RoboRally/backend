@@ -103,3 +103,9 @@ out/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+# Eclipse
+/app/.classpath
+/app/.factorypath
+/app/.project
+/app/.settings/
