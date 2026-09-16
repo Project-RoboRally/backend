@@ -11,32 +11,32 @@ import lombok.Setter;
  */
 public class Robot {
 
-    @Getter
-    private Vector2D position;
+	@Getter
+	private Vector2D position;
 
-    @Getter
-    @Setter
-    private Direction direction;
+	@Getter
+	@Setter
+	private Direction direction;
 
-    @Getter
-    @Setter
-    private int lives;
+	@Getter
+	@Setter
+	private int lives;
 
-    @Getter
-    @Setter
-    private int damage;
+	@Getter
+	@Setter
+	private int damage;
 
-    @Getter
-    @Setter
-    private boolean active = true;
+	@Getter
+	@Setter
+	private boolean active = true;
 
-    public Robot(Vector2D position, Direction direction, int lives) {
-        this.position = position;
-        this.direction = direction;
-        this.lives = lives;
-    }
+	public Robot(Vector2D position, Direction direction, int lives) {
+		this.position = position;
+		this.direction = direction;
+		this.lives = lives;
+	}
 
-    public void setPosition(Vector2D position) {
-        this.position = position;
-    }
+	public void setPosition(Vector2D position) {
+		this.position = position;
+	}
 }

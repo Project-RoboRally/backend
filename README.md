@@ -4,7 +4,7 @@
 
 [Java Zulu-25](https://www.azul.com/downloads/?version=java-25-lts&package=jdk-fx#zulu)
 
-[Gradle 8.13](https://gradle.org/releases/)
+[Gradle 9.x.x](https://gradle.org/releases/)
 
 ## Get started
 
@@ -14,7 +14,6 @@ gradle clean install
 ```
 
 ## Development
-
 
 ### Run project
 To run the project, use the following command
@@ -30,3 +29,11 @@ To run unit tests using JUnit 4 run
 gradle test
 ```
 
+### Format the base
+
+The project is configured such that it will not compile and run if the code is
+not correctly formatted.
+
+```bash
+gralde spotlessApply
+```
