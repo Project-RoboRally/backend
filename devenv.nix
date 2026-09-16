@@ -20,7 +20,6 @@
   scripts.format.exec = "./gradlew spotlessApply";
 
   enterShell = ''
-    gradle install
     echo "Devenv active"
   '';
 }
