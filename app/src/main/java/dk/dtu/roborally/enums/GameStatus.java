@@ -6,6 +6,6 @@ package dk.dtu.roborally.enums;
  * @author Elias
  */
 
-public enum GameState {
-	WAITING, RUNNING
+public enum GameStatus {
+	WAITING_FOR_PLAYERS, IN_PROGRESS, FINISHED
 }

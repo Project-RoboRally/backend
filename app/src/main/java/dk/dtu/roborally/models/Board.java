@@ -3,7 +3,7 @@ package dk.dtu.roborally.models;
 import lombok.Getter;
 
 /**
- * Represents the Robo Rally game board and its tiles.
+ * Represents the Robo Rally game board and its spaces.
  *
  * @author Elias, Matthias
  */
@@ -13,21 +13,21 @@ public class Board {
 	private final Vector2D dimensions;
 
 	@Getter
-	private final Tile[][] tiles;
+	private final Space[][] spaces;
 
 	public Board(int width, int height) {
 		this.dimensions = new Vector2D(width, height);
-		this.tiles = new Tile[height][width];
+		this.spaces = new Space[height][width];
 
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				tiles[y][x] = new Tile(new Vector2D(x, y));
+				spaces[y][x] = new Space(new Vector2D(x, y));
 			}
 		}
 	}
 
-	public Tile getTile(Vector2D position) {
-		return tiles[position.y()][position.x()];
+	public Space getSpace(Vector2D position) {
+		return spaces[position.y()][position.x()];
 	}
 
 	public boolean contains(Vector2D position) {
