@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a single tile on the Robo Rally board. A tile has a fixed position
+ * Represents a single space on the Robo Rally board. A tile has a fixed position
  * and may contain multiple board elements.
  *
  * @author Matthias
  */
-public class Tile {
+public class Space {
 
 	@Getter
 	private final Vector2D position;
@@ -19,7 +19,7 @@ public class Tile {
 	@Getter
 	private final List<BoardElement> boardElements = new ArrayList<>();
 
-	public Tile(Vector2D position) {
+	public Space(Vector2D position) {
 		this.position = position;
 	}
 

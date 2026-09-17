@@ -1,6 +1,6 @@
 package dk.dtu.roborally.models;
 
-import dk.dtu.roborally.enums.GameState;
+import dk.dtu.roborally.enums.GameStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,7 +21,7 @@ public class Game {
 	private final Set<Player> playersInGame = new HashSet<>();
 	@Getter
 	@Setter
-	private GameState gameState = GameState.WAITING;
+	private GameStatus gameState = GameStatus.WAITING_FOR_PLAYERS;
 	@Getter
 	private final Board board;
 
