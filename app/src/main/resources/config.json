@@ -1,0 +1,9 @@
+{
+    "_metadata": {
+        "author": "Victor",
+        "description": "General Server Config, used to store level data so far"
+    },
+    "levels": {
+        "level_0": "levels/level_0.json"
+    }
+}

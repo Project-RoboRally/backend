@@ -9,18 +9,22 @@ import lombok.Getter;
  * <p>
  * NOTE: Laser.java is left open in case we want to do a class for the "bullet".
  *
- * @author Matthias
+ * @author Matthias, Victor
  */
 public class LaserEmitter extends BoardElement {
 
 	@Getter
 	private final Direction direction;
 
-	@Getter
-	private final int damage;
+    @Getter
+    private final Vector2D position;
 
-	public LaserEmitter(Direction direction, int damage) {
-		this.direction = direction;
-		this.damage = damage;
-	}
+    @Getter
+    private final int damage;
+
+    public LaserEmitter(Vector2D position, Direction direction, int damage) {
+        this.position = position;
+        this.direction = direction;
+        this.damage = damage;
+    }
 }

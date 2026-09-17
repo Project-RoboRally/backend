@@ -8,7 +8,7 @@ import lombok.Getter;
  * Represents a conveyor belt placed on a board tile. A conveyor belt moves
  * robots in a specified direction.
  *
- * @author Matthias
+ * @author Matthias, Victor
  */
 public class ConveyorBelt extends BoardElement {
 
@@ -18,8 +18,16 @@ public class ConveyorBelt extends BoardElement {
 	@Getter
 	private final ConveyorBeltType type;
 
-	public ConveyorBelt(Direction direction, ConveyorBeltType type) {
-		this.direction = direction;
-		this.type = type;
-	}
+    @Getter
+    private final int length;
+
+    @Getter
+    private final Vector2D position;
+
+    public ConveyorBelt(Vector2D position, int length, Direction direction, ConveyorBeltType type) {
+        this.direction = direction;
+        this.type = type;
+        this.position = position;
+        this.length = length;
+    }
 }
