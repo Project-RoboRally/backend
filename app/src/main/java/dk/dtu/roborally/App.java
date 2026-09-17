@@ -13,6 +13,7 @@ import lombok.Getter;
  *
  * @author Elias & Nicoleta
  */
+
 public class App {
 
 	@Getter
