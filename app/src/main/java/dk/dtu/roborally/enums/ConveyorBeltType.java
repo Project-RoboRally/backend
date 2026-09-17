@@ -7,16 +7,15 @@ package dk.dtu.roborally.enums;
  */
 
 public enum ConveyorBeltType {
-    GREEN(1),
-    BLUE(2);
+	GREEN(1), BLUE(2);
 
-    private final int speed;
+	private final int speed;
 
-    ConveyorBeltType(int speed) {
-        this.speed = speed;
-    }
+	ConveyorBeltType(int speed) {
+		this.speed = speed;
+	}
 
-    public int getSpeed() {
-        return speed;
-    }
+	public int getSpeed() {
+		return speed;
+	}
 }

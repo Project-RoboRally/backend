@@ -11,13 +11,13 @@ import java.util.Optional;
  * @author Elias
  */
 public interface PlayerRepository {
-    boolean add(Player player);
+	boolean add(Player player);
 
-    boolean exists(String username);
+	boolean exists(String username);
 
-    Optional<Player> getById(String username);
+	Optional<Player> getById(String username);
 
-    List<Player> getAll();
+	List<Player> getAll();
 
-    void delete(String username);
+	void delete(String username);
 }
