@@ -2,6 +2,8 @@ package dk.dtu.roborally.models;
 
 import dk.dtu.roborally.enums.GameState;
 import dk.dtu.roborally.enums.GamePhase;
+import dk.dtu.roborally.enums.Direction;
+import dk.dtu.roborally.engine.systems.RegisterSystem;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,6 +32,7 @@ public class Game {
     private Round round;
     @Getter
     private final Board board;
+    private final RegisterSystem registerSystem = new RegisterSystem();
 
     public Game(String gameID, Board board) {
         this.gameID = gameID;
@@ -57,7 +60,12 @@ public class Game {
                 gamePhase = GamePhase.EXECUTING_REGISTERS;
                 break;
             case EXECUTING_REGISTERS:
-                gamePhase = GamePhase.BOARD_ELEMENTS;
+                if (round.getCurrentRegister() < 4) {
+                    round.advanceRegister();
+                } else {
+                    round.resetRegister();
+                    gamePhase = GamePhase.BOARD_ELEMENTS;
+                }
                 break;
             case BOARD_ELEMENTS:
                 gamePhase = GamePhase.LASERS;
@@ -71,6 +79,48 @@ public class Game {
         }
 
         return true;
+    }
+
+    public boolean executeCurrentRegister() {
+        if (gameState != GameState.RUNNING || gamePhase != GamePhase.EXECUTING_REGISTERS) {
+            return false;
+        }
+
+        int registerIndex = round.getCurrentRegister();
+        for (Player player : playersInGame) {
+            registerSystem.executeRegister(player, registerIndex);
+        }
+        advancePhase();
+        return true;
+    }
+
+    public boolean movePlayer(Player player, int spaces) {
+        if (gameState != GameState.RUNNING
+                || !playersInGame.contains(player)
+                || player.getRobot() == null
+                || !player.getRobot().isActive()
+                || spaces <= 0) {
+            return false;
+        }
+
+        Robot robot = player.getRobot();
+        Vector2D destination = getDestination(robot, spaces);
+        if (!board.isWithinBoard(destination)) {
+            return false;
+        }
+
+        robot.setPosition(destination);
+        return true;
+    }
+
+    private Vector2D getDestination(Robot robot, int spaces) {
+        Direction direction = robot.getDirection();
+        return switch (direction) {
+            case NORTH -> robot.getPosition().add(0, -spaces);
+            case EAST -> robot.getPosition().add(spaces, 0);
+            case SOUTH -> robot.getPosition().add(0, spaces);
+            case WEST -> robot.getPosition().add(-spaces, 0);
+        };
     }
 
     private void startNextRound() {
