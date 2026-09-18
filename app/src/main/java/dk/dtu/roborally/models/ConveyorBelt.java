@@ -5,7 +5,7 @@ import dk.dtu.roborally.enums.Direction;
 import lombok.Getter;
 
 /**
- * Represents a conveyor belt placed on a board tile. A conveyor belt moves
+ * Represents a conveyor belt placed on a board space. A conveyor belt moves
  * robots in a specified direction.
  *
  * @author Matthias, Victor
