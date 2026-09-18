@@ -20,13 +20,15 @@ public class GameEngine {
 	@Getter
 	private final GameService gameService;
 
+	private Server server;
+
 	public GameEngine(GameRepository gameRepository,
 			PlayerRepository playerRepository) {
 
-        // Setup services
-        this.playerService = new PlayerService(playerRepository);
-        this.gameService = new GameService(gameRepository);
-        this.server = new Server();
-    }
+		// Setup services
+		this.playerService = new PlayerService(playerRepository);
+		this.gameService = new GameService(gameRepository);
+		this.server = new Server();
+	}
 
 }
