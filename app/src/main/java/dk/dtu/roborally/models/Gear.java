@@ -14,7 +14,11 @@ public class Gear extends BoardElement {
 	@Getter
 	private final RotationDirection rotationDirection;
 
-	public Gear(RotationDirection rotationDirection) {
-		this.rotationDirection = rotationDirection;
-	}
+    @Getter
+    private final Vector2D position;
+
+    public Gear(Vector2D position, RotationDirection rotationDirection) {
+        this.position = position;
+        this.rotationDirection = rotationDirection;
+    }
 }

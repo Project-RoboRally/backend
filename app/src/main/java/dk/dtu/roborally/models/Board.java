@@ -1,37 +1,29 @@
 package dk.dtu.roborally.models;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.Getter;
 
 /**
  * Represents the Robo Rally game board and its spaces.
  *
- * @author Elias, Matthias
+ * @author Elias, Matthias, Victor
  */
 public class Board {
+    @Getter
+    Map<Vector2D, Space> spaceMap = new HashMap<>();
 
-	@Getter
-	private final Vector2D dimensions;
+    public Board(Map<Vector2D, Space> tileMap) {
+        this.spaceMap = tileMap;
+    }
 
-	@Getter
-	private final Space[][] spaces;
+    public Space getSpace(int x, int y) {
+        return spaceMap.get(new Vector2D(x, y));
+    }
 
-	public Board(int width, int height) {
-		this.dimensions = new Vector2D(width, height);
-		this.spaces = new Space[height][width];
-
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				spaces[y][x] = new Space(new Vector2D(x, y));
-			}
-		}
-	}
-
-	public Space getSpace(Vector2D position) {
-		return spaces[position.y()][position.x()];
-	}
-
-	public boolean contains(Vector2D position) {
-		return position.x() >= 0 && position.x() < dimensions.x()
-				&& position.y() >= 0 && position.y() < dimensions.y();
-	}
+    public boolean isWithinBoard(Vector2D position) {
+        // check if the position is a valid space on the board
+        return spaceMap.containsKey(position);
+    }
 }
