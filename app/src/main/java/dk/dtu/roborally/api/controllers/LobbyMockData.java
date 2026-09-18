@@ -4,7 +4,12 @@ import dk.dtu.roborally.api.dto.LobbyDTO;
 
 import java.util.List;
 
-// data taken from the frontend for testing
+/**
+ * Data taken from the frontend for testing.
+ *
+ * @author Nicoleta
+ */
+
 final class LobbyMockData {
 
 	static final List<LobbyDTO> LOBBIES = List.of(

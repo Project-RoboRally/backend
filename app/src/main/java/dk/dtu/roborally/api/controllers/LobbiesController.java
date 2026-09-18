@@ -13,6 +13,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Handles lobby creation, retrieval, and player joining.
+ *
+ * @author Nicoleta
+ */
+
 @RestController
 @RequestMapping("/api/lobbies")
 public class LobbiesController {
