@@ -10,6 +10,13 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+/**
+ * Handles authentication requests and login-related errors.
+ *
+ * @author Nicoleta
+ */
+
+
 @RestController
 public class AuthController {
 

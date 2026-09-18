@@ -9,6 +9,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Tests the health check API endpoint.
+ *
+ * @author Nicoleta
+ */
 @WebMvcTest(HealthController.class)
 class HealthControllerTest {
 

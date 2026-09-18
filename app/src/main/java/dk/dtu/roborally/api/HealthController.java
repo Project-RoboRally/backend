@@ -7,6 +7,8 @@ import java.util.Map;
 
 /**
  * Simple endpoint to verify the REST API layer is up and reachable.
+ *
+ * @author Nicoleta
  */
 @RestController
 public class HealthController {
