@@ -5,5 +5,5 @@ package dk.dtu.roborally.api.dto;
  *
  * @author Nicoleta
  */
-public record CreateLobbyDTO(String id, String name, String username) {
+public record CreateLobbyDTO(String name, String username) {
 }
