@@ -1,4 +1,4 @@
-package dk.dtu.roborally.auth;
+package dk.dtu.roborally.exceptions.auth;
 
 
 public class LoginException extends RuntimeException {

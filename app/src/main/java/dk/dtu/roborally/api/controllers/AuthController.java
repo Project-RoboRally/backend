@@ -2,7 +2,7 @@ package dk.dtu.roborally.api.controllers;
 
 import dk.dtu.roborally.api.dto.LoginDTO;
 import dk.dtu.roborally.api.dto.LoginResponseDTO;
-import dk.dtu.roborally.auth.LoginException;
+import dk.dtu.roborally.exceptions.auth.LoginException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
