@@ -17,11 +17,6 @@ public class AuthController {
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO payload) {
         String username = payload.username();
 
-        // TODO: replace with actual login functionality
-        if (username.equals("password")) {
-            throw new LoginException("Wrong username");
-        }
-
         return ResponseEntity.ok(new LoginResponseDTO(username));
     }
 
