@@ -7,6 +7,7 @@ import java.util.Map;
 import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
+import dk.dtu.roborally.models.Antenna;
 import dk.dtu.roborally.models.Board;
 import dk.dtu.roborally.models.Checkpoint;
 import dk.dtu.roborally.models.ConveyorBelt;
@@ -32,6 +33,14 @@ public class LevelLoader {
         // We need to load all the data into a board here.
         // We just need to use the methods below to load everything correctly.
         LevelData level = JsonLoader.loadLevel(levelPath);
+        System.out.println("Loaded level: " + levelPath);
+        if (level == null) {
+            throw new IllegalArgumentException("Level data is null for: " + levelPath);
+        }
+        if (level.squares == null || level.squares.length == 0) {
+            throw new IllegalArgumentException("Level must contain at least one square: " + levelPath);
+        }
+
         Map<Vector2D, Tile> tileMap = new HashMap<>();
         ArrayList<ConveyorBelt> cBelts = new ArrayList<>();
         ArrayList<Wall> walls = new ArrayList<>();
@@ -49,41 +58,64 @@ public class LevelLoader {
         // Make board from the tiles
         Board board = new Board(tileMap);
         // Load belts
-        for (int i = 0; i < level.belts.length; i++) {
-            cBelts.add(createConveyorBelt(level.belts[i], tileMap));
+        if (level.belts != null) {
+            for (int i = 0; i < level.belts.length; i++) {
+                cBelts.add(createConveyorBelt(level.belts[i], tileMap));
+            }
         }
         // Load Walls
-        for (int i = 0; i < level.walls.length; i++) {
-            createWalls(level.walls[i], walls, tileMap);
+        if (level.walls != null) {
+            for (int i = 0; i < level.walls.length; i++) {
+                createWalls(level.walls[i], walls, tileMap);
+            }
         }
         // Load LaserEmitters
-        for (int i = 0; i < level.laser_emitters.length; i++) {
-            laserEmitters.add(createLaserEmitter(level.laser_emitters[i], tileMap));
+        if (level.laser_emitters != null) {
+            for (int i = 0; i < level.laser_emitters.length; i++) {
+                laserEmitters.add(createLaserEmitter(level.laser_emitters[i], tileMap));
+            }
         }
         // Load StartingPoints
-        for (int i = 0; i < level.start_points.length; i++) {
-            startingPoints.add(createStartingPoint(level.start_points[i], tileMap));
+        if (level.start_points != null) {
+            for (int i = 0; i < level.start_points.length; i++) {
+                startingPoints.add(createStartingPoint(level.start_points[i], tileMap));
+            }
         }
         // Load Checkpoints
-        for (int i = 0; i < level.checkpoints.length; i++) {
-            checkpoints.add(createCheckpoint(level.checkpoints[i], tileMap));
+        if (level.checkpoints != null) {
+            for (int i = 0; i < level.checkpoints.length; i++) {
+                checkpoints.add(createCheckpoint(level.checkpoints[i], tileMap));
+            }
         }
         // Load Gears
-        for (int i = 0; i < level.gears.length; i++) {
-            gears.add(createGear(level.gears[i], tileMap));
+        if (level.gears != null) {
+            for (int i = 0; i < level.gears.length; i++) {
+                gears.add(createGear(level.gears[i], tileMap));
+            }
         }
         // Load Push Panels
-        for (int i = 0; i < level.push_panels.length; i++) {
-            pushPanels.add(createPushPanel(level.push_panels[i], tileMap));
+        if (level.push_panels != null) {
+            for (int i = 0; i < level.push_panels.length; i++) {
+                pushPanels.add(createPushPanel(level.push_panels[i], tileMap));
+            }
         }
         // Load Pits
-        for (int i = 0; i < level.pits.length; i++) {
-            createPits(level.pits[i], pits, tileMap);
+        if (level.pits != null) {
+            for (int i = 0; i < level.pits.length; i++) {
+                createPits(level.pits[i], pits, tileMap);
+            }
         }
         // Load EnergySpaces
-        for (int i = 0; i < level.energy_spaces.length; i++) {
-            energySpaces.add(createEnergySpace(level.energy_spaces[i], tileMap));
+        if (level.energy_spaces != null) {
+            for (int i = 0; i < level.energy_spaces.length; i++) {
+                energySpaces.add(createEnergySpace(level.energy_spaces[i], tileMap));
+            }
         }
+        // Load Antenna
+        if (level.antenna != null) {
+            createAntenna(level.antenna, tileMap);
+        }
+
         return board;
     }
 
@@ -256,6 +288,12 @@ public class LevelLoader {
         Checkpoint checkpoint = new Checkpoint(new Vector2D(cp.x, cp.y), cp.number);
         getTileAt(tileMap, checkpoint.getPosition()).addBoardElement(checkpoint);
         return checkpoint;
+    }
+
+    private static Antenna createAntenna(LevelData.AntennaData antenna, Map<Vector2D, Tile> tileMap) {
+        Antenna a = new Antenna(new Vector2D(antenna.x, antenna.y));
+        getTileAt(tileMap, a.getPosition()).addBoardElement(a);
+        return a;
     }
 
     private static Gear createGear(LevelData.GearData gear, Map<Vector2D, Tile> tileMap) {
