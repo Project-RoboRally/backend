@@ -36,8 +36,19 @@ public class Server {
         lobbies.add(lobby);
     }
 
-    public void addPlayerToServer(Player player) {
+    public void addPlayerToLobby(Player player, Lobby lobby) {
+        lobby.addPlayer(player);
+    }
+
+    public void removePlayerToLobby(Player player, Lobby lobby) {
+        lobby.removePlayer(player);
+    }
+
+    public void addPlayer(Player player) {
         playersSignedIn.add(player);
     }
 
+    public void removePlayer(Player player) {
+        playersSignedIn.remove(player);
+    }
 }

@@ -32,9 +32,21 @@ public class Lobby {
         this.levelPath = config.levels.level_0;
         this.level = LevelLoader.load(levelPath);
     }
-
-    public void addPlayerToLobby(Player player) {
+    
+    public void addPlayer(Player player) {
         playersInLobby.add(player);
+    }
+    
+    public void removePlayer(Player player) {
+        playersInLobby.remove(player);
+    }
+
+    public void addPlayerToGame(Player player, Game game) {
+        game.addPlayer(player);
+    }
+    
+    public void removePlayerToGame(Player player, Game game) {
+        game.removePlayer(player);
     }
 
     public void startGame(Game game) {

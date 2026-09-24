@@ -14,7 +14,7 @@ import java.util.Set;
  * Represents an active or pending Robo Rally game.
  * Holds the players, board and current game state.
  *
- * @author Elias, Matthias
+ * @author Elias, Matthias, Victor
  */
 public class Game {
 
@@ -37,6 +37,24 @@ public class Game {
     public Game(String gameID, Board board) {
         this.gameID = gameID;
         this.board = board;
+    }
+
+    public boolean addPlayer(Player player) {
+        if (gameState != GameState.WAITING || playersInGame.contains(player)) {
+            return false;
+        }
+
+        playersInGame.add(player);
+        return true;
+    }
+
+    public boolean removePlayer(Player player) {
+        if (!playersInGame.contains(player)) {
+            return false;
+        }
+
+        playersInGame.remove(player);
+        return true;
     }
 
     public boolean start() {
