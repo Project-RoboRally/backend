@@ -17,8 +17,10 @@ public record Vector2D(int x, int y) {
         return new Vector2D(x + dx, y + dy);
     }
 
+    // Since we want a HashMap with the tiles (a tile map)
+    // We need some kind of hashing function, since Vector2D has two variables
     @Override
     public int hashCode() {
-        return 67 * x + y;
+        return (x * 123456789) + y;
     }
 }
