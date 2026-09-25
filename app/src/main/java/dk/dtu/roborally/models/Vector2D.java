@@ -21,6 +21,6 @@ public record Vector2D(int x, int y) {
     // We need some kind of hashing function, since Vector2D has two variables
     @Override
     public int hashCode() {
-        return (x * 123456789) + y;
+        return (x * 12345) + y;
     }
 }
