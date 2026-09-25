@@ -22,6 +22,10 @@ public class Board {
         return tileMap.get(new Vector2D(x, y));
     }
 
+    public Tile getTile(Vector2D position) {
+        return tileMap.get(position);
+    }
+
     public boolean isWithinBoard(Vector2D position) {
         // check if the position is a valid space on the board
         return tileMap.containsKey(position);
