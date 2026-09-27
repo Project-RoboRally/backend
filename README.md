@@ -35,5 +35,5 @@ The project is configured such that it will not compile and run if the code is
 not correctly formatted.
 
 ```bash
-gralde spotlessApply
+gradle spotlessApply
 ```

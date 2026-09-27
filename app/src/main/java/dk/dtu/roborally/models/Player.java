@@ -1,28 +1,29 @@
 package dk.dtu.roborally.models;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.util.Objects;
 
-import javax.annotation.Nullable;
+import dk.dtu.roborally.enums.PlayerColor;
+import lombok.Getter;
 
 /**
- * Represents a player participating in a Robo Rally game.
+ * Represents a user's participation in a specific Robo Rally game. Holds the
+ * user's game-specific robot, player mat and progress.
  *
- * @author Elias, Matthias
+ * @author Elias, Matthias, August
  */
+@Getter
 public class Player {
-
-	@Getter
-	private final String username;
-	@Getter
+	private final String id;
+	private final User user;
+	private final PlayerColor color;
 	private final PlayerMat playerMat;
-	@Nullable
-	@Getter
-	@Setter
 	private Robot robot;
+	private int checkpointsReached;
 
-	public Player(String username) {
-		this.username = username;
+	public Player(String id, User user, PlayerColor color) {
+		this.id = Objects.requireNonNull(id);
+		this.user = Objects.requireNonNull(user);
+		this.color = Objects.requireNonNull(color);
 		this.playerMat = new PlayerMat();
 	}
 }

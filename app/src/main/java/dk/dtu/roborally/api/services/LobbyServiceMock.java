@@ -29,7 +29,7 @@ public class LobbyServiceMock implements ILobbyService {
 	public LobbyServiceMock() {
 		for (LobbyDTO mock : LobbyMockData.LOBBIES) {
 			Lobby lobby = new Lobby(mock.id(), mock.name(), mock.createdBy());
-			lobby.players.addAll(mock.players());
+			lobby.users.addAll(mock.users());
 			lobbies.put(mock.id(), lobby);
 		}
 	}
@@ -47,7 +47,7 @@ public class LobbyServiceMock implements ILobbyService {
 	public LobbyDTO createLobby(CreateLobbyDTO payload) {
 		String id = UUID.randomUUID().toString();
 		Lobby lobby = new Lobby(id, payload.name(), payload.username());
-		lobby.players.add(payload.username());
+		lobby.users.add(payload.username());
 		lobbies.put(id, lobby);
 		return lobby.toDTO();
 	}
@@ -60,8 +60,8 @@ public class LobbyServiceMock implements ILobbyService {
 	@Override
 	public LobbyDTO joinLobby(String id, String username) {
 		Lobby lobby = getLobbyOrThrow(id);
-		if (!lobby.players.contains(username)) {
-			lobby.players.add(username);
+		if (!lobby.users.contains(username)) {
+			lobby.users.add(username);
 		}
 		return lobby.toDTO();
 	}
@@ -69,7 +69,7 @@ public class LobbyServiceMock implements ILobbyService {
 	@Override
 	public LobbyDTO leaveLobby(String id, String username) {
 		Lobby lobby = getLobbyOrThrow(id);
-		lobby.players.remove(username);
+		lobby.users.remove(username);
 		return lobby.toDTO();
 	}
 
@@ -81,13 +81,12 @@ public class LobbyServiceMock implements ILobbyService {
 	}
 
 	@Override
-	public LobbyDTO kickPlayer(String id, String kickedBy,
-			String playerKicked) {
+	public LobbyDTO kickUser(String id, String kickedBy, String userKicked) {
 		Lobby lobby = getLobbyOrThrow(id);
 		if (!lobby.createdBy.equals(kickedBy)) {
 			throw new NotAuthorizedException(kickedBy);
 		}
-		lobby.players.remove(playerKicked);
+		lobby.users.remove(userKicked);
 		return lobby.toDTO();
 	}
 
@@ -103,7 +102,7 @@ public class LobbyServiceMock implements ILobbyService {
 	private static class Lobby {
 		private final String id;
 		private String name;
-		private final List<String> players = new ArrayList<>();
+		private final List<String> users = new ArrayList<>();
 		private final String createdBy;
 
 		private Lobby(String id, String name, String createdBy) {
@@ -113,7 +112,7 @@ public class LobbyServiceMock implements ILobbyService {
 		}
 
 		private LobbyDTO toDTO() {
-			return new LobbyDTO(id, name, List.copyOf(players), createdBy);
+			return new LobbyDTO(id, name, List.copyOf(users), createdBy);
 		}
 	}
 }

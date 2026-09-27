@@ -17,7 +17,7 @@ import dk.dtu.roborally.loaders.LevelLoader;
 
 public class Lobby {
 	@Getter
-	private final Set<Player> playersInLobby = new HashSet<>();
+	private final Set<User> usersInLobby = new HashSet<>();
 
 	@Getter
 	@Setter
@@ -33,8 +33,8 @@ public class Lobby {
 		this.level = LevelLoader.load(levelPath);
 	}
 
-	public void addPlayerToLobby(Player player) {
-		playersInLobby.add(player);
+	public void addUserToLobby(User user) {
+		usersInLobby.add(user);
 	}
 
 	public void startGame(Game game) {
