@@ -2,7 +2,7 @@ package dk.dtu.roborally.api.controllers;
 
 import dk.dtu.roborally.api.dto.LoginDTO;
 import dk.dtu.roborally.api.dto.LoginResponseDTO;
-import dk.dtu.roborally.auth.LoginException;
+import dk.dtu.roborally.exceptions.auth.LoginException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,11 +16,6 @@ public class AuthController {
     @PostMapping("/api/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginDTO payload) {
         String username = payload.username();
-
-        // TODO: replace with actual login functionality
-        if (username.equals("password")) {
-            throw new LoginException("Wrong username");
-        }
 
         return ResponseEntity.ok(new LoginResponseDTO(username));
     }
