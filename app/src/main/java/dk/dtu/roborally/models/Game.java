@@ -30,11 +30,11 @@ public class Game {
 		this.board = board;
 	}
 
-    public boolean start() {
-        return true;
-    }
+	public boolean start() {
+		return true;
+	}
 
-    public void addPlayerToGame(Player player) {
-        playersInGame.add(player);
-    }
+	public void addPlayerToGame(Player player) {
+		playersInGame.add(player);
+	}
 }

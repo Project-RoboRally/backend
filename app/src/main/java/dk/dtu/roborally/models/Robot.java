@@ -21,21 +21,20 @@ public class Robot {
 		this.direction = direction;
 	}
 
-	 
 	// maybe movement should done from a higher level
-	//public void moveForward(){
-	//	currentSpace.getPosition().add(direction.step());
-	//}
+	// public void moveForward(){
+	// currentSpace.getPosition().add(direction.step());
+	// }
 
-	public void turnRight(){
+	public void turnRight() {
 		direction = direction.turnRight();
 	}
 
-	public void turnLeft(){
+	public void turnLeft() {
 		direction = direction.turnLeft();
 	}
 
-	public void uTurn(){
+	public void uTurn() {
 		direction = direction.uTurn();
 	}
 }

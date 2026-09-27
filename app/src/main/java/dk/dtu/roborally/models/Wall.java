@@ -14,11 +14,11 @@ public class Wall extends BoardElement {
 	@Getter
 	private final Direction side;
 
-    @Getter
-    private final Vector2D position;
+	@Getter
+	private final Vector2D position;
 
-    public Wall(Vector2D position, Direction side) {
-        this.position = position;
-        this.side = side;
-    }
+	public Wall(Vector2D position, Direction side) {
+		this.position = position;
+		this.side = side;
+	}
 }
