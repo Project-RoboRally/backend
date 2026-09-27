@@ -22,10 +22,10 @@ public class App {
 	public App(String[] args) {
 		// Initialise repositories
 		GameRepository gameRepository = new InMemoryGameRepository();
-		UserRepository playerRepository = new InMemoryUserRepository();
+		UserRepository userRepository = new InMemoryUserRepository();
 
 		// Setup GameEngine
-		this.gameEngine = new GameEngine(gameRepository, playerRepository);
+		this.gameEngine = new GameEngine(gameRepository, userRepository);
 
 		// Start Backend API
 		BackendApplication.main(args);

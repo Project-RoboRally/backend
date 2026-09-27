@@ -6,18 +6,20 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Basic interface for player repository
+ * Basic interface for user repository
  *
  * @author Elias, August
  */
 public interface UserRepository {
-	boolean add(User username);
+	boolean add(User user);
 
-	boolean exists(String username);
+	boolean existsByUsername(String username);
 
-	Optional<User> getById(String username);
+    boolean existsById(String id);
+
+	Optional<User> getById(String id);
 
 	List<User> getAll();
 
-	void delete(String username);
+	void delete(String id);
 }

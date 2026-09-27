@@ -26,7 +26,7 @@ public class Server {
 	private final Set<User> usersSignedIn = new HashSet<>();
 
 	public Server() {
-		// We make the server here, and allows people to sign into it
+		// We make the server here, and allows people to sign in to it
 		config = JsonLoader.loadConfig();
 		addLobby(new GameLobby(config));
 	}
@@ -35,7 +35,7 @@ public class Server {
 		lobbies.add(lobby);
 	}
 
-	public void addPlayerToServer(User user) {
+	public void addUserToServer(User user) {
 		usersSignedIn.add(user);
 	}
 
