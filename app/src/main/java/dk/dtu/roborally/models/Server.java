@@ -19,24 +19,24 @@ import java.util.Set;
 public class Server {
 	@Getter
 	@Setter
-	private List<Lobby> lobbies = new ArrayList<>();
+	private List<GameLobby> lobbies = new ArrayList<>();
 	private static Config config;
 
 	@Getter
-	private final Set<Player> playersSignedIn = new HashSet<>();
+	private final Set<User> usersSignedIn = new HashSet<>();
 
 	public Server() {
 		// We make the server here, and allows people to sign into it
 		config = JsonLoader.loadConfig();
-		addLobby(new Lobby(config));
+		addLobby(new GameLobby(config));
 	}
 
-	public void addLobby(Lobby lobby) {
+	public void addLobby(GameLobby lobby) {
 		lobbies.add(lobby);
 	}
 
-	public void addPlayerToServer(Player player) {
-		playersSignedIn.add(player);
+	public void addPlayerToServer(User user) {
+		usersSignedIn.add(user);
 	}
 
 }

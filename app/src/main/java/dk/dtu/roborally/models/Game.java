@@ -21,7 +21,7 @@ public class Game {
 	private final Set<Player> playersInGame = new HashSet<>();
 	@Getter
 	@Setter
-	private GameStatus gameState = GameStatus.WAITING_FOR_PLAYERS;
+	private GameStatus gameState = GameStatus.IN_PROGRESS;
 	@Getter
 	private final Board board;
 
