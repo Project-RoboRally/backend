@@ -7,5 +7,5 @@ package dk.dtu.roborally.enums;
  */
 
 public enum GameStatus {
-	WAITING_FOR_PLAYERS, IN_PROGRESS, FINISHED
+	IN_PROGRESS, FINISHED
 }

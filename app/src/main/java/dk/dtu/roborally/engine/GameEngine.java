@@ -16,7 +16,7 @@ public class GameEngine {
 
 	// Services
 	@Getter
-	private final UserService playerService;
+	private final UserService userService;
 	@Getter
 	private final GameService gameService;
 
@@ -26,7 +26,7 @@ public class GameEngine {
 			UserRepository userRepository) {
 
 		// Setup services
-		this.playerService = new UserService(userRepository);
+		this.userService = new UserService(userRepository);
 		this.gameService = new GameService(gameRepository);
 		this.server = new Server();
 	}

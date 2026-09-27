@@ -15,7 +15,7 @@ import dk.dtu.roborally.loaders.LevelLoader;
  * @author Victor, Sebastian
  */
 
-public class Lobby {
+public class GameLobby {
 	@Getter
 	private final Set<User> usersInLobby = new HashSet<>();
 
@@ -26,7 +26,7 @@ public class Lobby {
 	private Board level;
 	private Config config;
 
-	public Lobby(Config config) {
+	public GameLobby(Config config) {
 		// Create the JsonLoader
 		this.config = config;
 		this.levelPath = config.levels.level_0;
