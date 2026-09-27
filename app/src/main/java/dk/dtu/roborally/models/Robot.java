@@ -6,35 +6,35 @@ import lombok.Getter;
 /**
  * Represents a player's robot and its current state on the board.
  *
- * @author August, Elias, Matthias
+ * @author Elias, Matthias, August
  */
 public class Robot {
 
 	@Getter
-	private Space currentSpace;
+	private Vector2D currentSpace;
 
 	@Getter
-	private Direction direction;
+	private Direction orientation;
 
-	public Robot(Space space, Direction direction) {
+	public Robot(Vector2D space, Direction orientation) {
 		this.currentSpace = space;
-		this.direction = direction;
+		this.orientation = orientation;
 	}
 
-	// maybe movement should done from a higher level
+	// maybe movement should be done from a higher level
 	// public void moveForward(){
 	// currentSpace.getPosition().add(direction.step());
 	// }
 
 	public void turnRight() {
-		direction = direction.turnRight();
+		orientation = orientation.turnRight();
 	}
 
 	public void turnLeft() {
-		direction = direction.turnLeft();
+		orientation = orientation.turnLeft();
 	}
 
 	public void uTurn() {
-		direction = direction.uTurn();
+		orientation = orientation.uTurn();
 	}
 }

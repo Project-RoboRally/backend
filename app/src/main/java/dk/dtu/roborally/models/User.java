@@ -12,7 +12,7 @@ import java.util.UUID;
 public class User {
 
 	private final String id;
-	private final String username;
+	private String username;
 
 	public User(String username) {
 		this.id = UUID.randomUUID().toString();

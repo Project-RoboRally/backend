@@ -31,11 +31,13 @@ public class UserService {
 			throw new IllegalArgumentException(
 					"Username should be between 3 and 16 characters");
 
-		if (userRepository.exists(username))
-			throw new IllegalStateException("Player already exists");
+		if (userRepository.existsByUsername(username))
+			throw new IllegalStateException("username already taken");
 
 		User user = new User(username);
-		userRepository.add(user);
+		if (!userRepository.add(user)) {
+            throw new IllegalStateException("user could not be created");
+        }
 	}
 
 }

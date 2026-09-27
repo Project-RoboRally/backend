@@ -16,28 +16,32 @@ public class InMemoryUserRepository implements UserRepository {
 	private final List<User> users = new ArrayList<>();
 
 	/**
-	 * Adds a player to the list of all players
+	 * Adds a user to the list of all users
 	 *
 	 * @param user
-	 *            Instance of player
+	 *            Instance of user
 	 * @return true if added, false if username already exists
 	 */
 	@Override
 	public boolean add(User user) {
-		if (exists(user.getUsername()))
+		if (existsByUsername(user.getUsername()) || existsById(user.getId()))
 			return false;
 		users.add(user);
 		return true;
 	}
 
 	@Override
-	public boolean exists(String username) {
+	public boolean existsByUsername(String username) {
 		return users.stream().anyMatch(u -> u.getUsername().equals(username));
 	}
+    @Override
+    public boolean existsById(String id) {
+        return users.stream().anyMatch(u -> u.getId().equals(id));
+    }
 
 	@Override
-	public Optional<User> getById(String username) {
-		return users.stream().filter(p -> p.getUsername().equals(username))
+	public Optional<User> getById(String id) {
+		return users.stream().filter(p -> p.getId().equals(id))
 				.findFirst();
 	}
 
@@ -47,7 +51,7 @@ public class InMemoryUserRepository implements UserRepository {
 	}
 
 	@Override
-	public void delete(String username) {
-		users.removeIf(u -> u.getUsername().equals(username));
+	public void delete(String id) {
+		users.removeIf(u -> u.getId().equals(id));
 	}
 }
