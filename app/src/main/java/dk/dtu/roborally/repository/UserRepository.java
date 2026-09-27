@@ -1,6 +1,6 @@
 package dk.dtu.roborally.repository;
 
-import dk.dtu.roborally.models.Player;
+import dk.dtu.roborally.models.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -8,16 +8,16 @@ import java.util.Optional;
 /**
  * Basic interface for player repository
  *
- * @author Elias
+ * @author Elias, August
  */
-public interface PlayerRepository {
-	boolean add(Player player);
+public interface UserRepository {
+	boolean add(User username);
 
 	boolean exists(String username);
 
-	Optional<Player> getById(String username);
+	Optional<User> getById(String username);
 
-	List<Player> getAll();
+	List<User> getAll();
 
 	void delete(String username);
 }

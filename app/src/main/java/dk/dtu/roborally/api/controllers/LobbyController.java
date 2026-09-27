@@ -64,10 +64,10 @@ public class LobbyController {
 	}
 
 	@PostMapping("/{id}/kick")
-	public ResponseEntity<LobbyDTO> kickPlayer(@PathVariable String id,
-			@RequestBody KickPlayerDTO payload) {
-		return ResponseEntity.ok(lobbyService.kickPlayer(id, payload.kickedBy(),
-				payload.playerKicked()));
+	public ResponseEntity<LobbyDTO> kickUser(@PathVariable String id,
+			@RequestBody KickUserDTO payload) {
+		return ResponseEntity.ok(lobbyService.kickUser(id, payload.kickedBy(),
+				payload.userKicked()));
 	}
 
 	@ExceptionHandler(LobbyNotFoundException.class)

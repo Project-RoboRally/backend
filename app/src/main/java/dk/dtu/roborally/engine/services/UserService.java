@@ -1,22 +1,22 @@
 package dk.dtu.roborally.engine.services;
 
-import dk.dtu.roborally.models.Player;
-import dk.dtu.roborally.repository.PlayerRepository;
+import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.repository.UserRepository;
 
 /**
- * Service for all player logic
+ * Service for all user logic
  *
  * @author Elias
  */
-public class PlayerService {
+public class UserService {
 
-	private final PlayerRepository playerRepository;
+	private final UserRepository userRepository;
 
-	public PlayerService(PlayerRepository playerRepository) {
-		this.playerRepository = playerRepository;
+	public UserService(UserRepository userRepository) {
+		this.userRepository = userRepository;
 	}
 
-	public void addPlayer(String username) {
+	public void addUser(String username) {
 		if (username == null)
 			throw new IllegalArgumentException("Username is null");
 
@@ -31,10 +31,11 @@ public class PlayerService {
 			throw new IllegalArgumentException(
 					"Username should be between 3 and 16 characters");
 
-		if (playerRepository.exists(username))
+		if (userRepository.exists(username))
 			throw new IllegalStateException("Player already exists");
 
-		Player player = new Player(username);
-		playerRepository.add(player);
+		User user = new User(username);
+		userRepository.add(user);
 	}
+
 }
