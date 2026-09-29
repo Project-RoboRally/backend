@@ -1,7 +1,8 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.player;
 
 import java.util.Objects;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.models.User;
 import lombok.Getter;
 
 /**

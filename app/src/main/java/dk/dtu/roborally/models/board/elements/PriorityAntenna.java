@@ -1,4 +1,4 @@
-package dk.dtu.roborally.models.BoardElements;
+package dk.dtu.roborally.models.board.elements;
 
 /**
  * Represents the priority antenna of a game, 

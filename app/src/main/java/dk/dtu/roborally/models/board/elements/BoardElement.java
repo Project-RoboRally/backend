@@ -1,4 +1,4 @@
-package dk.dtu.roborally.models.BoardElements;
+package dk.dtu.roborally.models.board.elements;
 
 /**
  * Base class for elements that can be placed on a board space, such as walls,

@@ -1,4 +1,4 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.board;
 
 import java.util.HashMap;
 import java.util.Map;

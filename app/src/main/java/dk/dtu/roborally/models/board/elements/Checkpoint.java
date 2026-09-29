@@ -1,6 +1,6 @@
-package dk.dtu.roborally.models.BoardElements;
+package dk.dtu.roborally.models.board.elements;
 
-import dk.dtu.roborally.models.Vector2D;
+import dk.dtu.roborally.models.board.Vector2D;
 import lombok.Getter;
 
 /**

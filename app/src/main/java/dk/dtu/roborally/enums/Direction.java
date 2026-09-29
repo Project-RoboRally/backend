@@ -1,6 +1,6 @@
 package dk.dtu.roborally.enums;
 
-import dk.dtu.roborally.models.Vector2D;
+import dk.dtu.roborally.models.board.Vector2D;
 
 /**
  * Represents a direction for a robot.

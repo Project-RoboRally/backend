@@ -1,9 +1,11 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.game;
 
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.GameStatus;
-import dk.dtu.roborally.models.Cards.CardDeck;
-import dk.dtu.roborally.models.Cards.DamageCard;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.cards.CardDeck;
+import dk.dtu.roborally.models.cards.DamageCard;
+import dk.dtu.roborally.models.player.Player;
 import lombok.Getter;
 import lombok.Setter;
 
