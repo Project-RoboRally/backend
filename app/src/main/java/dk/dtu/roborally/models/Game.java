@@ -1,17 +1,21 @@
 package dk.dtu.roborally.models;
 
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.GameStatus;
+import dk.dtu.roborally.models.Cards.CardDeck;
+import dk.dtu.roborally.models.Cards.DamageCard;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents an active or pending Robo Rally game. Holds the players, board and
- * current game state.
+ * Represents an active or pending Robo Rally game. Holds the players, board, 
+ * shared game cards (like damage cards) and current game status
  *
- * @author Elias, Matthias
+ * @author Elias, Matthias, August
  */
 public class Game {
 
@@ -21,13 +25,17 @@ public class Game {
 	private final Set<Player> playersInGame = new HashSet<>();
 	@Getter
 	@Setter
-	private GameStatus gameState = GameStatus.IN_PROGRESS;
+	private GameStatus gameStatus = GameStatus.IN_PROGRESS;
 	@Getter
 	private final Board board;
+	@Getter
+	private Round currentRound = new Round();
+	private final Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies;
 
-	public Game(String gameID, Board board) {
+	public Game(String gameID, Board board,  Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
 		this.gameID = gameID;
 		this.board = board;
+		this.damageSupplies = damageSupplies;
 	}
 
 	public boolean start() {
