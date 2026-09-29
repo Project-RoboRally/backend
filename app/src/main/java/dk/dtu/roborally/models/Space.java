@@ -5,6 +5,8 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.List;
 
+import dk.dtu.roborally.models.BoardElements.BoardElement;
+
 /**
  * Represents a single space on the Robo Rally board. A tile has a fixed
  * position and may contain multiple board elements.
