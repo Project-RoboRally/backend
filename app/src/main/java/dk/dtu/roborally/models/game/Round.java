@@ -8,21 +8,21 @@ import lombok.Getter;
 /**
  * Represents an active or ended round
  *
- * @author  August
+ * @author August
  */
 
 public class Round {
-    @Getter 
-    private Phase currentPhase = Phase.PROGRAMMING;
+	@Getter
+	private Phase currentPhase = Phase.PROGRAMMING;
 
-    @Getter
-    private final ProgrammingTimer timer = new ProgrammingTimer();
+	@Getter
+	private final ProgrammingTimer timer = new ProgrammingTimer();
 
-    private Integer currentRegisterIndex;
+	private Integer currentRegisterIndex;
 
-    public Optional<Integer> getCurrentRegisterIndex() {
-        return Optional.ofNullable(currentRegisterIndex);
-    }
+	public Optional<Integer> getCurrentRegisterIndex() {
+		return Optional.ofNullable(currentRegisterIndex);
+	}
 
-    //TODO: Add round management logic
+	// TODO: Add round management logic
 }

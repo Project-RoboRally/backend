@@ -29,17 +29,18 @@ public class PlayerMat {
 			registers[i] = new Register(i);
 		}
 	}
-	// TODO: Implement logic for drawing cards, submitting registers, and discarding cards.
+	// TODO: Implement logic for drawing cards, submitting registers, and
+	// discarding cards.
 
 	public List<ProgrammableCard> getHand() {
 		return List.copyOf(hand);
 	}
 
 	public List<ProgrammableCard> getDiscardPile() {
-    	return List.copyOf(discardPile);
+		return List.copyOf(discardPile);
 	}
 
 	public int getDrawPileSize() {
-    	return drawPile.size();
+		return drawPile.size();
 	}
 }

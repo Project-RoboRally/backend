@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Represents an active or pending Robo Rally game. Holds the players, board, 
+ * Represents an active or pending Robo Rally game. Holds the players, board,
  * shared game cards (like damage cards) and current game status
  *
  * @author Elias, Matthias, August
@@ -34,7 +34,8 @@ public class Game {
 	private Round currentRound = new Round();
 	private final Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies;
 
-	public Game(String gameID, Board board,  Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
+	public Game(String gameID, Board board,
+			Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
 		this.gameID = gameID;
 		this.board = board;
 		this.damageSupplies = damageSupplies;

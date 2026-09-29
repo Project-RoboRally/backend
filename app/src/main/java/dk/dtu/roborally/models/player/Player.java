@@ -25,7 +25,7 @@ public class Player {
 		this.id = Objects.requireNonNull(id);
 		this.user = Objects.requireNonNull(user);
 		this.color = Objects.requireNonNull(color);
-        this.robot = Objects.requireNonNull(robot);
+		this.robot = Objects.requireNonNull(robot);
 		this.playerMat = new PlayerMat();
 	}
 }

@@ -20,8 +20,8 @@ import dk.dtu.roborally.models.game.Game;
 
 public class GameLobby {
 	private final Set<User> usersInLobby = new HashSet<>();
-    private static final int MIN_USERS = 2;
-    private static final int MAX_USERS = 6;
+	private static final int MIN_USERS = 2;
+	private static final int MAX_USERS = 6;
 
 	@Getter
 	@Setter
@@ -30,60 +30,61 @@ public class GameLobby {
 	private Board level;
 	private Config config;
 
-    @Getter
-    private final String lobbyId;
-    @Getter
-    private String lobbyName;
-    @Getter
-    private User lobbyOwner;
-
+	@Getter
+	private final String lobbyId;
+	@Getter
+	private String lobbyName;
+	@Getter
+	private User lobbyOwner;
 
 	public GameLobby(Config config, String lobbyName, User lobbyOwner) {
-        this.lobbyId = java.util.UUID.randomUUID().toString();
-        this.lobbyName = Objects.requireNonNull(lobbyName);
-        this.lobbyOwner = Objects.requireNonNull(lobbyOwner);
+		this.lobbyId = java.util.UUID.randomUUID().toString();
+		this.lobbyName = Objects.requireNonNull(lobbyName);
+		this.lobbyOwner = Objects.requireNonNull(lobbyOwner);
 		// Create the JsonLoader
 		this.config = config;
 		this.levelPath = config.levels.level_0;
 		this.level = LevelLoader.load(levelPath);
 
-        addUserToLobby(lobbyOwner);
+		addUserToLobby(lobbyOwner);
 	}
 
 	public void addUserToLobby(User user) {
-        Objects.requireNonNull(user);
+		Objects.requireNonNull(user);
 
-        boolean alreadyJoined = usersInLobby.stream()
-                .anyMatch(existing -> existing.getId().equals(user.getId()));
-        if (alreadyJoined) {
-            return;
-        }
+		boolean alreadyJoined = usersInLobby.stream()
+				.anyMatch(existing -> existing.getId().equals(user.getId()));
+		if (alreadyJoined) {
+			return;
+		}
 
-        if (isFull()) {
-            throw new IllegalStateException("Game lobby is full. Cannot add more users.");
-        }
+		if (isFull()) {
+			throw new IllegalStateException(
+					"Game lobby is full. Cannot add more users.");
+		}
 
 		usersInLobby.add(user);
 	}
 
 	public void startGame(Game game) {
 
-        if (!hasEnoughPlayers()) {
-            throw new IllegalStateException("Not enough players to start the game.");
-        }
+		if (!hasEnoughPlayers()) {
+			throw new IllegalStateException(
+					"Not enough players to start the game.");
+		}
 
 		game.start();
 	}
 
-    public Set<User> getUsersInLobby() {
-        return Set.copyOf(usersInLobby);
-    }
+	public Set<User> getUsersInLobby() {
+		return Set.copyOf(usersInLobby);
+	}
 
-    public boolean isFull() {
-        return usersInLobby.size() >= MAX_USERS;
-    }
+	public boolean isFull() {
+		return usersInLobby.size() >= MAX_USERS;
+	}
 
-    public boolean hasEnoughPlayers() {
-        return usersInLobby.size() >= MIN_USERS;
-    }
+	public boolean hasEnoughPlayers() {
+		return usersInLobby.size() >= MIN_USERS;
+	}
 }
