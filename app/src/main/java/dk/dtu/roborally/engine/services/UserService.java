@@ -36,8 +36,8 @@ public class UserService {
 
 		User user = new User(username);
 		if (!userRepository.add(user)) {
-            throw new IllegalStateException("user could not be created");
-        }
+			throw new IllegalStateException("user could not be created");
+		}
 	}
 
 }

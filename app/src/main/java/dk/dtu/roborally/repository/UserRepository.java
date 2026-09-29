@@ -15,7 +15,7 @@ public interface UserRepository {
 
 	boolean existsByUsername(String username);
 
-    boolean existsById(String id);
+	boolean existsById(String id);
 
 	Optional<User> getById(String id);
 

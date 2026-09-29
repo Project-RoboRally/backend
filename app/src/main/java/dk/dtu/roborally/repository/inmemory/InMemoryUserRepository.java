@@ -34,15 +34,14 @@ public class InMemoryUserRepository implements UserRepository {
 	public boolean existsByUsername(String username) {
 		return users.stream().anyMatch(u -> u.getUsername().equals(username));
 	}
-    @Override
-    public boolean existsById(String id) {
-        return users.stream().anyMatch(u -> u.getId().equals(id));
-    }
+	@Override
+	public boolean existsById(String id) {
+		return users.stream().anyMatch(u -> u.getId().equals(id));
+	}
 
 	@Override
 	public Optional<User> getById(String id) {
-		return users.stream().filter(p -> p.getId().equals(id))
-				.findFirst();
+		return users.stream().filter(p -> p.getId().equals(id)).findFirst();
 	}
 
 	@Override
