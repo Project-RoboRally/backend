@@ -3,9 +3,9 @@ package dk.dtu.roborally.enums;
 /**
  * Represents the current game state.
  *
- * @author Elias
+ * @author Elias, Matthias
  */
 
-public enum GameState {
-	WAITING, RUNNING
+public enum GameStatus {
+	IN_PROGRESS, FINISHED
 }

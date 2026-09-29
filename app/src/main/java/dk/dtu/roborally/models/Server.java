@@ -1,6 +1,5 @@
 package dk.dtu.roborally.models;
 
-import dk.dtu.roborally.enums.GameState;
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.JsonLoader;
 import lombok.Getter;
