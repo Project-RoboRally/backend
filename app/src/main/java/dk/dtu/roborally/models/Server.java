@@ -26,9 +26,11 @@ public class Server {
 	private final Set<User> usersSignedIn = new HashSet<>();
 
 	public Server() {
+        config = JsonLoader.loadConfig();
 		// We make the server here, and allows people to sign in to it
-		config = JsonLoader.loadConfig();
-		addLobby(new GameLobby(config));
+        User owner = new User("Default user");
+        GameLobby lobby = new GameLobby(config, "Default lobby", owner);
+        addLobby(lobby);
 	}
 
 	public void addLobby(GameLobby lobby) {
