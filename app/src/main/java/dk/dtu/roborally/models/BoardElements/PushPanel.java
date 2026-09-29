@@ -1,6 +1,7 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.BoardElements;
 
 import dk.dtu.roborally.enums.Direction;
+import dk.dtu.roborally.models.Vector2D;
 import lombok.Getter;
 
 /**

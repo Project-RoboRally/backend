@@ -8,17 +8,17 @@ import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
 import dk.dtu.roborally.models.Board;
-import dk.dtu.roborally.models.Checkpoint;
-import dk.dtu.roborally.models.ConveyorBelt;
-import dk.dtu.roborally.models.EnergySpace;
-import dk.dtu.roborally.models.Gear;
-import dk.dtu.roborally.models.LaserEmitter;
-import dk.dtu.roborally.models.Pit;
-import dk.dtu.roborally.models.PushPanel;
-import dk.dtu.roborally.models.StartingPoint;
 import dk.dtu.roborally.models.Space;
 import dk.dtu.roborally.models.Vector2D;
-import dk.dtu.roborally.models.Wall;
+import dk.dtu.roborally.models.BoardElements.Checkpoint;
+import dk.dtu.roborally.models.BoardElements.ConveyorBelt;
+import dk.dtu.roborally.models.BoardElements.EnergySpace;
+import dk.dtu.roborally.models.BoardElements.Gear;
+import dk.dtu.roborally.models.BoardElements.LaserEmitter;
+import dk.dtu.roborally.models.BoardElements.Pit;
+import dk.dtu.roborally.models.BoardElements.PushPanel;
+import dk.dtu.roborally.models.BoardElements.StartingPoint;
+import dk.dtu.roborally.models.BoardElements.Wall;
 
 /**
  * This class loads the data from Level.java into the correct classes from the
