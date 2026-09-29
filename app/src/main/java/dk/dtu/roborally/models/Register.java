@@ -1,6 +1,6 @@
 package dk.dtu.roborally.models;
 
-import dk.dtu.roborally.enums.Command;
+import dk.dtu.roborally.models.Cards.ProgrammableCard;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +16,7 @@ public class Register {
 
 	@Getter
 	@Setter
-	private Command command;
+	private ProgrammableCard card;
 
 	public Register(int index) {
 		this.index = index;
