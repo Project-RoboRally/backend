@@ -1,4 +1,4 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.board;
 
 /**
  * Represents an immutable two-dimensional integer coordinate. Now with a

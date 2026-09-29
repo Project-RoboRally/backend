@@ -1,4 +1,4 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.game;
 
 import java.time.Duration;
 

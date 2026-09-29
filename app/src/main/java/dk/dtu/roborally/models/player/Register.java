@@ -1,6 +1,6 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.player;
 
-import dk.dtu.roborally.models.Cards.ProgrammableCard;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
 import lombok.Getter;
 import lombok.Setter;
 

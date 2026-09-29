@@ -9,6 +9,8 @@ import java.util.Set;
 
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.LevelLoader;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.game.Game;
 
 /**
  * The Server needs to hold n lobbies, and every lobby can hold a singular game.

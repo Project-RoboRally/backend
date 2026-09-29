@@ -1,4 +1,4 @@
-package dk.dtu.roborally.models.Cards;
+package dk.dtu.roborally.models.cards;
 
 import dk.dtu.roborally.enums.CommandInstruction;
 import lombok.Getter;

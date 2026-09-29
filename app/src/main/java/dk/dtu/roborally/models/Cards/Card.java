@@ -1,4 +1,4 @@
-package dk.dtu.roborally.models.Cards;
+package dk.dtu.roborally.models.cards;
 
 /**
  * Represents a card in the game.

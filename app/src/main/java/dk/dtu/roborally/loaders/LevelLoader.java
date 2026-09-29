@@ -7,18 +7,18 @@ import java.util.Map;
 import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
-import dk.dtu.roborally.models.Board;
-import dk.dtu.roborally.models.Space;
-import dk.dtu.roborally.models.Vector2D;
-import dk.dtu.roborally.models.BoardElements.Checkpoint;
-import dk.dtu.roborally.models.BoardElements.ConveyorBelt;
-import dk.dtu.roborally.models.BoardElements.EnergySpace;
-import dk.dtu.roborally.models.BoardElements.Gear;
-import dk.dtu.roborally.models.BoardElements.LaserEmitter;
-import dk.dtu.roborally.models.BoardElements.Pit;
-import dk.dtu.roborally.models.BoardElements.PushPanel;
-import dk.dtu.roborally.models.BoardElements.StartingPoint;
-import dk.dtu.roborally.models.BoardElements.Wall;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.board.Space;
+import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.Checkpoint;
+import dk.dtu.roborally.models.board.elements.ConveyorBelt;
+import dk.dtu.roborally.models.board.elements.EnergySpace;
+import dk.dtu.roborally.models.board.elements.Gear;
+import dk.dtu.roborally.models.board.elements.LaserEmitter;
+import dk.dtu.roborally.models.board.elements.Pit;
+import dk.dtu.roborally.models.board.elements.PushPanel;
+import dk.dtu.roborally.models.board.elements.StartingPoint;
+import dk.dtu.roborally.models.board.elements.Wall;
 
 /**
  * This class loads the data from Level.java into the correct classes from the
