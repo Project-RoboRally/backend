@@ -16,15 +16,13 @@ public class Robot {
 	@Getter
 	private Direction orientation;
 
+	@Getter
+	private boolean rebootedThisRound;
+
 	public Robot(Vector2D space, Direction orientation) {
 		this.currentSpace = space;
 		this.orientation = orientation;
 	}
-
-	// maybe movement should be done from a higher level
-	// public void moveForward(){
-	// currentSpace.getPosition().add(direction.step());
-	// }
 
 	public void turnRight() {
 		orientation = orientation.turnRight();
