@@ -21,7 +21,7 @@ public record LobbyDTO(String id, String name, List<String> users,
 		String createdBy = lobby.getLobbyOwner() == null
 				? null
 				: lobby.getLobbyOwner().getUsername();
-		return new LobbyDTO(lobby.getLobbyId(), lobby.getLobbyName(),
-				usernames, createdBy);
+		return new LobbyDTO(lobby.getLobbyId(), lobby.getLobbyName(), usernames,
+				createdBy);
 	}
 }

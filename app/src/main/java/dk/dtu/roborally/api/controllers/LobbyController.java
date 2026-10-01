@@ -67,8 +67,8 @@ public class LobbyController {
 	@PostMapping("/{id}/leave")
 	public ResponseEntity<LobbyDTO> leaveLobby(@PathVariable String id,
 			@RequestBody AddToRemoveFromLobbyDTO payload) {
-		return ResponseEntity.ok(LobbyDTO.from(
-				lobbyService.leaveLobby(id, payload.username())));
+		return ResponseEntity.ok(
+				LobbyDTO.from(lobbyService.leaveLobby(id, payload.username())));
 	}
 
 	@PostMapping("/{id}/kick")
@@ -85,8 +85,8 @@ public class LobbyController {
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler({ PlayerNotFound.class,
-			LobbyCreatorNotFoundOnCreate.class })
+	@ExceptionHandler({PlayerNotFound.class,
+			LobbyCreatorNotFoundOnCreate.class})
 	public ResponseEntity<Map<String, String>> handlePlayerMissing(
 			RuntimeException ex) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
