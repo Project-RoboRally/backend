@@ -6,7 +6,7 @@ package dk.dtu.roborally.exceptions.lobby;
  * @author Nicoleta
  */
 public class LobbyNotFoundException extends RuntimeException {
-    public LobbyNotFoundException(String id) {
-        super("Lobby not found: " + id);
-    }
+	public LobbyNotFoundException(String id) {
+		super("Lobby not found: " + id);
+	}
 }

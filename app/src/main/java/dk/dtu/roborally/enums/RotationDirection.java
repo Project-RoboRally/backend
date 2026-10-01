@@ -7,6 +7,5 @@ package dk.dtu.roborally.enums;
  * @author Victor
  */
 public enum RotationDirection {
-    CLOCKWISE,
-    COUNTERCLOCKWISE
+	CLOCKWISE, COUNTERCLOCKWISE
 }

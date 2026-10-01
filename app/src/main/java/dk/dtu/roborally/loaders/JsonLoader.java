@@ -13,47 +13,43 @@ import com.google.gson.Gson;
  */
 
 public class JsonLoader {
-    public static Config loadConfig() {
-        try {
-            // Load variables into a object instance
-            Gson gson = new Gson();
+	public static Config loadConfig() {
+		try {
+			// Load variables into a object instance
+			Gson gson = new Gson();
 
-            try (InputStream input = JsonLoader.class
-                    .getClassLoader()
-                    .getResourceAsStream("config.json")) {
+			try (InputStream input = JsonLoader.class.getClassLoader()
+					.getResourceAsStream("config.json")) {
 
-                if (input == null) {
-                    throw new RuntimeException("config.json not found");
-                }
+				if (input == null) {
+					throw new RuntimeException("config.json not found");
+				}
 
-                return gson.fromJson(
-                        new InputStreamReader(input),
-                        Config.class);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load config.json", e);
-        }
-    }
+				return gson.fromJson(new InputStreamReader(input),
+						Config.class);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to load config.json", e);
+		}
+	}
 
-    public static LevelData loadLevel(String levelPath) {
-        try {
-            // Load variables into a object instance
-            Gson gson = new Gson();
+	public static LevelData loadLevel(String levelPath) {
+		try {
+			// Load variables into a object instance
+			Gson gson = new Gson();
 
-            try (InputStream input = JsonLoader.class
-                    .getClassLoader()
-                    .getResourceAsStream(levelPath)) {
+			try (InputStream input = JsonLoader.class.getClassLoader()
+					.getResourceAsStream(levelPath)) {
 
-                if (input == null) {
-                    throw new RuntimeException(levelPath + " not found");
-                }
+				if (input == null) {
+					throw new RuntimeException(levelPath + " not found");
+				}
 
-                return gson.fromJson(
-                        new InputStreamReader(input),
-                        LevelData.class);
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load " + levelPath, e);
-        }
-    }
+				return gson.fromJson(new InputStreamReader(input),
+						LevelData.class);
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Failed to load " + levelPath, e);
+		}
+	}
 }

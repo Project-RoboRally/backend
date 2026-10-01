@@ -6,24 +6,24 @@ import dk.dtu.roborally.api.dto.LobbyDTO;
 import java.util.List;
 
 /**
- * Handles lobby creation, retrieval, and player joining/leaving/being kicked out.
+ * Handles lobby creation, retrieval, and user joining/leaving/being kicked out.
  *
  * @author Nicoleta
  */
 public interface ILobbyService {
 
-    List<LobbyDTO> getLobbies();
+	List<LobbyDTO> getLobbies();
 
-    LobbyDTO createLobby(CreateLobbyDTO payload);
+	LobbyDTO createLobby(CreateLobbyDTO payload);
 
-    LobbyDTO getLobby(String id);
+	LobbyDTO getLobby(String id);
 
-    LobbyDTO joinLobby(String id, String username);
+	LobbyDTO joinLobby(String id, String username);
 
-    LobbyDTO leaveLobby(String id, String username);
+	LobbyDTO leaveLobby(String id, String username);
 
-    LobbyDTO renameLobby(String id, String name);
+	LobbyDTO renameLobby(String id, String name);
 
-    LobbyDTO kickPlayer(String id, String kickedBy, String playerKicked);
+	LobbyDTO kickUser(String id, String kickedBy, String userKicked);
 
 }
