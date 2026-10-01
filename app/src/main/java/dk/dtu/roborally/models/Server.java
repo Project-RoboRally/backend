@@ -1,6 +1,5 @@
 package dk.dtu.roborally.models;
 
-import dk.dtu.roborally.enums.GameState;
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.JsonLoader;
 import lombok.Getter;
@@ -18,26 +17,28 @@ import java.util.Set;
  */
 
 public class Server {
-    @Getter
-    @Setter
-    private List<Lobby> lobbies = new ArrayList<>();
-    private static Config config;
+	@Getter
+	@Setter
+	private List<GameLobby> lobbies = new ArrayList<>();
+	private static Config config;
 
-    @Getter
-    private final Set<Player> playersSignedIn = new HashSet<>();
+	@Getter
+	private final Set<User> usersSignedIn = new HashSet<>();
 
-    public Server() {
-        // We make the server here, and allows people to sign into it
-        config = JsonLoader.loadConfig();
-        addLobby(new Lobby(config));
-    }
+	public Server() {
+		config = JsonLoader.loadConfig();
+		// We make the server here, and allows people to sign in to it
+		User owner = new User("Default user");
+		GameLobby lobby = new GameLobby(config, "Default lobby", owner);
+		addLobby(lobby);
+	}
 
-    public void addLobby(Lobby lobby) {
-        lobbies.add(lobby);
-    }
+	public void addLobby(GameLobby lobby) {
+		lobbies.add(lobby);
+	}
 
-    public void addPlayerToServer(Player player) {
-        playersSignedIn.add(player);
-    }
+	public void addUserToServer(User user) {
+		usersSignedIn.add(user);
+	}
 
 }

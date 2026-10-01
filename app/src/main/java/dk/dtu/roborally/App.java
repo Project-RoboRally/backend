@@ -2,9 +2,9 @@ package dk.dtu.roborally;
 
 import dk.dtu.roborally.engine.GameEngine;
 import dk.dtu.roborally.repository.GameRepository;
-import dk.dtu.roborally.repository.PlayerRepository;
+import dk.dtu.roborally.repository.UserRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
-import dk.dtu.roborally.repository.inmemory.InMemoryPlayerRepository;
+import dk.dtu.roborally.repository.inmemory.InMemoryUserRepository;
 import lombok.Getter;
 
 /**
@@ -22,10 +22,10 @@ public class App {
 	public App(String[] args) {
 		// Initialise repositories
 		GameRepository gameRepository = new InMemoryGameRepository();
-		PlayerRepository playerRepository = new InMemoryPlayerRepository();
+		UserRepository userRepository = new InMemoryUserRepository();
 
 		// Setup GameEngine
-		this.gameEngine = new GameEngine(gameRepository, playerRepository);
+		this.gameEngine = new GameEngine(gameRepository, userRepository);
 
 		// Start Backend API
 		BackendApplication.main(args);

@@ -49,3 +49,12 @@ To run unit tests using JUnit 4 run
 ```bash
 gradle test
 ```
+
+### Format the base
+
+The project is configured such that it will not compile and run if the code is
+not correctly formatted.
+
+```bash
+gradle spotlessApply
+```
