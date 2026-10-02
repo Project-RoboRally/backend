@@ -19,12 +19,20 @@ public class AuthController {
 		this.userService = userService;
 	}
 
+	@GetMapping("/api/session")
+	public ResponseEntity<?> session(@RequestParam String username) {
+		return userService.findByUsername(username)
+				.<ResponseEntity<?>>map(user -> ResponseEntity
+						.ok(new LoginResponseDTO(user.getUsername())))
+				.orElseGet(() -> ResponseEntity.notFound().build());
+	}
+
 	@PostMapping("/api/login")
 	public ResponseEntity<?> login(@RequestBody LoginDTO payload) {
 		String username = payload.username();
 
 		try {
-			userService.addUser(username);
+			userService.ensureUser(username);
 		} catch (IllegalArgumentException ex) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 					.body(Map.of("error", ex.getMessage()));
