@@ -1,6 +1,7 @@
 package dk.dtu.roborally.models.player;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import dk.dtu.roborally.models.cards.CardDeck;
@@ -33,11 +34,11 @@ public class PlayerMat {
 	// discarding cards.
 
 	public List<ProgrammableCard> getHand() {
-		return List.copyOf(hand);
+		return Collections.unmodifiableList(hand);
 	}
 
 	public List<ProgrammableCard> getDiscardPile() {
-		return List.copyOf(discardPile);
+		return Collections.unmodifiableList(discardPile);
 	}
 
 	public int getDrawPileSize() {
