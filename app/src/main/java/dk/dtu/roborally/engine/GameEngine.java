@@ -1,5 +1,6 @@
 package dk.dtu.roborally.engine;
 
+import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.services.GameService;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.engine.services.UserService;
@@ -27,11 +28,12 @@ public class GameEngine {
 	private Server server;
 
 	public GameEngine(GameRepository gameRepository,
-			UserRepository userRepository, LobbyRepository lobbyRepository) {
+			UserRepository userRepository, LobbyRepository lobbyRepository,
+			GameEventPublisher gameEventPublisher) {
 
 		// Setup services
 		this.userService = new UserService(userRepository);
-		this.gameService = new GameService(gameRepository);
+		this.gameService = new GameService(gameRepository, gameEventPublisher);
 		this.lobbyService = new LobbyService(lobbyRepository, userRepository);
 		this.server = new Server();
 	}
