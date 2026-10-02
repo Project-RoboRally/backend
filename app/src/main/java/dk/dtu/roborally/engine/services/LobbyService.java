@@ -20,12 +20,14 @@ import java.util.List;
 public class LobbyService {
 	private final LobbyRepository lobbyRepository;
 	private final UserRepository userRepository;
+	private final GameService gameService;
 	private final Config config;
 
 	public LobbyService(LobbyRepository lobbyRepository,
-			UserRepository userRepository) {
+			UserRepository userRepository, GameService gameService) {
 		this.lobbyRepository = lobbyRepository;
 		this.userRepository = userRepository;
+		this.gameService = gameService;
 		this.config = JsonLoader.loadConfig();
 	}
 
@@ -97,6 +99,19 @@ public class LobbyService {
 
 		validateLobbyName(name);
 		lobby.setLobbyName(name);
+		return lobby;
+	}
+
+	public GameLobby startGame(String id, String username) {
+		User user = userRepository.getByUsername(username)
+				.orElseThrow(PlayerNotFound::new);
+
+		GameLobby lobby = getLobby(id);
+
+		if (!userInLobby(lobby, user.getUsername()))
+			throw new PlayerNotInLobby(username);
+
+		gameService.startGame(lobby);
 		return lobby;
 	}
 
