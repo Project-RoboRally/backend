@@ -1,6 +1,8 @@
 package dk.dtu.roborally.config;
 
 import dk.dtu.roborally.engine.GameEngine;
+import dk.dtu.roborally.engine.publishers.GameEventPublisher;
+import dk.dtu.roborally.engine.services.GameService;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.engine.services.UserService;
 import dk.dtu.roborally.repository.GameRepository;
@@ -32,8 +34,15 @@ public class EngineConfig {
 
 	@Bean
 	public GameEngine gameEngine(GameRepository gameRepository,
-			UserRepository userRepository, LobbyRepository lobbyRepository) {
-		return new GameEngine(gameRepository, userRepository, lobbyRepository);
+			UserRepository userRepository, LobbyRepository lobbyRepository,
+			GameEventPublisher gameEventPublisher) {
+		return new GameEngine(gameRepository, userRepository, lobbyRepository,
+				gameEventPublisher);
+	}
+
+	@Bean
+	public GameService gameService(GameEngine gameEngine) {
+		return gameEngine.getGameService();
 	}
 
 	@Bean
