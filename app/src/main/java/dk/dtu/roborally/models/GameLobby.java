@@ -49,6 +49,14 @@ public class GameLobby {
 		addUserToLobby(lobbyOwner);
 	}
 
+	public void setLobbyName(String lobbyName) {
+		this.lobbyName = Objects.requireNonNull(lobbyName);
+	}
+
+	public void removeUser(String userId) {
+		usersInLobby.removeIf(user -> user.getId().equals(userId));
+	}
+
 	public void addUserToLobby(User user) {
 		Objects.requireNonNull(user);
 
