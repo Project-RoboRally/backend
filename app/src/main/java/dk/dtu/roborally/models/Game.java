@@ -11,8 +11,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Represents an active or pending Robo Rally game.
- * Holds the players, board and current game state.
+ * Represents an active or pending Robo Rally game. Holds the players, board and
+ * current game state.
  *
  * @author Elias, Matthias, Victor
  */

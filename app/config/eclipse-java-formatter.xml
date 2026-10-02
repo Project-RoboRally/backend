@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<profiles version="24">
+    <profile kind="CodeFormatterProfile"
+             name="Project Java Style"
+             version="24">
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.tabulation.char"
+            value="tab"/>
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.tabulation.size"
+            value="4"/>
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.indentation.size"
+            value="4"/>
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.lineSplit"
+            value="80"/>
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.brace_position_for_type_declaration"
+            value="end_of_line"/>
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.brace_position_for_method_declaration"
+            value="end_of_line"/>
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.brace_position_for_block"
+            value="end_of_line"/>
+
+        <setting
+            id="org.eclipse.jdt.core.formatter.number_of_empty_lines_to_preserve"
+            value="1"/>
+
+    </profile>
+</profiles>

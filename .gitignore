@@ -50,6 +50,27 @@ devenv.local.yaml
 ### pre-commit ###
 .pre-commit-config.yaml
 
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
+
+# Devenv
+.devenv*
+devenv.local.nix
+devenv.local.yaml
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
 
 HELP.md
 build/
@@ -83,3 +104,8 @@ out/
 /nbdist/
 /.nb-gradle/
 
+# Eclipse
+/app/.classpath
+/app/.factorypath
+/app/.project
+/app/.settings/

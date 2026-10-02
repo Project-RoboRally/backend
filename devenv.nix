@@ -3,26 +3,23 @@
 {
   packages = with pkgs; [
     git
-    gradle
-    jdk25
   ];
 
-  languages.java.enable = true;
+  languages.java = {
+    enable = true;
+    jdk.package = pkgs.jdk25;
+    gradle = {
+      enable = true;
+      package = pkgs.gradle_9;
+    };
+  };
 
-  scripts.build.exec = ''
-    gradle build
-  '';
-
-  scripts.test.exec = ''
-    gradle test
-  '';
-
-  scripts.run.exec = ''
-    gradle run
-  '';
+  scripts.build.exec = "./gradlew build";
+  scripts.test.exec = "./gradlew test";
+  scripts.run.exec = "./gradlew run";
+  scripts.format.exec = "./gradlew spotlessApply";
 
   enterShell = ''
-    gradle install
     echo "Devenv active"
   '';
 }

@@ -11,14 +11,14 @@ import lombok.Setter;
  */
 public class Register {
 
-    @Getter
-    private final int index;
+	@Getter
+	private final int index;
 
-    @Getter
-    @Setter
-    private Command command;
+	@Getter
+	@Setter
+	private Command command;
 
-    public Register(int index) {
-        this.index = index;
-    }
+	public Register(int index) {
+		this.index = index;
+	}
 }

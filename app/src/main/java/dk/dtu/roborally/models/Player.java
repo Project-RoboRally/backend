@@ -12,17 +12,17 @@ import javax.annotation.Nullable;
  */
 public class Player {
 
-    @Getter
-    private final String username;
-    @Getter
-    private final PlayerMat playerMat;
-    @Nullable
-    @Getter
-    @Setter
-    private Robot robot;
+	@Getter
+	private final String username;
+	@Getter
+	private final PlayerMat playerMat;
+	@Nullable
+	@Getter
+	@Setter
+	private Robot robot;
 
-    public Player(String username) {
-        this.username = username;
-        this.playerMat = new PlayerMat();
-    }
+	public Player(String username) {
+		this.username = username;
+		this.playerMat = new PlayerMat();
+	}
 }

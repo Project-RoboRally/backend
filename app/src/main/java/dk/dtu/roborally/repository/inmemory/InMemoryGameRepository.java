@@ -13,41 +13,42 @@ import java.util.Optional;
  * @author Elias
  */
 public class InMemoryGameRepository implements GameRepository {
-    private final List<Game> games = new ArrayList<>();
+	private final List<Game> games = new ArrayList<>();
 
+	/**
+	 * Adds a game to the list of all games
+	 *
+	 * @param game
+	 *            Instance of games
+	 * @return true if added, false if gameID already exists
+	 */
+	@Override
+	public boolean add(Game game) {
+		if (exists(game.getGameID()))
+			return false;
 
-    /**
-     * Adds a game to the list of all games
-     *
-     * @param game Instance of games
-     * @return true if added, false if gameID already exists
-     */
-    @Override
-    public boolean add(Game game) {
-        if (exists(game.getGameID()))
-            return false;
+		games.add(game);
+		return true;
+	}
 
-        games.add(game);
-        return true;
-    }
+	@Override
+	public boolean exists(String gameID) {
+		return games.stream().anyMatch(g -> g.getGameID().equals(gameID));
+	}
 
-    @Override
-    public boolean exists(String gameID) {
-        return games.stream().anyMatch(g -> g.getGameID().equals(gameID));
-    }
+	@Override
+	public Optional<Game> getById(String gameID) {
+		return games.stream().filter(g -> g.getGameID().equals(gameID))
+				.findFirst();
+	}
 
-    @Override
-    public Optional<Game> getById(String gameID) {
-        return games.stream().filter(g -> g.getGameID().equals(gameID)).findFirst();
-    }
+	@Override
+	public List<Game> getAll() {
+		return List.copyOf(games);
+	}
 
-    @Override
-    public List<Game> getAll() {
-        return List.copyOf(games);
-    }
-
-    @Override
-    public void delete(String gameID) {
-        games.removeIf(g -> g.getGameID().equals(gameID));
-    }
+	@Override
+	public void delete(String gameID) {
+		games.removeIf(g -> g.getGameID().equals(gameID));
+	}
 }

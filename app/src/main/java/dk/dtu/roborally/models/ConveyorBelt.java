@@ -5,18 +5,18 @@ import dk.dtu.roborally.enums.Direction;
 import lombok.Getter;
 
 /**
- * Represents a conveyor belt placed on a board tile.
- * A conveyor belt moves robots in a specified direction.
+ * Represents a conveyor belt placed on a board tile. A conveyor belt moves
+ * robots in a specified direction.
  *
  * @author Matthias, Victor
  */
 public class ConveyorBelt extends BoardElement {
 
-    @Getter
-    private final Direction direction;
+	@Getter
+	private final Direction direction;
 
-    @Getter
-    private final ConveyorBeltType type;
+	@Getter
+	private final ConveyorBeltType type;
 
     @Getter
     private final int length;

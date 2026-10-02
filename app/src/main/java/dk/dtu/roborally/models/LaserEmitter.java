@@ -4,8 +4,8 @@ import dk.dtu.roborally.enums.Direction;
 import lombok.Getter;
 
 /**
- * Represents a laser emitter placed on the game board.
- * A laser emitter fires in a specified direction and can damage robots.
+ * Represents a laser emitter placed on the game board. A laser emitter fires in
+ * a specified direction and can damage robots.
  * <p>
  * NOTE: Laser.java is left open in case we want to do a class for the "bullet".
  *
@@ -13,8 +13,8 @@ import lombok.Getter;
  */
 public class LaserEmitter extends BoardElement {
 
-    @Getter
-    private final Direction direction;
+	@Getter
+	private final Direction direction;
 
     @Getter
     private final Vector2D position;
