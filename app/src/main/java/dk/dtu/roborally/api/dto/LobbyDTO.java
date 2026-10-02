@@ -1,5 +1,8 @@
 package dk.dtu.roborally.api.dto;
 
+import dk.dtu.roborally.models.GameLobby;
+import dk.dtu.roborally.models.User;
+
 import java.util.List;
 
 /**
@@ -8,8 +11,17 @@ import java.util.List;
  * @author Nicoleta
  */
 
-// TODO: update once Lobby model is updated with id and name, and we've talked
-// about boards creation
+// TODO: update once we've talked about boards creation
 public record LobbyDTO(String id, String name, List<String> users,
 		String createdBy) {
+
+	public static LobbyDTO from(GameLobby lobby) {
+		List<String> usernames = lobby.getUsersInLobby().stream()
+				.map(User::getUsername).toList();
+		String createdBy = lobby.getLobbyOwner() == null
+				? null
+				: lobby.getLobbyOwner().getUsername();
+		return new LobbyDTO(lobby.getLobbyId(), lobby.getLobbyName(), usernames,
+				createdBy);
+	}
 }

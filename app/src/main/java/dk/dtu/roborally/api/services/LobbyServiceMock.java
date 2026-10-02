@@ -4,8 +4,6 @@ import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,8 +19,6 @@ import java.util.UUID;
  *
  * @author Nicoleta
  */
-@Service
-@Primary
 public class LobbyServiceMock implements ILobbyService {
 	private final Map<String, Lobby> lobbies = new LinkedHashMap<>();
 

@@ -1,11 +1,9 @@
 package dk.dtu.roborally;
 
 import dk.dtu.roborally.engine.GameEngine;
-import dk.dtu.roborally.repository.GameRepository;
-import dk.dtu.roborally.repository.UserRepository;
-import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
-import dk.dtu.roborally.repository.inmemory.InMemoryUserRepository;
 import lombok.Getter;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * Main class for the application. Here we intialize the game engine and start
@@ -20,14 +18,8 @@ public class App {
 	private final GameEngine gameEngine;
 
 	public App(String[] args) {
-		// Initialise repositories
-		GameRepository gameRepository = new InMemoryGameRepository();
-		UserRepository userRepository = new InMemoryUserRepository();
-
-		// Setup GameEngine
-		this.gameEngine = new GameEngine(gameRepository, userRepository);
-
-		// Start Backend API
-		BackendApplication.main(args);
+		ConfigurableApplicationContext context = SpringApplication
+				.run(BackendApplication.class, args);
+		this.gameEngine = context.getBean(GameEngine.class);
 	}
 }
