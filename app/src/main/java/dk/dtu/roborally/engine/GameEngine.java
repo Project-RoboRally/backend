@@ -32,7 +32,8 @@ public class GameEngine {
 		// Setup services
 		this.userService = new UserService(userRepository);
 		this.gameService = new GameService(gameRepository);
-		this.lobbyService = new LobbyService(lobbyRepository, userRepository);
+		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
+				gameService);
 		this.server = new Server();
 	}
 

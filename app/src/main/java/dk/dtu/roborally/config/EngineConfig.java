@@ -1,6 +1,7 @@
 package dk.dtu.roborally.config;
 
 import dk.dtu.roborally.engine.GameEngine;
+import dk.dtu.roborally.engine.services.GameService;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.engine.services.UserService;
 import dk.dtu.roborally.repository.GameRepository;
@@ -39,6 +40,11 @@ public class EngineConfig {
 	@Bean
 	public LobbyService lobbyService(GameEngine gameEngine) {
 		return gameEngine.getLobbyService();
+	}
+
+	@Bean
+	public GameService gameService(GameEngine gameEngine) {
+		return gameEngine.getGameService();
 	}
 
 	@Bean
