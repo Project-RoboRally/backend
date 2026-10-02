@@ -1,7 +1,7 @@
 package dk.dtu.roborally.enums;
 
 /**
- * Represents the current game state.
+ * Represents the current game status.
  *
  * @author Elias
  */
