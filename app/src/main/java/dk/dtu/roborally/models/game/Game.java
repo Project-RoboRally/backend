@@ -15,7 +15,7 @@ import java.util.Set;
 
 /**
  * Represents an active or pending Robo Rally game. Holds the players, board,
- * shared game cards (like damage cards) and current game status
+ * shared game cards and current game status.
  *
  * @author Elias, Matthias, August
  */
@@ -23,19 +23,24 @@ public class Game {
 
 	@Getter
 	private final String gameID;
+
 	@Getter
 	private final Set<Player> playersInGame = new HashSet<>();
+
 	@Getter
 	@Setter
 	private GameStatus gameStatus = GameStatus.IN_PROGRESS;
+
 	@Getter
 	private final Board board;
+
 	@Getter
-	private Round currentRound = new Round();
+	private Round currentRound = new Round(1);
+
 	private final Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies;
 
 	public Game(String gameID, Board board,
-			Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
+				Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
 		this.gameID = gameID;
 		this.board = board;
 		this.damageSupplies = damageSupplies;
@@ -47,5 +52,9 @@ public class Game {
 
 	public void addPlayerToGame(Player player) {
 		playersInGame.add(player);
+	}
+
+	public void startNextRound() {
+		currentRound = new Round(currentRound.getRoundNumber() + 1);
 	}
 }

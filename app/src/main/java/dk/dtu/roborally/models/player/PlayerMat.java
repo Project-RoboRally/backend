@@ -20,17 +20,17 @@ public class PlayerMat {
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
 	private final List<ProgrammableCard> hand = new ArrayList<>();
 	private final List<ProgrammableCard> discardPile = new ArrayList<>();
+
 	private final Register[] registers = new Register[REGISTER_COUNT];
+
 	@Getter
 	private boolean submitted;
 
 	public PlayerMat() {
-		for (int i = 0; i < registers.length; i++) {
+		for (int i = 1; i < registers.length + 1; i++) {
 			registers[i] = new Register(i);
 		}
 	}
-	// TODO: Implement logic for drawing cards, submitting registers, and
-	// discarding cards.
 
 	public List<ProgrammableCard> getHand() {
 		return List.copyOf(hand);
@@ -42,5 +42,9 @@ public class PlayerMat {
 
 	public int getDrawPileSize() {
 		return drawPile.size();
+	}
+
+	public Register[] getRegisters() {
+		return registers.clone();
 	}
 }
