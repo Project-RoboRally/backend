@@ -12,13 +12,18 @@ import lombok.Setter;
 public class Register {
 
 	@Getter
-	private final int index;
+	private final int registerNumber;
 
 	@Getter
 	@Setter
 	private ProgrammableCard card;
 
-	public Register(int index) {
-		this.index = index;
+	public Register(int registerNumber) {
+		if (registerNumber < 1 || registerNumber > 5) {
+			throw new IllegalArgumentException(
+					"Register number must be between 1 and 5.");
+		}
+
+		this.registerNumber = registerNumber;
 	}
 }
