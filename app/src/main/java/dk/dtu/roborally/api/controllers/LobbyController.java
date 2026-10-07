@@ -5,10 +5,11 @@ import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
-import dk.dtu.roborally.exceptions.lobby.LobbyPlayerAlreadyInLobby;
+import dk.dtu.roborally.exceptions.lobby.LobbyUserAlreadyInLobby;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
 import dk.dtu.roborally.exceptions.lobby.PlayerNotInLobby;
-import dk.dtu.roborally.exceptions.player.PlayerNotFound;
+import dk.dtu.roborally.exceptions.user.UserNotFound;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -85,7 +86,7 @@ public class LobbyController {
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler({PlayerNotFound.class,
+	@ExceptionHandler({UserNotFound.class,
 			LobbyCreatorNotFoundOnCreate.class})
 	public ResponseEntity<Map<String, String>> handlePlayerMissing(
 			RuntimeException ex) {
@@ -107,9 +108,9 @@ public class LobbyController {
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler(LobbyPlayerAlreadyInLobby.class)
+	@ExceptionHandler(LobbyUserAlreadyInLobby.class)
 	public ResponseEntity<Map<String, String>> handleAlreadyInLobby(
-			LobbyPlayerAlreadyInLobby ex) {
+			LobbyUserAlreadyInLobby ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body(Map.of("error", ex.getMessage()));
 	}
