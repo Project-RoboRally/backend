@@ -103,15 +103,13 @@ public class GameLobby {
 	}
 
 	public Set<User> getUsersInLobby() {
-		return lobbyUsers.values().stream()
-				.map(LobbyMember::user)
+		return lobbyUsers.values().stream().map(LobbyMember::user)
 				.collect(Collectors.toUnmodifiableSet());
 	}
 
 	public Map<String, PlayerColor> getColorAssignments() {
 		return lobbyUsers.entrySet().stream()
-				.collect(Collectors.toUnmodifiableMap(
-						Map.Entry::getKey,
+				.collect(Collectors.toUnmodifiableMap(Map.Entry::getKey,
 						entry -> entry.getValue().color()));
 	}
 

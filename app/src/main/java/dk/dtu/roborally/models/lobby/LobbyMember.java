@@ -7,8 +7,8 @@ import dk.dtu.roborally.models.User;
 
 public record LobbyMember(User user, PlayerColor color) {
 
-    public LobbyMember {
-        Objects.requireNonNull(user);
-        Objects.requireNonNull(color);
-    }
+	public LobbyMember {
+		Objects.requireNonNull(user);
+		Objects.requireNonNull(color);
+	}
 }
