@@ -265,10 +265,27 @@ public class LevelLoader {
 
 	private static StartingPoint createStartingPoint(
 			LevelData.StartingPointData stp, Map<Vector2D, Space> spaceMap) {
-		StartingPoint startPoint = new StartingPoint(
-				new Vector2D(stp.x, stp.y));
+
+		if (stp.orientation == null) {
+			throw new IllegalArgumentException(
+					"Starting point is missing an orientation.");
+		}
+
+		Direction orientation = switch (stp.orientation) {
+			case "north" -> Direction.NORTH;
+			case "east" -> Direction.EAST;
+			case "south" -> Direction.SOUTH;
+			case "west" -> Direction.WEST;
+			default -> throw new IllegalArgumentException(
+					"Invalid starting orientation: " + stp.orientation);
+		};
+
+		StartingPoint startPoint = new StartingPoint(new Vector2D(stp.x, stp.y),
+				orientation);
+
 		getSpaceAt(spaceMap, startPoint.getPosition())
 				.addBoardElement(startPoint);
+
 		return startPoint;
 	}
 
