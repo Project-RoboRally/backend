@@ -1,6 +1,6 @@
 package dk.dtu.roborally.repository.inmemory;
 
-import dk.dtu.roborally.models.GameLobby;
+import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.repository.LobbyRepository;
 
 import java.util.ArrayList;

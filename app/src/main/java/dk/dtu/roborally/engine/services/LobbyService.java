@@ -4,14 +4,14 @@ import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
-import dk.dtu.roborally.exceptions.lobby.LobbyPlayerAlreadyInLobby;
+import dk.dtu.roborally.exceptions.lobby.LobbyUserAlreadyInLobby;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
 import dk.dtu.roborally.exceptions.lobby.PlayerNotInLobby;
-import dk.dtu.roborally.exceptions.player.PlayerNotFound;
+import dk.dtu.roborally.exceptions.user.UserNotFound;
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.JsonLoader;
-import dk.dtu.roborally.models.GameLobby;
 import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
 
@@ -41,7 +41,7 @@ public class LobbyService {
 						payload.username()));
 
 		if (userInLobby(owner.getUsername()))
-			throw new LobbyPlayerAlreadyInLobby(payload.username());
+			throw new LobbyUserAlreadyInLobby(payload.username());
 
 		GameLobby lobby = new GameLobby(config, payload.name(), owner);
 		lobbyRepository.add(lobby);
@@ -56,10 +56,10 @@ public class LobbyService {
 
 	public GameLobby joinLobby(String id, String username) {
 		User user = userRepository.getByUsername(username)
-				.orElseThrow(PlayerNotFound::new);
+				.orElseThrow(UserNotFound::new);
 
 		if (userInLobby(user.getUsername()))
-			throw new LobbyPlayerAlreadyInLobby(username);
+			throw new LobbyUserAlreadyInLobby(username);
 
 		GameLobby lobby = getLobby(id);
 		lobby.addUserToLobby(user);
@@ -69,7 +69,7 @@ public class LobbyService {
 
 	public GameLobby leaveLobby(String id, String username) {
 		User user = userRepository.getByUsername(username)
-				.orElseThrow(PlayerNotFound::new);
+				.orElseThrow(UserNotFound::new);
 
 		GameLobby lobby = getLobby(id);
 
@@ -102,7 +102,7 @@ public class LobbyService {
 
 	public void kickUser(String id, String kickedBy, String userKicked) {
 		User user = userRepository.getByUsername(userKicked)
-				.orElseThrow(PlayerNotFound::new);
+				.orElseThrow(UserNotFound::new);
 
 		GameLobby lobby = getLobby(id);
 

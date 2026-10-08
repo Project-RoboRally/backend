@@ -1,10 +1,15 @@
 package dk.dtu.roborally.models;
 
+import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.models.lobby.GameLobby;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.HashSet;
 
 class GameLobbyTest {
 	private User owner;
@@ -84,6 +89,56 @@ class GameLobbyTest {
 		lobby.addUserToLobby(new User("Alice"));
 
 		assertTrue(lobby.hasEnoughPlayers());
+	}
+
+	@Test
+	void ownerReceivesAColor() {
+		assertNotNull(lobby.getColorAssignments().get(owner.getId()));
+	}
+
+	@Test
+	void everyMemberReceivesADistinctColor() {
+		fillUpLobby();
+
+		var assignments = lobby.getColorAssignments();
+
+		assertEquals(6, assignments.size());
+		assertEquals(6, new HashSet<>(assignments.values()).size());
+
+		for (User member : lobby.getUsersInLobby()) {
+			assertTrue(assignments.containsKey(member.getId()));
+		}
+	}
+
+	@Test
+	void rejoiningPreservesColor() {
+		PlayerColor original = lobby.getColorAssignments().get(owner.getId());
+
+		lobby.addUserToLobby(owner);
+
+		assertEquals(original, lobby.getColorAssignments().get(owner.getId()));
+	}
+
+	@Test
+	void leavingReleasesColor() {
+		fillUpLobby();
+
+		User departing = lobby.getUsersInLobby().stream()
+				.filter(user -> !user.getId().equals(owner.getId())).findFirst()
+				.orElseThrow();
+
+		PlayerColor released = lobby.getColorAssignments()
+				.get(departing.getId());
+
+		lobby.removeUser(departing.getId());
+
+		assertFalse(lobby.getColorAssignments().containsKey(departing.getId()));
+
+		User replacement = new User("Replacement");
+		lobby.addUserToLobby(replacement);
+
+		assertEquals(released,
+				lobby.getColorAssignments().get(replacement.getId()));
 	}
 
 	private void fillUpLobby() {
