@@ -1,14 +1,18 @@
-package dk.dtu.roborally.models;
+package dk.dtu.roborally.models.lobby;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
+import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.LevelLoader;
+import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.game.Game;
 
@@ -19,7 +23,7 @@ import dk.dtu.roborally.models.game.Game;
  */
 
 public class GameLobby {
-	private final Set<User> usersInLobby = new HashSet<>();
+	private final Map<String, LobbyMember> lobbyUsers = new HashMap<>();
 	private static final int MIN_USERS = 2;
 	private static final int MAX_USERS = 6;
 
@@ -53,16 +57,11 @@ public class GameLobby {
 		this.lobbyName = Objects.requireNonNull(lobbyName);
 	}
 
-	public void removeUser(String userId) {
-		usersInLobby.removeIf(user -> user.getId().equals(userId));
-	}
-
 	public void addUserToLobby(User user) {
 		Objects.requireNonNull(user);
+		String userId = user.getId();
 
-		boolean alreadyJoined = usersInLobby.stream()
-				.anyMatch(existing -> existing.getId().equals(user.getId()));
-		if (alreadyJoined) {
+		if (lobbyUsers.containsKey(userId)) {
 			return;
 		}
 
@@ -71,7 +70,26 @@ public class GameLobby {
 					"Game lobby is full. Cannot add more users.");
 		}
 
-		usersInLobby.add(user);
+		PlayerColor color = findAvailableColor();
+		lobbyUsers.put(userId, new LobbyMember(user, color));
+	}
+
+	public void removeUser(String userId) {
+		Objects.requireNonNull(userId);
+		lobbyUsers.remove(userId);
+	}
+
+	private PlayerColor findAvailableColor() {
+		for (PlayerColor color : PlayerColor.values()) {
+			boolean taken = lobbyUsers.values().stream()
+					.anyMatch(member -> member.color() == color);
+
+			if (!taken) {
+				return color;
+			}
+		}
+
+		throw new IllegalStateException("No available colours.");
 	}
 
 	public void startGame(Game game) {
@@ -85,14 +103,23 @@ public class GameLobby {
 	}
 
 	public Set<User> getUsersInLobby() {
-		return Set.copyOf(usersInLobby);
+		return lobbyUsers.values().stream()
+				.map(LobbyMember::user)
+				.collect(Collectors.toUnmodifiableSet());
+	}
+
+	public Map<String, PlayerColor> getColorAssignments() {
+		return lobbyUsers.entrySet().stream()
+				.collect(Collectors.toUnmodifiableMap(
+						Map.Entry::getKey,
+						entry -> entry.getValue().color()));
 	}
 
 	public boolean isFull() {
-		return usersInLobby.size() >= MAX_USERS;
+		return lobbyUsers.size() >= MAX_USERS;
 	}
 
 	public boolean hasEnoughPlayers() {
-		return usersInLobby.size() >= MIN_USERS;
+		return lobbyUsers.size() >= MIN_USERS;
 	}
 }

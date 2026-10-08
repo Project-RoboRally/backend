@@ -1,7 +1,7 @@
 package dk.dtu.roborally.api.dto;
 
-import dk.dtu.roborally.models.GameLobby;
 import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.models.lobby.GameLobby;
 
 import java.util.List;
 

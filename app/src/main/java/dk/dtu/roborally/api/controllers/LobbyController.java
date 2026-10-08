@@ -86,8 +86,7 @@ public class LobbyController {
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler({UserNotFound.class,
-			LobbyCreatorNotFoundOnCreate.class})
+	@ExceptionHandler({UserNotFound.class, LobbyCreatorNotFoundOnCreate.class})
 	public ResponseEntity<Map<String, String>> handlePlayerMissing(
 			RuntimeException ex) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
