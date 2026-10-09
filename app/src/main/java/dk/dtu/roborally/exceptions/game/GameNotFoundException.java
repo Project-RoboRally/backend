@@ -1,12 +1,13 @@
 package dk.dtu.roborally.exceptions.game;
 
 /**
- * Thrown when a game is requested that does not exist.
+ * Thrown when a game cannot be found by its ID.
  *
- * @author Nicoleta
+ * @author Matthias
  */
 public class GameNotFoundException extends RuntimeException {
-	public GameNotFoundException(String id) {
-		super("Game not found: " + id);
-	}
+
+    public GameNotFoundException(String gameId) {
+        super("Game not found: " + gameId);
+    }
 }
