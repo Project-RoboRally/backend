@@ -12,20 +12,33 @@ import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.GameLobby;
 import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
 
+import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Lobby services.
+ *
+ * @author Elias, Matthias
+ */
 public class LobbyService {
+
 	private final LobbyRepository lobbyRepository;
 	private final UserRepository userRepository;
+	private final GameRepository gameRepository;
 	private final Config config;
 
 	public LobbyService(LobbyRepository lobbyRepository,
-			UserRepository userRepository) {
+			UserRepository userRepository, GameRepository gameRepository) {
+
 		this.lobbyRepository = lobbyRepository;
 		this.userRepository = userRepository;
+		this.gameRepository = gameRepository;
 		this.config = JsonLoader.loadConfig();
 	}
 
@@ -40,8 +53,9 @@ public class LobbyService {
 				.orElseThrow(() -> new LobbyCreatorNotFoundOnCreate(
 						payload.username()));
 
-		if (userInLobby(owner.getUsername()))
+		if (userInLobby(owner.getUsername())) {
 			throw new LobbyPlayerAlreadyInLobby(payload.username());
+		}
 
 		GameLobby lobby = new GameLobby(config, payload.name(), owner);
 		lobbyRepository.add(lobby);
@@ -58,8 +72,9 @@ public class LobbyService {
 		User user = userRepository.getByUsername(username)
 				.orElseThrow(PlayerNotFound::new);
 
-		if (userInLobby(user.getUsername()))
+		if (userInLobby(user.getUsername())) {
 			throw new LobbyPlayerAlreadyInLobby(username);
+		}
 
 		GameLobby lobby = getLobby(id);
 		lobby.addUserToLobby(user);
@@ -73,11 +88,13 @@ public class LobbyService {
 
 		GameLobby lobby = getLobby(id);
 
-		if (!userInLobby(lobby, username))
+		if (!userInLobby(lobby, username)) {
 			throw new PlayerNotInLobby(username);
+		}
 
 		if (lobby.getLobbyOwner() != null
 				&& lobby.getLobbyOwner().getUsername().equals(username)) {
+
 			lobby.getUsersInLobby().stream()
 					.filter(member -> !member.getUsername().equals(username))
 					.toList()
@@ -85,6 +102,7 @@ public class LobbyService {
 
 			lobby.removeUser(user.getId());
 			lobbyRepository.delete(lobby.getLobbyId());
+
 		} else {
 			lobby.removeUser(user.getId());
 		}
@@ -97,34 +115,74 @@ public class LobbyService {
 
 		validateLobbyName(name);
 		lobby.setLobbyName(name);
+
 		return lobby;
 	}
 
 	public void kickUser(String id, String kickedBy, String userKicked) {
+
 		User user = userRepository.getByUsername(userKicked)
 				.orElseThrow(PlayerNotFound::new);
 
 		GameLobby lobby = getLobby(id);
 
 		if (lobby.getLobbyOwner() == null
-				|| !lobby.getLobbyOwner().getUsername().equals(kickedBy))
-			throw new NotAuthorizedException(kickedBy);
+				|| !lobby.getLobbyOwner().getUsername().equals(kickedBy)) {
 
-		if (!userInLobby(lobby, user.getUsername()))
+			throw new NotAuthorizedException(kickedBy);
+		}
+
+		if (!userInLobby(lobby, user.getUsername())) {
 			throw new PlayerNotInLobby(userKicked);
+		}
 
 		lobby.removeUser(user.getId());
 	}
 
+	/**
+	 * Creates a game from a lobby and stores it in the game repository. If the
+	 * game has already been created, the existing game is returned.
+	 *
+	 * @param lobbyId
+	 *            ID of the lobby starting the game.
+	 * @return the created or existing game.
+	 */
+	public Game startGame(String lobbyId) {
+		GameLobby lobby = getLobby(lobbyId);
+
+		if (gameRepository.exists(lobbyId)) {
+			return gameRepository.getById(lobbyId).orElseThrow();
+		}
+
+		/*
+		 * TODO: Replace with the actual board creation/loading logic when board
+		 * setup is implemented.
+		 */
+		Board board = null;
+
+		/*
+		 * Damage supplies are intentionally empty for now. They can be
+		 * populated when damage-card game logic is implemented.
+		 */
+		Game game = new Game(lobby.getLobbyId(), board, new HashMap<>());
+
+		gameRepository.add(game);
+
+		return game;
+	}
+
 	private void validateLobbyName(String name) {
-		if (name == null || name.isBlank())
+		if (name == null || name.isBlank()) {
 			throw new LobbyInvalidName("Name must not be blank");
+		}
 
-		if (name.length() < 3)
+		if (name.length() < 3) {
 			throw new LobbyInvalidName("Must be longer than 2 characters");
+		}
 
-		if (name.length() > 16)
+		if (name.length() > 16) {
 			throw new LobbyInvalidName("Must be shorter than 17 characters");
+		}
 	}
 
 	public boolean userInLobby(String username) {
@@ -133,6 +191,7 @@ public class LobbyService {
 	}
 
 	public boolean userInLobby(GameLobby lobby, String username) {
+
 		return lobby.getUsersInLobby().stream()
 				.anyMatch(user -> user.getUsername().equals(username));
 	}

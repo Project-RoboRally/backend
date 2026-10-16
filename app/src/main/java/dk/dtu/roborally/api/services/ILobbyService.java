@@ -2,13 +2,14 @@ package dk.dtu.roborally.api.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
+import dk.dtu.roborally.api.dto.game.GameDTO;
 
 import java.util.List;
 
 /**
  * Handles lobby creation, retrieval, and user joining/leaving/being kicked out.
  *
- * @author Nicoleta
+ * @author Nicoleta, Matthias
  */
 public interface ILobbyService {
 
@@ -26,4 +27,5 @@ public interface ILobbyService {
 
 	LobbyDTO kickUser(String id, String kickedBy, String userKicked);
 
+	GameDTO startGame(String id);
 }
