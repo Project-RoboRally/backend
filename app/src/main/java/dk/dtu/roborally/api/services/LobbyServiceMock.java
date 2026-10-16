@@ -4,6 +4,7 @@ import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
+import dk.dtu.roborally.api.dto.game.GameDTO;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -84,6 +85,12 @@ public class LobbyServiceMock implements ILobbyService {
 		}
 		lobby.users.remove(userKicked);
 		return lobby.toDTO();
+	}
+
+	@Override
+	public GameDTO startGame(String id) {
+		throw new UnsupportedOperationException(
+				"startGame is not implemented in LobbyServiceMock");
 	}
 
 	private Lobby getLobbyOrThrow(String id) {
