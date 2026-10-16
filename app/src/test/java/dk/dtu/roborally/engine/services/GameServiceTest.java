@@ -14,8 +14,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
-
 class GameServiceTest {
 	private final List<Game> published = new ArrayList<>();
 	private GameService gameService;

@@ -17,31 +17,28 @@ import lombok.Getter;
  */
 public class GameEngine {
 
-   // Services
-   @Getter
-   private final UserService userService;
+	// Services
+	@Getter
+	private final UserService userService;
 
-   @Getter
-   private final GameService gameService;
+	@Getter
+	private final GameService gameService;
 
-   @Getter
-   private final LobbyService lobbyService;
+	@Getter
+	private final LobbyService lobbyService;
 
-   private Server server;
+	private Server server;
 
-   public GameEngine(GameRepository gameRepository,
-         UserRepository userRepository,
-         LobbyRepository lobbyRepository,
-         GameEventPublisher gameEventPublisher) {
+	public GameEngine(GameRepository gameRepository,
+			UserRepository userRepository, LobbyRepository lobbyRepository,
+			GameEventPublisher gameEventPublisher) {
 
-      // Setup services
-      this.userService = new UserService(userRepository);
-      this.gameService = new GameService(gameRepository, gameEventPublisher);
-      this.lobbyService = new LobbyService(
-            lobbyRepository,
-            userRepository,
-            gameService);
+		// Setup services
+		this.userService = new UserService(userRepository);
+		this.gameService = new GameService(gameRepository, gameEventPublisher);
+		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
+				gameService);
 
-      this.server = new Server();
-   }
+		this.server = new Server();
+	}
 }

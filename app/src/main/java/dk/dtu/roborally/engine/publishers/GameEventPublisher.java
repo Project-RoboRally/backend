@@ -11,4 +11,3 @@ import dk.dtu.roborally.models.game.Game;
 public interface GameEventPublisher {
 	void publishStatus(Game game);
 }
-
