@@ -1,6 +1,10 @@
 package dk.dtu.roborally.api.controllers;
 
-import dk.dtu.roborally.api.dto.*;
+import dk.dtu.roborally.api.dto.AddToRemoveFromLobbyDTO;
+import dk.dtu.roborally.api.dto.CreateLobbyDTO;
+import dk.dtu.roborally.api.dto.KickUserDTO;
+import dk.dtu.roborally.api.dto.LobbyDTO;
+import dk.dtu.roborally.api.dto.RenameLobbyDTO;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
@@ -11,7 +15,13 @@ import dk.dtu.roborally.exceptions.lobby.PlayerNotInLobby;
 import dk.dtu.roborally.exceptions.player.PlayerNotFound;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
