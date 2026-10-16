@@ -16,40 +16,40 @@ import dk.dtu.roborally.loaders.LevelLoader;
  */
 
 public class Lobby {
-    @Getter
-    private final Set<Player> playersInLobby = new HashSet<>();
+	@Getter
+	private final Set<Player> playersInLobby = new HashSet<>();
 
-    @Getter
-    @Setter
-    private Game game;
-    private String levelPath;
-    private Board level;
-    private Config config;
+	@Getter
+	@Setter
+	private Game game;
+	private String levelPath;
+	private Board level;
+	private Config config;
 
-    public Lobby(Config config) {
-        // Create the JsonLoader
-        this.config = config;
-        this.levelPath = config.levels.level_0;
-        this.level = LevelLoader.load(levelPath);
-    }
-    
-    public void addPlayer(Player player) {
-        playersInLobby.add(player);
-    }
-    
-    public void removePlayer(Player player) {
-        playersInLobby.remove(player);
-    }
+	public Lobby(Config config) {
+		// Create the JsonLoader
+		this.config = config;
+		this.levelPath = config.levels.level_0;
+		this.level = LevelLoader.load(levelPath);
+	}
 
-    public void addPlayerToGame(Player player, Game game) {
-        game.addPlayer(player);
-    }
-    
-    public void removePlayerToGame(Player player, Game game) {
-        game.removePlayer(player);
-    }
+	public void addPlayer(Player player) {
+		playersInLobby.add(player);
+	}
 
-    public void startGame(Game game) {
-        game.start();
-    }
+	public void removePlayer(Player player) {
+		playersInLobby.remove(player);
+	}
+
+	public void addPlayerToGame(Player player, Game game) {
+		game.addPlayer(player);
+	}
+
+	public void removePlayerToGame(Player player, Game game) {
+		game.removePlayer(player);
+	}
+
+	public void startGame(Game game) {
+		game.start();
+	}
 }

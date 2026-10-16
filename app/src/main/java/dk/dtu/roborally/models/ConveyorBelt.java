@@ -18,16 +18,17 @@ public class ConveyorBelt extends BoardElement {
 	@Getter
 	private final ConveyorBeltType type;
 
-    @Getter
-    private final int length;
+	@Getter
+	private final int length;
 
-    @Getter
-    private final Vector2D position;
+	@Getter
+	private final Vector2D position;
 
-    public ConveyorBelt(Vector2D position, int length, Direction direction, ConveyorBeltType type) {
-        this.direction = direction;
-        this.type = type;
-        this.position = position;
-        this.length = length;
-    }
+	public ConveyorBelt(Vector2D position, int length, Direction direction,
+			ConveyorBeltType type) {
+		this.direction = direction;
+		this.type = type;
+		this.position = position;
+		this.length = length;
+	}
 }

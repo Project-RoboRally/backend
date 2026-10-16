@@ -8,6 +8,8 @@ import java.util.List;
  * @author Nicoleta
  */
 
-// TODO: update once Lobby model is updated with id and name, and we've talked about boards creation
-public record LobbyDTO(String id, String name, List<String> players, String createdBy) {
+// TODO: update once Lobby model is updated with id and name, and we've talked
+// about boards creation
+public record LobbyDTO(String id, String name, List<String> players,
+		String createdBy) {
 }

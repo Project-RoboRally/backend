@@ -6,9 +6,9 @@ package dk.dtu.roborally.loaders;
  * @author Victor
  */
 public class Config {
-    public LevelsData levels;
+	public LevelsData levels;
 
-    public static class LevelsData {
-        public String level_0;
-    }
+	public static class LevelsData {
+		public String level_0;
+	}
 }

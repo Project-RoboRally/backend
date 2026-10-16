@@ -9,10 +9,10 @@ import lombok.Getter;
  */
 public class StartingPoint extends BoardElement {
 
-    @Getter
-    private final Vector2D position;
+	@Getter
+	private final Vector2D position;
 
-    public StartingPoint(Vector2D position) {
-        this.position = position;
-    }
+	public StartingPoint(Vector2D position) {
+		this.position = position;
+	}
 }

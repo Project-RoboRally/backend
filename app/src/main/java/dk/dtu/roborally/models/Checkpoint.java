@@ -13,11 +13,11 @@ public class Checkpoint extends BoardElement {
 	@Getter
 	private final int number;
 
-    @Getter
-    private final Vector2D position;
+	@Getter
+	private final Vector2D position;
 
-    public Checkpoint(Vector2D position, int number) {
-        this.position = position;
-        this.number = number;
-    }
+	public Checkpoint(Vector2D position, int number) {
+		this.position = position;
+		this.number = number;
+	}
 }

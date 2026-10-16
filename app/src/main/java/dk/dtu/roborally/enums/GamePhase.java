@@ -6,9 +6,5 @@ package dk.dtu.roborally.enums;
  * @author Sebastian
  */
 public enum GamePhase {
-    PROGRAMMING,
-    EXECUTING_REGISTERS,
-    BOARD_ELEMENTS,
-    LASERS,
-    ROUND_END
+	PROGRAMMING, EXECUTING_REGISTERS, BOARD_ELEMENTS, LASERS, ROUND_END
 }
