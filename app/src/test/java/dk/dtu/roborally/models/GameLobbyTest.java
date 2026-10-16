@@ -1,8 +1,13 @@
 package dk.dtu.roborally.models;
 
+import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.lobby.GameLobby;
+import dk.dtu.roborally.models.lobby.LobbyMember;
+import dk.dtu.roborally.models.player.Player;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +15,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 class GameLobbyTest {
 	private User owner;
@@ -139,6 +147,103 @@ class GameLobbyTest {
 
 		assertEquals(released,
 				lobby.getColorAssignments().get(replacement.getId()));
+	}
+
+	@Test
+	void membersStartOutNotReadyAndCanToggleReady() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+
+		assertFalse(readyOf(alice));
+
+		lobby.setReady(alice.getId(), true);
+		assertTrue(readyOf(alice));
+
+		lobby.setReady(alice.getId(), false);
+		assertFalse(readyOf(alice));
+	}
+
+	@Test
+	void settingReadyForNonMemberThrows() {
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.setReady("not-a-member", true));
+	}
+
+	@Test
+	void startRequiresEveryMemberExceptOwnerToBeReady() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+
+		// Alice is not ready; the owner never needs a ready flag.
+		assertThrows(IllegalStateException.class, () -> lobby.startGame());
+
+		lobby.setReady(alice.getId(), true);
+		assertDoesNotThrow(() -> lobby.startGame());
+	}
+
+	@Test
+	void startWithTooFewPlayersThrows() {
+		assertThrows(IllegalStateException.class, () -> lobby.startGame());
+	}
+
+	@Test
+	void startingTwiceThrows() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.setReady(alice.getId(), true);
+
+		lobby.startGame();
+
+		assertThrows(IllegalStateException.class, () -> lobby.startGame());
+	}
+
+	@Test
+	void startGameGivesEveryMemberADistinctRobotOnAStartingPoint() {
+		fillUpLobby();
+		for (LobbyMember member : lobby.getMembers()) {
+			lobby.setReady(member.user().getId(), true);
+		}
+
+		Game game = lobby.startGame();
+
+		// One player per lobby member.
+		assertEquals(6, game.getPlayersInGame().size());
+
+		// Every player keeps the color they were assigned in the lobby.
+		Map<String, PlayerColor> colors = lobby.getColorAssignments();
+		for (Player player : game.getPlayersInGame()) {
+			assertEquals(colors.get(player.getUser().getId()),
+					player.getColor());
+		}
+
+		// Robots occupy distinct positions, each one a starting point, and
+		// face that starting point's orientation.
+		Map<Vector2D, Direction> startingPoints = lobby.getLevel()
+				.getStartingPoints().stream()
+				.collect(Collectors.toMap(point -> point.getPosition(),
+						point -> point.getOrientation()));
+
+		Set<Vector2D> occupied = game.getPlayersInGame().stream()
+				.map(player -> player.getRobot().getCurrentSpace())
+				.collect(Collectors.toSet());
+		assertEquals(6, occupied.size());
+
+		for (Player player : game.getPlayersInGame()) {
+			Vector2D position = player.getRobot().getCurrentSpace();
+			assertTrue(startingPoints.containsKey(position));
+			assertEquals(startingPoints.get(position),
+					player.getRobot().getOrientation());
+		}
+
+		// The lobby remembers which game it started.
+		assertEquals(game.getGameID(), lobby.getGameId());
+		assertSame(lobby.getLevel(), game.getBoard());
+	}
+
+	private boolean readyOf(User user) {
+		return lobby.getMembers().stream()
+				.filter(member -> member.user().getId().equals(user.getId()))
+				.findFirst().orElseThrow().ready();
 	}
 
 	private void fillUpLobby() {
