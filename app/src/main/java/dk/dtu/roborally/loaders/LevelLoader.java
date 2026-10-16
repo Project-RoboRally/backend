@@ -100,8 +100,7 @@ public class LevelLoader {
 		// Load Push Panels
 		if (level.push_panels != null) {
 			for (int i = 0; i < level.push_panels.length; i++) {
-				pushPanels
-						.add(createPushPanel(level.push_panels[i], spaceMap));
+				pushPanels.add(createPushPanel(level.push_panels[i], spaceMap));
 			}
 		}
 		// Load Pits
