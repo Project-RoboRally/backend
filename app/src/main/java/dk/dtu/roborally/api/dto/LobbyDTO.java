@@ -13,7 +13,7 @@ import java.util.List;
 
 // TODO: update once we've talked about boards creation
 public record LobbyDTO(String id, String name, List<String> users,
-		String createdBy) {
+		String createdBy, boolean started) {
 
 	public static LobbyDTO from(GameLobby lobby) {
 		List<String> usernames = lobby.getUsersInLobby().stream()
@@ -22,6 +22,6 @@ public record LobbyDTO(String id, String name, List<String> users,
 				? null
 				: lobby.getLobbyOwner().getUsername();
 		return new LobbyDTO(lobby.getLobbyId(), lobby.getLobbyName(), usernames,
-				createdBy);
+				createdBy, lobby.isGameStarted());
 	}
 }

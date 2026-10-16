@@ -71,6 +71,13 @@ public class LobbyController {
 				LobbyDTO.from(lobbyService.leaveLobby(id, payload.username())));
 	}
 
+	@PostMapping("/{id}/start")
+	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
+			@RequestBody AddToRemoveFromLobbyDTO payload) {
+		return ResponseEntity.ok(
+				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
+	}
+
 	@PostMapping("/{id}/kick")
 	public ResponseEntity<LobbyDTO> kickUser(@PathVariable String id,
 			@RequestBody KickUserDTO payload) {

@@ -26,6 +26,10 @@ public class GameLobby {
 	@Getter
 	@Setter
 	private Game game;
+
+	@Getter
+	@Setter
+	private boolean gameStarted;
 	private String levelPath;
 	private Board level;
 	private Config config;
@@ -72,16 +76,6 @@ public class GameLobby {
 		}
 
 		usersInLobby.add(user);
-	}
-
-	public void startGame(Game game) {
-
-		if (!hasEnoughPlayers()) {
-			throw new IllegalStateException(
-					"Not enough players to start the game.");
-		}
-
-		game.start();
 	}
 
 	public Set<User> getUsersInLobby() {
