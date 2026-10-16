@@ -70,6 +70,7 @@ public class GameService {
 		}
 
 		lobby.setGameStarted(true);
+		gameEventPublisher.publishBoard(lobby.getLobbyId(), lobby.getLevel());
 	}
 
 	public void startGame(GameLobby lobby, Game game) {
@@ -82,5 +83,7 @@ public class GameService {
 		lobby.setGame(game);
 		lobby.setGameStarted(true);
 		gameRepository.add(game);
+		gameEventPublisher.publishBoard(lobby.getLobbyId(), game.getBoard());
+		gameEventPublisher.publishGameStarted(lobby.getLobbyId(), game);
 	}
 }

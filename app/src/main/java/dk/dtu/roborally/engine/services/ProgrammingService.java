@@ -1,14 +1,14 @@
 
 package dk.dtu.roborally.engine.services;
 
+import dk.dtu.roborally.models.cards.Card;
+import dk.dtu.roborally.models.cards.CardDeck;
+import dk.dtu.roborally.models.player.Player;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import dk.dtu.roborally.models.cards.Card;
-import dk.dtu.roborally.models.cards.CardDeck;
-import dk.dtu.roborally.models.player.Player;
 
 /**
  * Represents the programming cards held by a player and manages their selection

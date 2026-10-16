@@ -1,9 +1,9 @@
 package dk.dtu.roborally.loaders;
 
+import com.google.gson.Gson;
+
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
-import com.google.gson.Gson;
 
 /**
  * This object loads into variables, and can be re-used for the different
