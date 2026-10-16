@@ -55,8 +55,7 @@ public class Round {
 		}
 
 		if (currentRegisterNumber == null) {
-			throw new IllegalStateException(
-					"No register is currently active.");
+			throw new IllegalStateException("No register is currently active.");
 		}
 
 		if (isLastRegister()) {

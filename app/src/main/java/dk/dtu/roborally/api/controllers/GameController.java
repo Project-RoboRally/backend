@@ -1,6 +1,6 @@
 package dk.dtu.roborally.api.controllers;
 
-import dk.dtu.roborally.api.dto.GameDTO;
+import dk.dtu.roborally.api.dto.game.GameDTO;
 import dk.dtu.roborally.engine.services.GameService;
 
 import org.springframework.http.ResponseEntity;
@@ -19,16 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/games")
 public class GameController {
 
-    private final GameService gameService;
+	private final GameService gameService;
 
-    public GameController(GameService gameService) {
-        this.gameService = gameService;
-    }
+	public GameController(GameService gameService) {
+		this.gameService = gameService;
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GameDTO> getGame(@PathVariable String id) {
-        return ResponseEntity.ok(
-                GameDTO.from(gameService.getGame(id))
-        );
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<GameDTO> getGame(@PathVariable String id) {
+		return ResponseEntity.ok(GameDTO.from(gameService.getGame(id)));
+	}
 }

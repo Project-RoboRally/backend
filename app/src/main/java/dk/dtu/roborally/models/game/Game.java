@@ -40,7 +40,7 @@ public class Game {
 	private final Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies;
 
 	public Game(String gameID, Board board,
-				Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
+			Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
 		this.gameID = gameID;
 		this.board = board;
 		this.damageSupplies = damageSupplies;
