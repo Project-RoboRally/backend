@@ -36,7 +36,7 @@ public class Board {
 
 	// sorted so callers get stable order
 	public List<StartingPoint> getStartingPoints() {
-		
+
 		List<StartingPoint> startingPoints = new ArrayList<>();
 
 		// Find all starting points
