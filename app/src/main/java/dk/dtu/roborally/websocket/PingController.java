@@ -8,6 +8,12 @@ import org.springframework.stereotype.Controller;
 import java.time.Instant;
 import java.util.Map;
 
+/**
+ * Replies with a pong message to the client's ping message.
+ *
+ * @author Elias, Nicoleta
+ */
+
 @Controller
 public class PingController {
 

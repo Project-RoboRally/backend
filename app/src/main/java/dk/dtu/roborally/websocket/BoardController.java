@@ -11,7 +11,7 @@ import org.springframework.stereotype.Controller;
  * {@code /app/lobby/{lobbyId}/board}, so clients that connect after the game
  * started still receive it.
  *
- * @author Elias
+ * @author Elias, Nicoleta
  */
 @Controller
 public class BoardController {

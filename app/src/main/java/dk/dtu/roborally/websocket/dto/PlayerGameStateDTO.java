@@ -15,7 +15,7 @@ import java.util.List;
  * players, plus that player's private mat. {@code type} identifies the event
  * that caused the message.
  *
- * @author Elias
+ * @author Elias, Nicoleta
  */
 public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		RoundDTO round, BoardDTO board, List<PlayerDTO> players, String you,
@@ -27,6 +27,7 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 			long programmingTimeLimitSeconds) {
 
 		public static RoundDTO from(Round round) {
+			// Convert the round to the corresponding DTO
 			return new RoundDTO(round.getCurrentPhase(),
 					round.getCurrentRegisterIndex().orElse(null),
 					ProgrammingTimer.getTIME_LIMIT().toSeconds());
@@ -35,9 +36,12 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 
 	public static PlayerGameStateDTO from(String type, Game game,
 			Player recipient) {
+		// Convert the players to the corresponding DTOs in sorted order by username
 		List<PlayerDTO> players = game.getPlayersInGame().stream()
 				.map(PlayerDTO::from)
 				.sorted(Comparator.comparing(PlayerDTO::username)).toList();
+
+		// Convert the game to the corresponding DTO
 		return new PlayerGameStateDTO(type, game.getGameID(),
 				game.getGameStatus(), RoundDTO.from(game.getCurrentRound()),
 				BoardDTO.from(game.getBoard()), players,
