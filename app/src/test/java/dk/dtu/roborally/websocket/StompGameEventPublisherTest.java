@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Map;
+import java.util.Set;
 
 import static org.mockito.Mockito.*;
 
@@ -17,7 +18,7 @@ class StompGameEventPublisherTest {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		StompGameEventPublisher publisher = new StompGameEventPublisher(
 				template);
-		Game game = new Game("game-1", null, Map.of());
+		Game game = new Game("game-1", null, Set.of(), Map.of());
 		game.setGameStatus(GameStatus.FINISHED);
 
 		publisher.publishStatus(game);
