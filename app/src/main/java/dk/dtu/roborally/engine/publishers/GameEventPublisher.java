@@ -1,5 +1,6 @@
 package dk.dtu.roborally.engine.publishers;
 
+import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.game.Game;
 
 /**
@@ -10,4 +11,14 @@ import dk.dtu.roborally.models.game.Game;
  */
 public interface GameEventPublisher {
 	void publishStatus(Game game);
+
+	/**
+	 * Sends every player in the game the full game state, including their own
+	 */
+	void publishGameStarted(String lobbyId, Game game);
+
+	/**
+	 * Sends the board layout to everyone subscribed to the lobby.
+	 */
+	void publishBoard(String lobbyId, Board board);
 }
