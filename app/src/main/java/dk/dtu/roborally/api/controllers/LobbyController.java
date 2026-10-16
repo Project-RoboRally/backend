@@ -7,7 +7,7 @@ import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
 import dk.dtu.roborally.exceptions.lobby.LobbyUserAlreadyInLobby;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
-import dk.dtu.roborally.exceptions.lobby.PlayerNotInLobby;
+import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
 
 import org.springframework.http.HttpStatus;
@@ -79,6 +79,20 @@ public class LobbyController {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
 	}
 
+	@PostMapping("/{id}/ready")
+	public ResponseEntity<LobbyDTO> setReady(@PathVariable String id,
+			@RequestBody SetReadyDTO payload) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setReady(id,
+				payload.username(), payload.ready())));
+	}
+
+	@PostMapping("/{id}/start")
+	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
+			@RequestBody StartGameDTO payload) {
+		lobbyService.startGame(id, payload.username());
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
+	}
+
 	@ExceptionHandler(LobbyNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleNotFound(
 			LobbyNotFoundException ex) {
@@ -114,9 +128,9 @@ public class LobbyController {
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler(PlayerNotInLobby.class)
+	@ExceptionHandler(UserNotInLobby.class)
 	public ResponseEntity<Map<String, String>> handlePlayerNotInLobby(
-			PlayerNotInLobby ex) {
+			UserNotInLobby ex) {
 		return ResponseEntity.badRequest()
 				.body(Map.of("error", ex.getMessage()));
 	}
