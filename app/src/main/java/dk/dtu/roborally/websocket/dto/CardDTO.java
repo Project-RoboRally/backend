@@ -13,6 +13,7 @@ import dk.dtu.roborally.models.cards.ProgrammingCard;
 public record CardDTO(String type, String instruction) {
 
 	public static CardDTO from(ProgrammableCard card) {
+		// Convert the card to the corresponding DTO
 		return switch (card) {
 			case ProgrammingCard programming ->
 				new CardDTO("PROGRAMMING", programming.getInstruction().name());

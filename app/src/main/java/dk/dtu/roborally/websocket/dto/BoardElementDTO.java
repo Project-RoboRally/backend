@@ -20,7 +20,7 @@ import dk.dtu.roborally.models.board.elements.Wall;
  * A board element placed on a space. Every variant carries a {@code type} field
  * so clients can tell them apart.
  *
- * @author Elias
+ * @author Elias, Nicoleta
  */
 public sealed interface BoardElementDTO {
 
@@ -54,6 +54,7 @@ public sealed interface BoardElementDTO {
 	}
 
 	static BoardElementDTO from(BoardElement element) {
+		// Convert the board element to the corresponding DTO
 		return switch (element) {
 			case Wall wall -> new WallDTO("WALL", wall.getSide());
 			case ConveyorBelt belt -> new ConveyorBeltDTO("CONVEYOR_BELT",

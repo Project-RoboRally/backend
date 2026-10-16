@@ -65,6 +65,7 @@ public class GameLobby {
 	public void addUserToLobby(User user) {
 		Objects.requireNonNull(user);
 
+		// Check if the user is already in the lobby
 		boolean alreadyJoined = usersInLobby.stream()
 				.anyMatch(existing -> existing.getId().equals(user.getId()));
 		if (alreadyJoined) {
