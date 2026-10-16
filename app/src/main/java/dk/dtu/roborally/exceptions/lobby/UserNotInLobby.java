@@ -1,7 +1,7 @@
 package dk.dtu.roborally.exceptions.lobby;
 
-public class PlayerNotInLobby extends RuntimeException {
-	public PlayerNotInLobby(String username) {
+public class UserNotInLobby extends RuntimeException {
+	public UserNotInLobby(String username) {
 		super("User " + username + " is not in a lobby.");
 	}
 }
