@@ -31,6 +31,7 @@ public class GameLobby {
 	@Setter
 	private boolean gameStarted;
 	private String levelPath;
+	@Getter
 	private Board level;
 	private Config config;
 

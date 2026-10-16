@@ -40,6 +40,10 @@ public class PlayerMat {
 		return List.copyOf(discardPile);
 	}
 
+	public List<Register> getRegisters() {
+		return List.of(registers);
+	}
+
 	public int getDrawPileSize() {
 		return drawPile.size();
 	}
