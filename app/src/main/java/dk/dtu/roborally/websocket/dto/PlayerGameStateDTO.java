@@ -36,7 +36,8 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 
 	public static PlayerGameStateDTO from(String type, Game game,
 			Player recipient) {
-		// Convert the players to the corresponding DTOs in sorted order by username
+		// Convert the players to the corresponding DTOs in sorted order by
+		// username
 		List<PlayerDTO> players = game.getPlayersInGame().stream()
 				.map(PlayerDTO::from)
 				.sorted(Comparator.comparing(PlayerDTO::username)).toList();

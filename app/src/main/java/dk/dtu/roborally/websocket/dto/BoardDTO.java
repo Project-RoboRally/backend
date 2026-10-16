@@ -29,7 +29,8 @@ public record BoardDTO(int width, int height, List<SpaceDTO> spaces) {
 						.thenComparingInt(SpaceDTO::x))
 				.toList();
 
-		// Get the width and height of the board or set to 0 if no spaces are found
+		// Get the width and height of the board or set to 0 if no spaces are
+		// found
 		int width = spaces.stream().mapToInt(SpaceDTO::x).max().orElse(-1) + 1;
 		int height = spaces.stream().mapToInt(SpaceDTO::y).max().orElse(-1) + 1;
 		return new BoardDTO(width, height, spaces);

@@ -12,7 +12,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * Clients connect to {@code /ws}, send actions to destinations prefixed with
  * {@code /app} (routed to {@code @MessageMapping} controllers), and subscribe
  * to {@code /game/...} destinations to receive broadcasts.
- * 
+ *
  * @author Elias, Nicoleta
  */
 @Configuration
@@ -27,7 +27,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry registry) {
-		registry.enableSimpleBroker("/game"); // Enable a simple message broker for the game
-		registry.setApplicationDestinationPrefixes("/app"); // Set the application destination prefix to /app
+		registry.enableSimpleBroker("/game"); // Enable a simple message broker
+												// for the game
+		registry.setApplicationDestinationPrefixes("/app"); // Set the
+															// application
+															// destination
+															// prefix to /app
 	}
 }
