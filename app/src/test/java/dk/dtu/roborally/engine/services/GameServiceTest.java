@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,7 +26,7 @@ class GameServiceTest {
 		GameEventPublisher publisher = published::add;
 		gameService = new GameService(repository, publisher);
 
-		game = new Game("game-1", null, Map.of());
+		game = new Game("game-1", null, Set.of(), Map.of());
 		repository.add(game);
 	}
 
