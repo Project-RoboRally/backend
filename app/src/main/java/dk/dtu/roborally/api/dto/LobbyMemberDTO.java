@@ -9,7 +9,7 @@ import dk.dtu.roborally.models.lobby.LobbyMember;
  * @author August
  */
 public record LobbyMemberDTO(String username, PlayerColor color, boolean ready,
-		boolean owner) { 
+		boolean owner) {
 
 	public static LobbyMemberDTO from(LobbyMember member, String ownerId) {
 		return new LobbyMemberDTO(member.user().getUsername(), member.color(),

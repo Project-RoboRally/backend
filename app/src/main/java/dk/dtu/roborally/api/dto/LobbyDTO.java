@@ -3,7 +3,6 @@ package dk.dtu.roborally.api.dto;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.lobby.GameLobby;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -26,8 +25,7 @@ public record LobbyDTO(String id, String name, List<String> users,
 				? null
 				: lobby.getLobbyOwner().getId();
 		List<LobbyMemberDTO> members = lobby.getMembers().stream()
-				.map(member -> LobbyMemberDTO.from(member, ownerId))
-				.toList();
+				.map(member -> LobbyMemberDTO.from(member, ownerId)).toList();
 		return new LobbyDTO(lobby.getLobbyId(), lobby.getLobbyName(), usernames,
 				createdBy, members, lobby.getGameId());
 	}
