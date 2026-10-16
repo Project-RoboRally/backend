@@ -1,9 +1,9 @@
 package dk.dtu.roborally.models.board;
 
+import lombok.Getter;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import lombok.Getter;
 
 /**
  * Represents the Robo Rally game board and its spaces.

@@ -4,13 +4,15 @@ package dk.dtu.roborally.engine.services;
 import dk.dtu.roborally.models.cards.Card;
 import dk.dtu.roborally.models.cards.CardDeck;
 import dk.dtu.roborally.models.player.Player;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 /**

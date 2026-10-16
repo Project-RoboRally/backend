@@ -1,9 +1,9 @@
 package dk.dtu.roborally.models.game;
 
-import java.util.Optional;
-
 import dk.dtu.roborally.enums.Phase;
 import lombok.Getter;
+
+import java.util.Optional;
 
 /**
  * Represents an active or ended round

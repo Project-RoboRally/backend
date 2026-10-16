@@ -1,16 +1,15 @@
 package dk.dtu.roborally.models;
 
+import dk.dtu.roborally.loaders.Config;
+import dk.dtu.roborally.loaders.LevelLoader;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.game.Game;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-
-import dk.dtu.roborally.loaders.Config;
-import dk.dtu.roborally.loaders.LevelLoader;
-import dk.dtu.roborally.models.board.Board;
-import dk.dtu.roborally.models.game.Game;
 
 /**
  * The Server needs to hold n lobbies, and every lobby can hold a singular game.
@@ -31,6 +30,7 @@ public class GameLobby {
 	@Setter
 	private boolean gameStarted;
 	private String levelPath;
+	@Getter
 	private Board level;
 	private Config config;
 
@@ -64,6 +64,7 @@ public class GameLobby {
 	public void addUserToLobby(User user) {
 		Objects.requireNonNull(user);
 
+		// Check if the user is already in the lobby
 		boolean alreadyJoined = usersInLobby.stream()
 				.anyMatch(existing -> existing.getId().equals(user.getId()));
 		if (alreadyJoined) {
