@@ -1,8 +1,9 @@
 package dk.dtu.roborally.models.player;
 
-import java.util.Objects;
 import dk.dtu.roborally.models.User;
 import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * Represents a user's participation in a specific Robo Rally game. Holds the

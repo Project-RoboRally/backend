@@ -1,8 +1,8 @@
 package dk.dtu.roborally.models.game;
 
-import java.time.Duration;
-
 import lombok.Getter;
+
+import java.time.Duration;
 /**
  * Represents the round's programming time limit. The first submitted program
  * starts a shared 30-second countdown. Later submissions do not restart it. On
