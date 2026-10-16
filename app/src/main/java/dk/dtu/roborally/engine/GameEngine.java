@@ -1,10 +1,13 @@
 package dk.dtu.roborally.engine;
 
+import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.services.GameService;
-import dk.dtu.roborally.engine.services.PlayerService;
+import dk.dtu.roborally.engine.services.LobbyService;
+import dk.dtu.roborally.engine.services.UserService;
 import dk.dtu.roborally.models.Server;
 import dk.dtu.roborally.repository.GameRepository;
-import dk.dtu.roborally.repository.PlayerRepository;
+import dk.dtu.roborally.repository.LobbyRepository;
+import dk.dtu.roborally.repository.UserRepository;
 import lombok.Getter;
 
 /**
@@ -16,19 +19,26 @@ public class GameEngine {
 
 	// Services
 	@Getter
-	private final PlayerService playerService;
+	private final UserService userService;
+
 	@Getter
 	private final GameService gameService;
+
+	@Getter
+	private final LobbyService lobbyService;
 
 	private Server server;
 
 	public GameEngine(GameRepository gameRepository,
-			PlayerRepository playerRepository) {
+			UserRepository userRepository, LobbyRepository lobbyRepository,
+			GameEventPublisher gameEventPublisher) {
 
 		// Setup services
-		this.playerService = new PlayerService(playerRepository);
-		this.gameService = new GameService(gameRepository);
+		this.userService = new UserService(userRepository);
+		this.gameService = new GameService(gameRepository, gameEventPublisher);
+		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
+				gameService);
+
 		this.server = new Server();
 	}
-
 }

@@ -2,6 +2,7 @@ package dk.dtu.roborally.api.controllers;
 
 import dk.dtu.roborally.api.dto.LoginDTO;
 import dk.dtu.roborally.api.dto.LoginResponseDTO;
+import dk.dtu.roborally.engine.services.UserService;
 import dk.dtu.roborally.exceptions.auth.LoginException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,11 +13,30 @@ import java.util.Map;
 
 @RestController
 public class AuthController {
+	private final UserService userService;
+
+	public AuthController(UserService userService) {
+		this.userService = userService;
+	}
+
+	@GetMapping("/api/session")
+	public ResponseEntity<?> session(@RequestParam String username) {
+		return userService.findByUsername(username)
+				.<ResponseEntity<?>>map(user -> ResponseEntity
+						.ok(new LoginResponseDTO(user.getUsername())))
+				.orElseGet(() -> ResponseEntity.notFound().build());
+	}
 
 	@PostMapping("/api/login")
-	public ResponseEntity<LoginResponseDTO> login(
-			@RequestBody LoginDTO payload) {
+	public ResponseEntity<?> login(@RequestBody LoginDTO payload) {
 		String username = payload.username();
+
+		try {
+			userService.ensureUser(username);
+		} catch (IllegalArgumentException ex) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body(Map.of("error", ex.getMessage()));
+		}
 
 		return ResponseEntity.ok(new LoginResponseDTO(username));
 	}

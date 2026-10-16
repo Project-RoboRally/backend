@@ -1,9 +1,9 @@
 package dk.dtu.roborally.repository;
 
-import dk.dtu.roborally.models.Game;
-
 import java.util.List;
 import java.util.Optional;
+
+import dk.dtu.roborally.models.game.Game;
 
 /**
  * Basic interface for games repository

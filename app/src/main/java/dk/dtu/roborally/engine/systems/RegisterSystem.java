@@ -1,9 +1,11 @@
 package dk.dtu.roborally.engine.systems;
 
-import dk.dtu.roborally.enums.Command;
-import dk.dtu.roborally.models.Player;
-import dk.dtu.roborally.models.Register;
-import dk.dtu.roborally.models.Robot;
+import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
+import dk.dtu.roborally.models.cards.ProgrammingCard;
+import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.Register;
+import dk.dtu.roborally.models.player.Robot;
 
 /**
  * Handles programming and execution of player registers.
@@ -20,16 +22,17 @@ public class RegisterSystem {
 
 		Robot robot = player.getRobot();
 		Register register = player.getPlayerMat().getRegisters()[registerIndex];
-		if (robot == null || !robot.isActive()
-				|| register.getCommand() == null) {
+		ProgrammableCard card = register.getCard();
+		if (robot == null || !robot.isActive() || card == null
+				|| !(card instanceof ProgrammingCard programmingCard)) {
 			return false;
 		}
 
-		executeCommand(robot, register.getCommand());
+		executeCommand(robot, programmingCard.getInstruction());
 		return true;
 	}
 
-	private void executeCommand(Robot robot, Command command) {
+	private void executeCommand(Robot robot, CommandInstruction command) {
 		switch (command) {
 			case MOVE_1 :
 				robot.moveForward(1);
@@ -49,8 +52,10 @@ public class RegisterSystem {
 			case U_TURN :
 				robot.turnAround();
 				break;
-			case POWER_UP :
-				robot.setDamage(Math.max(0, robot.getDamage() - 1));
+			case MOVE_BACK :
+				robot.moveForward(-1);
+				break;
+			case AGAIN :
 				break;
 		}
 	}

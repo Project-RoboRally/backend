@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.junit.jupiter.api.Test;
 
-import dk.dtu.roborally.models.Board;
+import dk.dtu.roborally.models.board.Board;
 
 class LevelLoaderTest {
 

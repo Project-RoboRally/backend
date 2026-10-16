@@ -1,13 +1,13 @@
 package dk.dtu.roborally.engine.systems;
 
 import dk.dtu.roborally.enums.Direction;
-import dk.dtu.roborally.models.BoardElement;
-import dk.dtu.roborally.models.Game;
-import dk.dtu.roborally.models.Player;
-import dk.dtu.roborally.models.Robot;
-import dk.dtu.roborally.models.Tile;
-import dk.dtu.roborally.models.Vector2D;
-import dk.dtu.roborally.models.Wall;
+import dk.dtu.roborally.models.board.Space;
+import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.BoardElement;
+import dk.dtu.roborally.models.board.elements.Wall;
+import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.Robot;
 
 /**
  * Detects and resolves collisions involving robots and board elements.
@@ -34,7 +34,7 @@ public class CollisionSystem {
 		for (Player player : game.getPlayersInGame()) {
 			Robot other = player.getRobot();
 			if (other != null && other != robot
-					&& other.getPosition().equals(targetPosition)) {
+					&& other.getCurrentSpace().equals(targetPosition)) {
 				return false;
 			}
 		}
@@ -47,18 +47,17 @@ public class CollisionSystem {
 	// robots current position is used to determine the direction of movement.
 	private boolean isBlockedByWall(Game game, Robot robot,
 			Vector2D targetPosition) {
-		Vector2D from = robot.getPosition();
-		Direction dir = robot.getDirection();
+		Vector2D from = robot.getCurrentSpace();
+		Direction dir = robot.getOrientation();
 
-		Tile currentTile = game.getBoard().getTile(from.x(), from.y());
-		Tile targetTile = game.getBoard().getTile(targetPosition.x(),
-				targetPosition.y());
+		Space currentSpace = game.getBoard().getSpace(from);
+		Space targetSpace = game.getBoard().getSpace(targetPosition);
 
-		if (currentTile != null && hasWallOnSide(currentTile, dir)) {
+		if (currentSpace != null && hasWallOnSide(currentSpace, dir)) {
 			return true;
 		}
 
-		if (targetTile != null && hasWallOnSide(targetTile, opposite(dir))) {
+		if (targetSpace != null && hasWallOnSide(targetSpace, opposite(dir))) {
 			return true;
 		}
 
@@ -66,11 +65,11 @@ public class CollisionSystem {
 	}
 
 	// Helper method for wall detection
-	private boolean hasWallOnSide(Tile tile, Direction side) {
-		if (tile == null)
+	private boolean hasWallOnSide(Space space, Direction side) {
+		if (space == null)
 			return false;
 
-		for (BoardElement element : tile.getBoardElements()) {
+		for (BoardElement element : space.getBoardElements()) {
 			if (element instanceof Wall wall && wall.getSide() == side) {
 				return true;
 			}
