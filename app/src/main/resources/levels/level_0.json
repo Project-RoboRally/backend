@@ -7,7 +7,7 @@
         {
             "x1": 0,
             "y1": 0,
-            "x2": 5,
+            "x2": 10,
             "y2": 3
         }
     ],
@@ -22,7 +22,32 @@
     ],
     "start_points": [
         {
-            "x": 3,
+            "x": 5,
+            "y": 0,
+            "orientation": "north"
+        },
+        {
+            "x": 7,
+            "y": 0,
+            "orientation": "north"
+        },
+        {
+            "x": 9,
+            "y": 0,
+            "orientation": "north"
+        },
+        {
+            "x": 5,
+            "y": 2,
+            "orientation": "north"
+        },
+        {
+            "x": 7,
+            "y": 2,
+            "orientation": "north"
+        },
+        {
+            "x": 9,
             "y": 2,
             "orientation": "north"
         }
