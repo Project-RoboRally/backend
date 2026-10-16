@@ -3,6 +3,7 @@ package dk.dtu.roborally.engine.services;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
+import dk.dtu.roborally.models.GameLobby;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.repository.GameRepository;
 
@@ -37,8 +38,10 @@ public class GameService {
 	 */
 	public Game updateStatus(String gameId, GameStatus newStatus) {
 		Game game = getGame(gameId);
-		if (game.getGameStatus() == newStatus)
+
+		if (game.getGameStatus() == newStatus) {
 			return game;
+		}
 
 		game.setGameStatus(newStatus);
 		gameEventPublisher.publishStatus(game);
@@ -47,5 +50,37 @@ public class GameService {
 
 	public Game finishGame(String gameId) {
 		return updateStatus(gameId, GameStatus.FINISHED);
+	}
+
+	public void startGame(GameLobby lobby) {
+		if (lobby.isGameStarted()) {
+			return;
+		}
+
+		if (!lobby.hasEnoughPlayers()) {
+			throw new IllegalStateException(
+					"Not enough players to start the game.");
+		}
+
+		Game game = lobby.getGame();
+
+		if (game != null) {
+			startGame(lobby, game);
+			return;
+		}
+
+		lobby.setGameStarted(true);
+	}
+
+	public void startGame(GameLobby lobby, Game game) {
+		if (!lobby.hasEnoughPlayers()) {
+			throw new IllegalStateException(
+					"Not enough players to start the game.");
+		}
+
+		game.start();
+		lobby.setGame(game);
+		lobby.setGameStarted(true);
+		gameRepository.add(game);
 	}
 }
