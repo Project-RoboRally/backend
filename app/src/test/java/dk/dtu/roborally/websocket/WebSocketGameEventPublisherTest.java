@@ -33,7 +33,6 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -44,10 +43,7 @@ class WebSocketGameEventPublisherTest {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
-		Game game = new Game("game-1", boardWithWall(),
-				Set.of(player("alice", PlayerColor.RED, 0, 0),
-						player("bob", PlayerColor.BLUE, 1, 0)),
-				Map.of());
+		Game game = new Game("game-1", boardWithWall(), Set.of(), Map.of());
 
 		publisher.publishStatus(game);
 
@@ -60,7 +56,10 @@ class WebSocketGameEventPublisherTest {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
-		Game game = new Game("game-1", boardWithWall(), Set.of(), Map.of());
+		Game game = new Game("game-1", boardWithWall(),
+				Set.of(player("alice", PlayerColor.RED, 0, 0),
+						player("bob", PlayerColor.BLUE, 1, 0)),
+				Map.of());
 
 		publisher.publishGameStarted("lobby-1", game);
 
