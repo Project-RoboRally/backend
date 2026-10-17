@@ -4,7 +4,7 @@ import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.loaders.JsonLoader;
-import dk.dtu.roborally.models.GameLobby;
+import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.game.Game;
@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -50,7 +51,7 @@ class GameServiceTest {
 		};
 		gameService = new GameService(repository, publisher);
 
-		game = new Game("game-1", null, Map.of());
+		game = new Game("game-1", null, Set.of(), Map.of());
 		repository.add(game);
 	}
 
@@ -86,24 +87,12 @@ class GameServiceTest {
 		GameLobby lobby = new GameLobby(JsonLoader.loadConfig(), "lobby",
 				new User("alice"));
 		lobby.addUserToLobby(new User("bob"));
-		Game newGame = new Game("game-2", null, Map.of());
+		Game newGame = new Game("game-2", null, Set.of(), Map.of());
 
-		gameService.startGame(lobby, newGame);
+		gameService.startGame(lobby.getLobbyId(), newGame);
 
 		assertEquals(List.of(newGame), startedPublished);
 		assertEquals(List.of(lobby.getLobbyId()), startedLobbyIds);
-	}
-
-	@Test
-	void startingLobbyWithoutGamePublishesBoard() {
-		GameLobby lobby = new GameLobby(JsonLoader.loadConfig(), "lobby",
-				new User("alice"));
-		lobby.addUserToLobby(new User("bob"));
-
-		gameService.startGame(lobby);
-
-		assertEquals(List.of(lobby.getLobbyId()), boardLobbyIds);
-		assertTrue(startedPublished.isEmpty());
 	}
 
 	@Test

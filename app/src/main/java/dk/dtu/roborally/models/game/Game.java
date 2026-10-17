@@ -9,7 +9,6 @@ import dk.dtu.roborally.models.player.Player;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,7 +23,7 @@ public class Game {
 	@Getter
 	private final String gameID;
 	@Getter
-	private final Set<Player> playersInGame = new HashSet<>();
+	private final Set<Player> playersInGame;
 	@Getter
 	@Setter
 	private GameStatus gameStatus = GameStatus.IN_PROGRESS;
@@ -34,18 +33,15 @@ public class Game {
 	private Round currentRound = new Round();
 	private final Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies;
 
-	public Game(String gameID, Board board,
+	public Game(String gameID, Board board, Set<Player> players,
 			Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
 		this.gameID = gameID;
 		this.board = board;
+		this.playersInGame = players;
 		this.damageSupplies = damageSupplies;
 	}
 
 	public boolean start() {
 		return true;
-	}
-
-	public void addPlayerToGame(Player player) {
-		playersInGame.add(player);
 	}
 }

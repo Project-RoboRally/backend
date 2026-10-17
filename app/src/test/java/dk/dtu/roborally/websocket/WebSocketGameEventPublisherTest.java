@@ -4,6 +4,7 @@ import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
+import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.loaders.LevelLoader;
 import dk.dtu.roborally.models.User;
@@ -27,10 +28,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -41,7 +43,7 @@ class WebSocketGameEventPublisherTest {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
-		Game game = new Game("game-1", null, Map.of());
+		Game game = new Game("game-1", boardWithWall(), Set.of(), Map.of());
 		game.setGameStatus(GameStatus.FINISHED);
 
 		publisher.publishStatus(game);
@@ -55,9 +57,10 @@ class WebSocketGameEventPublisherTest {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
-		Game game = new Game("game-1", boardWithWall(), Map.of());
-		game.addPlayerToGame(player("alice", 0, 0));
-		game.addPlayerToGame(player("bob", 1, 0));
+		Game game = new Game("game-1", boardWithWall(),
+				Set.of(player("alice", PlayerColor.RED, 0, 0),
+						player("bob", PlayerColor.BLUE, 1, 0)),
+				Map.of());
 
 		publisher.publishGameStarted("lobby-1", game);
 
@@ -118,8 +121,9 @@ class WebSocketGameEventPublisherTest {
 		return new Board(spaces);
 	}
 
-	private static Player player(String username, int x, int y) {
-		return new Player(username + "-id", new User(username),
+	private static Player player(String username, PlayerColor color, int x,
+			int y) {
+		return new Player(username + "-id", new User(username), color,
 				new Robot(new Vector2D(x, y), Direction.EAST));
 	}
 }

@@ -5,6 +5,7 @@ import dk.dtu.roborally.models.cards.ProgrammableCard;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -33,11 +34,11 @@ public class PlayerMat {
 	// discarding cards.
 
 	public List<ProgrammableCard> getHand() {
-		return List.copyOf(hand);
+		return Collections.unmodifiableList(hand);
 	}
 
 	public List<ProgrammableCard> getDiscardPile() {
-		return List.copyOf(discardPile);
+		return Collections.unmodifiableList(discardPile);
 	}
 
 	public List<Register> getRegisters() {

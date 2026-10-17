@@ -2,6 +2,7 @@ package dk.dtu.roborally.models;
 
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.models.lobby.GameLobby;
 import lombok.Getter;
 import lombok.Setter;
 
