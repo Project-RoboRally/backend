@@ -3,6 +3,8 @@ package dk.dtu.roborally.engine.services;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.repository.UserRepository;
 
+import java.util.Optional;
+
 /**
  * Service for all user logic
  *
@@ -16,7 +18,48 @@ public class UserService {
 		this.userRepository = userRepository;
 	}
 
+	public Optional<User> findByUsername(String username) {
+		if (username == null || username.isBlank())
+			return Optional.empty();
+
+		return userRepository.getByUsername(username);
+	}
+
+	/**
+	 * Returns the active user for this username, creating one when the server
+	 * does not have them yet. Logging in again with the same username restores
+	 * the same user after a restart.
+	 */
+	public User ensureUser(String username) {
+		validateUsername(username);
+
+		Optional<User> existing = userRepository.getByUsername(username);
+		if (existing.isPresent())
+			return existing.get();
+
+		User user = new User(username);
+		if (!userRepository.add(user)) {
+			return userRepository.getByUsername(username)
+					.orElseThrow(() -> new IllegalStateException(
+							"user could not be created"));
+		}
+
+		return user;
+	}
+
 	public void addUser(String username) {
+		validateUsername(username);
+
+		if (userRepository.existsByUsername(username))
+			throw new IllegalStateException("username already taken");
+
+		User user = new User(username);
+		if (!userRepository.add(user)) {
+			throw new IllegalStateException("user could not be created");
+		}
+	}
+
+	private void validateUsername(String username) {
 		if (username == null)
 			throw new IllegalArgumentException("Username is null");
 
@@ -30,14 +73,6 @@ public class UserService {
 		if (username.length() < 3 || username.length() > 16)
 			throw new IllegalArgumentException(
 					"Username should be between 3 and 16 characters");
-
-		if (userRepository.existsByUsername(username))
-			throw new IllegalStateException("username already taken");
-
-		User user = new User(username);
-		if (!userRepository.add(user)) {
-			throw new IllegalStateException("user could not be created");
-		}
 	}
 
 }

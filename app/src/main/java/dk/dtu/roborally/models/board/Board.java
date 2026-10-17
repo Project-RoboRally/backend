@@ -31,6 +31,7 @@ public class Board {
 	}
 
 	public boolean isWithinBoard(Vector2D position) {
+		// check if the position is a valid space on the board
 		return spaceMap.containsKey(position);
 	}
 

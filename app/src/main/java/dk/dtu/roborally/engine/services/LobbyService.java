@@ -22,6 +22,7 @@ import java.util.List;
 public class LobbyService {
 	private final LobbyRepository lobbyRepository;
 	private final UserRepository userRepository;
+<<<<<<< HEAD
 	private final GameRepository gameRepository;
 	private final Config config;
 
@@ -30,6 +31,16 @@ public class LobbyService {
 		this.lobbyRepository = lobbyRepository;
 		this.userRepository = userRepository;
 		this.gameRepository = gameRepository;
+=======
+	private final GameService gameService;
+	private final Config config;
+
+	public LobbyService(LobbyRepository lobbyRepository,
+			UserRepository userRepository, GameService gameService) {
+		this.lobbyRepository = lobbyRepository;
+		this.userRepository = userRepository;
+		this.gameService = gameService;
+>>>>>>> main
 		this.config = JsonLoader.loadConfig();
 	}
 
@@ -101,6 +112,19 @@ public class LobbyService {
 
 		validateLobbyName(name);
 		lobby.setLobbyName(name);
+		return lobby;
+	}
+
+	public GameLobby startGame(String id, String username) {
+		User user = userRepository.getByUsername(username)
+				.orElseThrow(UserNotFound::new);
+
+		GameLobby lobby = getLobby(id);
+
+		if (!userInLobby(lobby, user.getUsername()))
+			throw new UserNotInLobby(username);
+
+		gameService.startGame(lobby);
 		return lobby;
 	}
 

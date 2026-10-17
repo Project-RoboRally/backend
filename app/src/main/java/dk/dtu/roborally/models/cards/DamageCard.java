@@ -1,9 +1,9 @@
 package dk.dtu.roborally.models.cards;
 
-import java.util.Objects;
-
 import dk.dtu.roborally.enums.DamageInstruction;
 import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * Represents a damage card in the game, this holds a penalty instruction, for

@@ -20,8 +20,10 @@ public class GameEngine {
 	// Services
 	@Getter
 	private final UserService userService;
+
 	@Getter
 	private final GameService gameService;
+
 	@Getter
 	private final LobbyService lobbyService;
 
@@ -35,8 +37,8 @@ public class GameEngine {
 		this.userService = new UserService(userRepository);
 		this.gameService = new GameService(gameRepository, gameEventPublisher);
 		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
-				gameRepository);
+				gameService);
+
 		this.server = new Server();
 	}
-
 }
