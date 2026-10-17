@@ -1,6 +1,5 @@
 package dk.dtu.roborally.engine.publishers;
 
-import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.game.Game;
 
 /**
@@ -18,7 +17,8 @@ public interface GameEventPublisher {
 	void publishGameStarted(String lobbyId, Game game);
 
 	/**
-	 * Sends the board layout to everyone subscribed to the lobby.
+	 * Sends the board layout, including robots placed on it, to everyone
+	 * subscribed to the lobby.
 	 */
-	void publishBoard(String lobbyId, Board board);
+	void publishBoard(String lobbyId, Game game);
 }

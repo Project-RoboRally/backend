@@ -6,7 +6,6 @@ import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.User;
-import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +38,7 @@ class GameServiceTest {
 			}
 
 			@Override
-			public void publishBoard(String lobbyId, Board board) {
+			public void publishBoard(String lobbyId, Game game) {
 				boardLobbyIds.add(lobbyId);
 			}
 
@@ -93,6 +92,7 @@ class GameServiceTest {
 
 		assertEquals(List.of(newGame), startedPublished);
 		assertEquals(List.of(lobby.getLobbyId()), startedLobbyIds);
+		assertEquals(List.of(lobby.getLobbyId()), boardLobbyIds);
 	}
 
 	@Test

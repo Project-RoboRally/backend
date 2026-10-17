@@ -1,7 +1,6 @@
 package dk.dtu.roborally.websocket;
 
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
-import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.websocket.dto.BoardDTO;
@@ -38,9 +37,9 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 	}
 
 	@Override
-	public void publishBoard(String lobbyId, Board board) {
+	public void publishBoard(String lobbyId, Game game) {
 		messagingTemplate.convertAndSend(boardTopic(lobbyId),
-				BoardDTO.from(board));
+				BoardDTO.from(game));
 	}
 
 	@Override
