@@ -53,11 +53,12 @@ public class GameService {
 
 	/**
 	 * Registers a game that a lobby has just created and notifies the lobby's
-	 * subscribers. Validation already happened in GameLobby.startGame().
+	 * subscribers. The board message includes each robot on its starting space.
+	 * Validation already happened in GameLobby.startGame().
 	 */
 	public void startGame(String lobbyId, Game game) {
 		gameRepository.add(game);
-		gameEventPublisher.publishBoard(lobbyId, game.getBoard());
+		gameEventPublisher.publishBoard(lobbyId, game);
 		gameEventPublisher.publishGameStarted(lobbyId, game);
 	}
 }
