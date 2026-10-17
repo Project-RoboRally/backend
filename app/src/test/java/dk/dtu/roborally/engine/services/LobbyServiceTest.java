@@ -1,6 +1,7 @@
 package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
+import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
 import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
@@ -75,5 +76,20 @@ class LobbyServiceTest {
 	void settingReadyForUserOutsideTheLobbyThrows() {
 		assertThrows(UserNotInLobby.class, () -> lobbyService
 				.setReady(lobby.getLobbyId(), "Outsider", true));
+	}
+
+	@Test
+	void settingColorChangesTheMembersColor() {
+		lobbyService.setColor(lobby.getLobbyId(), "Alice", PlayerColor.PURPLE);
+
+		assertTrue(lobby.getMembers().stream()
+				.anyMatch(member -> member.user().getUsername().equals("Alice")
+						&& member.color() == PlayerColor.PURPLE));
+	}
+
+	@Test
+	void settingColorForUserOutsideTheLobbyThrows() {
+		assertThrows(UserNotInLobby.class, () -> lobbyService
+				.setColor(lobby.getLobbyId(), "Outsider", PlayerColor.PURPLE));
 	}
 }

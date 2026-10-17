@@ -176,6 +176,60 @@ class GameLobbyTest {
 	}
 
 	@Test
+	void memberCanSwitchToAFreeColorAndReleasesTheOldOne() {
+		PlayerColor original = lobby.getColorAssignments().get(owner.getId());
+
+		lobby.changeColor(owner.getId(), PlayerColor.GREEN);
+
+		assertEquals(PlayerColor.GREEN,
+				lobby.getColorAssignments().get(owner.getId()));
+
+		// The released color is free again for the next member.
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		assertEquals(original, lobby.getColorAssignments().get(alice.getId()));
+	}
+
+	@Test
+	void cannotTakeAColorAnotherMemberHas() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		PlayerColor alicesColor = lobby.getColorAssignments()
+				.get(alice.getId());
+		PlayerColor ownersColor = lobby.getColorAssignments()
+				.get(owner.getId());
+
+		assertThrows(IllegalStateException.class,
+				() -> lobby.changeColor(owner.getId(), alicesColor));
+		assertEquals(ownersColor,
+				lobby.getColorAssignments().get(owner.getId()));
+	}
+
+	@Test
+	void choosingYourOwnColorAgainIsAllowed() {
+		PlayerColor own = lobby.getColorAssignments().get(owner.getId());
+
+		assertDoesNotThrow(() -> lobby.changeColor(owner.getId(), own));
+	}
+
+	@Test
+	void cannotChangeColorAfterTheGameStarted() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.setReady(alice.getId(), true);
+		lobby.startGame();
+
+		assertThrows(IllegalStateException.class,
+				() -> lobby.changeColor(owner.getId(), PlayerColor.GREEN));
+	}
+
+	@Test
+	void changingColorForNonMemberThrows() {
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.changeColor("not-a-member", PlayerColor.GREEN));
+	}
+
+	@Test
 	void startRequiresEveryMemberExceptOwnerToBeReady() {
 		User alice = new User("Alice");
 		lobby.addUserToLobby(alice);
