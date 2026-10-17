@@ -1,5 +1,6 @@
 package dk.dtu.roborally.models.player;
 
+import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.models.User;
 import lombok.Getter;
 
@@ -18,11 +19,13 @@ public class Player {
 	private final User user;
 	private final PlayerMat playerMat;
 	private final Robot robot;
+	private final PlayerColor color;
 	private int checkpointsReached;
 
-	public Player(String id, User user, Robot robot) {
+	public Player(String id, User user, PlayerColor color, Robot robot) {
 		this.id = Objects.requireNonNull(id);
 		this.user = Objects.requireNonNull(user);
+		this.color = Objects.requireNonNull(color);
 		this.robot = Objects.requireNonNull(robot);
 		this.playerMat = new PlayerMat();
 	}

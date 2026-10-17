@@ -5,14 +5,18 @@ import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.KickUserDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
 import dk.dtu.roborally.api.dto.RenameLobbyDTO;
+import dk.dtu.roborally.api.dto.SetColorDTO;
+import dk.dtu.roborally.api.dto.SetReadyDTO;
+import dk.dtu.roborally.api.dto.StartGameDTO;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
-import dk.dtu.roborally.exceptions.lobby.LobbyPlayerAlreadyInLobby;
+import dk.dtu.roborally.exceptions.lobby.LobbyUserAlreadyInLobby;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
-import dk.dtu.roborally.exceptions.lobby.PlayerNotInLobby;
-import dk.dtu.roborally.exceptions.player.PlayerNotFound;
+import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
+import dk.dtu.roborally.exceptions.user.UserNotFound;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -81,18 +85,32 @@ public class LobbyController {
 				LobbyDTO.from(lobbyService.leaveLobby(id, payload.username())));
 	}
 
-	@PostMapping("/{id}/start")
-	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
-			@RequestBody AddToRemoveFromLobbyDTO payload) {
-		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
-	}
-
 	@PostMapping("/{id}/kick")
 	public ResponseEntity<LobbyDTO> kickUser(@PathVariable String id,
 			@RequestBody KickUserDTO payload) {
 		lobbyService.kickUser(id, payload.kickedBy(), payload.userKicked());
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
+	}
+
+	@PostMapping("/{id}/ready")
+	public ResponseEntity<LobbyDTO> setReady(@PathVariable String id,
+			@RequestBody SetReadyDTO payload) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setReady(id,
+				payload.username(), payload.ready())));
+	}
+
+	@PostMapping("/{id}/color")
+	public ResponseEntity<LobbyDTO> setColor(@PathVariable String id,
+			@RequestBody SetColorDTO payload) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setColor(id,
+				payload.username(), payload.color())));
+	}
+
+	@PostMapping("/{id}/start")
+	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
+			@RequestBody StartGameDTO payload) {
+		return ResponseEntity.ok(
+				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
 	}
 
 	@ExceptionHandler(LobbyNotFoundException.class)
@@ -102,8 +120,7 @@ public class LobbyController {
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler({PlayerNotFound.class,
-			LobbyCreatorNotFoundOnCreate.class})
+	@ExceptionHandler({UserNotFound.class, LobbyCreatorNotFoundOnCreate.class})
 	public ResponseEntity<Map<String, String>> handlePlayerMissing(
 			RuntimeException ex) {
 		return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -124,16 +141,16 @@ public class LobbyController {
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler(LobbyPlayerAlreadyInLobby.class)
+	@ExceptionHandler(LobbyUserAlreadyInLobby.class)
 	public ResponseEntity<Map<String, String>> handleAlreadyInLobby(
-			LobbyPlayerAlreadyInLobby ex) {
+			LobbyUserAlreadyInLobby ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body(Map.of("error", ex.getMessage()));
 	}
 
-	@ExceptionHandler(PlayerNotInLobby.class)
+	@ExceptionHandler(UserNotInLobby.class)
 	public ResponseEntity<Map<String, String>> handlePlayerNotInLobby(
-			PlayerNotInLobby ex) {
+			UserNotInLobby ex) {
 		return ResponseEntity.badRequest()
 				.body(Map.of("error", ex.getMessage()));
 	}

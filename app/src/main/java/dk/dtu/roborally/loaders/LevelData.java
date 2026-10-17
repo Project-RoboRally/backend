@@ -43,6 +43,7 @@ public class LevelData {
 	public static class StartingPointData {
 		public int x;
 		public int y;
+		public String orientation;
 	}
 
 	public static class WallData {
