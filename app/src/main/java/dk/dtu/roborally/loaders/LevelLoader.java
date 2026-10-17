@@ -1,9 +1,5 @@
 package dk.dtu.roborally.loaders;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
 import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
@@ -19,6 +15,10 @@ import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import dk.dtu.roborally.models.board.elements.Wall;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class loads the data from Level.java into the correct classes from the

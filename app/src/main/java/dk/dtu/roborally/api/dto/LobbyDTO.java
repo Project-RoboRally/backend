@@ -12,6 +12,8 @@ import java.util.List;
  *
  * @author Nicoleta, August
  */
+
+// TODO: update once we've talked about boards creation
 public record LobbyDTO(String id, String name, List<String> users,
 		String createdBy, List<LobbyMemberDTO> members, String gameId) {
 

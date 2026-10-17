@@ -1,12 +1,12 @@
 package dk.dtu.roborally.models.player;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import dk.dtu.roborally.models.cards.CardDeck;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Represents the individual player mat used to store programming registers and
@@ -39,6 +39,10 @@ public class PlayerMat {
 
 	public List<ProgrammableCard> getDiscardPile() {
 		return Collections.unmodifiableList(discardPile);
+	}
+
+	public List<Register> getRegisters() {
+		return List.of(registers);
 	}
 
 	public int getDrawPileSize() {
