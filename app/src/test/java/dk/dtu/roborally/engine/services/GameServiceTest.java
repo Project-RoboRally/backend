@@ -96,18 +96,6 @@ class GameServiceTest {
 	}
 
 	@Test
-	void startingLobbyWithoutGamePublishesBoard() {
-		GameLobby lobby = new GameLobby(JsonLoader.loadConfig(), "lobby",
-				new User("alice"));
-		lobby.addUserToLobby(new User("bob"));
-
-		gameService.startGame(lobby);
-
-		assertEquals(List.of(lobby.getLobbyId()), boardLobbyIds);
-		assertTrue(startedPublished.isEmpty());
-	}
-
-	@Test
 	void unknownGameThrows() {
 		assertThrows(GameNotFoundException.class,
 				() -> gameService.updateStatus("missing", GameStatus.FINISHED));

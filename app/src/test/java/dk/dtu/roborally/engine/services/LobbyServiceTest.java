@@ -10,23 +10,29 @@ import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryLobbyRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryUserRepository;
+import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class LobbyServiceTest {
 	private InMemoryGameRepository gameRepository;
+	private InMemoryLobbyRepository lobbyRepository;
 	private LobbyService lobbyService;
 	private GameLobby lobby;
+	private GameEventPublisher publisher;
 
 	@BeforeEach
 	void setUp() {
 		gameRepository = new InMemoryGameRepository();
 		InMemoryUserRepository userRepository = new InMemoryUserRepository();
+		publisher = mock(GameEventPublisher.class);
 		lobbyService = new LobbyService(new InMemoryLobbyRepository(),
-				userRepository, gameRepository);
+				userRepository, new GameService(gameRepository, publisher));
 
 		userRepository.add(new User("August"));
 		userRepository.add(new User("Alice"));
@@ -45,13 +51,18 @@ class LobbyServiceTest {
 	}
 
 	@Test
-	void startingTheGamePersistsIt() {
+	void startingTheGamePersistsItAndNotifiesTheLobby() {
 		lobbyService.setReady(lobby.getLobbyId(), "Alice", true);
 
-		Game game = lobbyService.startGame(lobby.getLobbyId(), "August");
+		lobbyService.startGame(lobby.getLobbyId(), "August");
+		String gameId = lobby.getGameId();
+		Game game = gameRepository.getById(gameId).orElseThrow();
 
 		assertTrue(gameRepository.getById(game.getGameID()).isPresent());
 		assertEquals(game.getGameID(), lobby.getGameId());
+
+		assertTrue(lobby.isGameStarted());
+		verify(publisher).publishGameStarted(lobby.getLobbyId(), game);
 	}
 
 	@Test

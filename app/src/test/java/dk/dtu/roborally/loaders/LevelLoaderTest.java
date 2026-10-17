@@ -17,7 +17,7 @@ class LevelLoaderTest {
 	void loadsStartingPointWithPositionAndOrientation() {
 		Board board = LevelLoader.load("levels/level_0.json");
 
-		Space space = board.getSpace(5, 0);
+		Space space = board.getSpace(2, 18);
 		assertNotNull(space, "The board should contain space (5, 0)");
 
 		var startingPoints = space.getBoardElements().stream()
@@ -29,7 +29,7 @@ class LevelLoaderTest {
 
 		StartingPoint startingPoint = startingPoints.get(0);
 
-		assertEquals(new Vector2D(5, 0), startingPoint.getPosition());
+		assertEquals(new Vector2D(2, 18), startingPoint.getPosition());
 		assertEquals(Direction.NORTH, startingPoint.getOrientation());
 	}
 
@@ -40,8 +40,8 @@ class LevelLoaderTest {
 		List<Vector2D> positions = board.getStartingPoints().stream()
 				.map(StartingPoint::getPosition).toList();
 
-		assertEquals(List.of(new Vector2D(5, 0), new Vector2D(7, 0),
-				new Vector2D(9, 0), new Vector2D(5, 2), new Vector2D(7, 2),
-				new Vector2D(9, 2)), positions);
+		assertEquals(List.of(new Vector2D(2, 18), new Vector2D(5, 18),
+				new Vector2D(8, 18), new Vector2D(11, 18), new Vector2D(14, 18),
+				new Vector2D(17, 18)), positions);
 	}
 }

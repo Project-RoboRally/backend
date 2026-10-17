@@ -10,10 +10,9 @@ import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.game.Game;
-import dk.dtu.roborally.models.lobby.GameLobby;
-import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
 
@@ -22,16 +21,6 @@ import java.util.List;
 public class LobbyService {
 	private final LobbyRepository lobbyRepository;
 	private final UserRepository userRepository;
-<<<<<<< HEAD
-	private final GameRepository gameRepository;
-	private final Config config;
-
-	public LobbyService(LobbyRepository lobbyRepository,
-			UserRepository userRepository, GameRepository gameRepository) {
-		this.lobbyRepository = lobbyRepository;
-		this.userRepository = userRepository;
-		this.gameRepository = gameRepository;
-=======
 	private final GameService gameService;
 	private final Config config;
 
@@ -40,7 +29,6 @@ public class LobbyService {
 		this.lobbyRepository = lobbyRepository;
 		this.userRepository = userRepository;
 		this.gameService = gameService;
->>>>>>> main
 		this.config = JsonLoader.loadConfig();
 	}
 
@@ -116,15 +104,15 @@ public class LobbyService {
 	}
 
 	public GameLobby startGame(String id, String username) {
-		User user = userRepository.getByUsername(username)
-				.orElseThrow(UserNotFound::new);
 
 		GameLobby lobby = getLobby(id);
 
-		if (!userInLobby(lobby, user.getUsername()))
-			throw new UserNotInLobby(username);
+		if (lobby.getLobbyOwner() == null
+				|| !lobby.getLobbyOwner().getUsername().equals(username))
+			throw new NotAuthorizedException(username);
 
-		gameService.startGame(lobby);
+		Game game = lobby.startGame();
+		gameService.startGame(lobby.getLobbyId(), game);
 		return lobby;
 	}
 
@@ -156,19 +144,6 @@ public class LobbyService {
 		lobby.setReady(user.getId(), ready);
 
 		return lobby;
-	}
-
-	public Game startGame(String lobbyId, String username) {
-		GameLobby lobby = getLobby(lobbyId);
-
-		if (lobby.getLobbyOwner() == null
-				|| !lobby.getLobbyOwner().getUsername().equals(username))
-			throw new NotAuthorizedException(username);
-
-		Game game = lobby.startGame();
-		gameRepository.add(game);
-
-		return game;
 	}
 
 	private void validateLobbyName(String name) {

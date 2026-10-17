@@ -5,6 +5,8 @@ import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.KickUserDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
 import dk.dtu.roborally.api.dto.RenameLobbyDTO;
+import dk.dtu.roborally.api.dto.SetReadyDTO;
+import dk.dtu.roborally.api.dto.StartGameDTO;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
@@ -82,13 +84,6 @@ public class LobbyController {
 				LobbyDTO.from(lobbyService.leaveLobby(id, payload.username())));
 	}
 
-	@PostMapping("/{id}/start")
-	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
-			@RequestBody AddToRemoveFromLobbyDTO payload) {
-		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
-	}
-
 	@PostMapping("/{id}/kick")
 	public ResponseEntity<LobbyDTO> kickUser(@PathVariable String id,
 			@RequestBody KickUserDTO payload) {
@@ -106,8 +101,8 @@ public class LobbyController {
 	@PostMapping("/{id}/start")
 	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
 			@RequestBody StartGameDTO payload) {
-		lobbyService.startGame(id, payload.username());
-		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
+		return ResponseEntity.ok(
+				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
 	}
 
 	@ExceptionHandler(LobbyNotFoundException.class)
