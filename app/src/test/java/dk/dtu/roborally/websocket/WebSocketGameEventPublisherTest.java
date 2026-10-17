@@ -94,8 +94,9 @@ class WebSocketGameEventPublisherTest {
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Board level = LevelLoader.load(JsonLoader.loadConfig().levels.level_0);
+		Game game = new Game("game-1", level, Set.of(), Map.of());
 
-		publisher.publishBoard("lobby-1", level);
+		publisher.publishBoard("lobby-1", game);
 
 		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
 		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
@@ -104,6 +105,30 @@ class WebSocketGameEventPublisherTest {
 				sent.getValue().spaces().size());
 		assertTrue(sent.getValue().spaces().stream()
 				.anyMatch(space -> !space.elements().isEmpty()));
+		assertTrue(sent.getValue().robots().isEmpty());
+	}
+
+	@Test
+	void publishesPlacedRobotsOnTheBoardTopic() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Game game = new Game("game-1", boardWithWall(),
+				Set.of(player("alice", PlayerColor.RED, 0, 0),
+						player("bob", PlayerColor.BLUE, 1, 0)),
+				Map.of());
+
+		publisher.publishBoard("lobby-1", game);
+
+		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
+				sent.capture());
+		assertEquals(List.of(
+				new BoardDTO.RobotDTO("alice", PlayerColor.RED, 0, 0,
+						Direction.EAST),
+				new BoardDTO.RobotDTO("bob", PlayerColor.BLUE, 1, 0,
+						Direction.EAST)),
+				sent.getValue().robots());
 	}
 
 	@Test
