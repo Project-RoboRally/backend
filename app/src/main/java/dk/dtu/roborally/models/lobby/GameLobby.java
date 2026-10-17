@@ -43,6 +43,7 @@ public class GameLobby {
 	@Getter
 	private String gameId;
 	private String levelPath;
+
 	@Getter
 	private Board level;
 	private Config config;
@@ -85,6 +86,10 @@ public class GameLobby {
 
 		PlayerColor color = findAvailableColor();
 		lobbyUsers.put(userId, new LobbyMember(user, color));
+	}
+
+	public boolean isGameStarted() {
+		return gameId != null;
 	}
 
 	public void validateCanStartGame() {
