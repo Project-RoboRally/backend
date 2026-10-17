@@ -44,6 +44,7 @@ class WebSocketGameEventPublisherTest {
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Game game = new Game("game-1", boardWithWall(), Set.of(), Map.of());
+		game.setGameStatus(GameStatus.FINISHED);
 
 		publisher.publishStatus(game);
 
