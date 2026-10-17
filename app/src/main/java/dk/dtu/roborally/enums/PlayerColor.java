@@ -8,5 +8,5 @@ package dk.dtu.roborally.enums;
  */
 
 public enum PlayerColor {
-	RED, BLUE, YELLOW, GREEN, PURPLE, ORANGE
+	RED, BLUE, PINK, GREEN, PURPLE, ORANGE
 }

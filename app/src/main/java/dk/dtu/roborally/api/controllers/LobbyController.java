@@ -5,6 +5,7 @@ import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.KickUserDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
 import dk.dtu.roborally.api.dto.RenameLobbyDTO;
+import dk.dtu.roborally.api.dto.SetColorDTO;
 import dk.dtu.roborally.api.dto.SetReadyDTO;
 import dk.dtu.roborally.api.dto.StartGameDTO;
 import dk.dtu.roborally.engine.services.LobbyService;
@@ -96,6 +97,13 @@ public class LobbyController {
 			@RequestBody SetReadyDTO payload) {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setReady(id,
 				payload.username(), payload.ready())));
+	}
+
+	@PostMapping("/{id}/color")
+	public ResponseEntity<LobbyDTO> setColor(@PathVariable String id,
+			@RequestBody SetColorDTO payload) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setColor(id,
+				payload.username(), payload.color())));
 	}
 
 	@PostMapping("/{id}/start")

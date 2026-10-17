@@ -145,6 +145,34 @@ public class GameLobby {
 		lobbyUsers.put(userId, member.withReady(ready));
 	}
 
+	public void changeColor(String userId, PlayerColor color) {
+		Objects.requireNonNull(userId);
+		Objects.requireNonNull(color);
+		LobbyMember member = lobbyUsers.get(userId);
+
+		if (member == null) {
+			throw new IllegalArgumentException("User is not in this lobby.");
+		}
+
+		if (isGameStarted()) {
+			throw new IllegalStateException(
+					"The game has already been started.");
+		}
+
+		if (member.color() == color) {
+			return;
+		}
+
+		boolean taken = lobbyUsers.values().stream()
+				.anyMatch(other -> other.color() == color);
+
+		if (taken) {
+			throw new IllegalStateException("That color is already taken.");
+		}
+
+		lobbyUsers.put(userId, member.withColor(color));
+	}
+
 	private PlayerColor findAvailableColor() {
 		for (PlayerColor color : PlayerColor.values()) {
 			boolean taken = lobbyUsers.values().stream()

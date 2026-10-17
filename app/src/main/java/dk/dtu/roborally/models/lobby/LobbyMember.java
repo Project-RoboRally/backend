@@ -19,4 +19,8 @@ public record LobbyMember(User user, PlayerColor color, boolean ready) {
 	public LobbyMember withReady(boolean ready) {
 		return new LobbyMember(user, color, ready);
 	}
+
+	public LobbyMember withColor(PlayerColor color) {
+		return new LobbyMember(user, color, ready);
+	}
 }

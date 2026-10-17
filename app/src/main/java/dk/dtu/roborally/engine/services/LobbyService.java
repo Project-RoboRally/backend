@@ -1,6 +1,7 @@
 package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
+import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
@@ -142,6 +143,21 @@ public class LobbyService {
 			throw new UserNotInLobby(username);
 
 		lobby.setReady(user.getId(), ready);
+
+		return lobby;
+	}
+
+	public GameLobby setColor(String lobbyId, String username,
+			PlayerColor color) {
+		User user = userRepository.getByUsername(username)
+				.orElseThrow(UserNotFound::new);
+
+		GameLobby lobby = getLobby(lobbyId);
+
+		if (!userInLobby(lobby, username))
+			throw new UserNotInLobby(username);
+
+		lobby.changeColor(user.getId(), color);
 
 		return lobby;
 	}
