@@ -16,6 +16,7 @@ import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
+import dk.dtu.roborally.models.player.RobotView;
 import dk.dtu.roborally.websocket.dto.BoardDTO;
 import dk.dtu.roborally.websocket.dto.BoardElementDTO;
 import dk.dtu.roborally.websocket.dto.CardDTO;
@@ -129,6 +130,27 @@ class WebSocketGameEventPublisherTest {
 				new BoardDTO.RobotDTO("bob", PlayerColor.BLUE, 1, 0,
 						Direction.EAST)),
 				sent.getValue().robots());
+		assertTrue(sent.getValue().steps().isEmpty());
+	}
+
+	@Test
+	void publishesRoundStepsOnTheBoardTopic() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Game game = new Game("game-1", boardWithWall(),
+				Set.of(player("alice", PlayerColor.RED, 1, 0)), Map.of());
+
+		publisher.publishRound("lobby-1", game,
+				List.of(List.of(new RobotView("alice", PlayerColor.RED, 1, 0,
+						Direction.EAST))));
+
+		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
+				sent.capture());
+		assertEquals(1, sent.getValue().steps().size());
+		assertEquals(new BoardDTO.RobotDTO("alice", PlayerColor.RED, 1, 0,
+				Direction.EAST), sent.getValue().steps().get(0).get(0));
 	}
 
 	@Test

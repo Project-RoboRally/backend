@@ -17,6 +17,7 @@ import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
+import dk.dtu.roborally.models.player.RobotView;
 import dk.dtu.roborally.repository.GameRepository;
 
 import java.util.ArrayList;
@@ -99,11 +100,11 @@ public class GameService {
 			return false;
 		}
 
-		activateRound(game);
+		List<List<RobotView>> steps = activateRound(game);
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
 		}
-		gameEventPublisher.publishBoard(lobby.getLobbyId(), game);
+		gameEventPublisher.publishRound(lobby.getLobbyId(), game, steps);
 		return true;
 	}
 
@@ -111,11 +112,12 @@ public class GameService {
 	 * Runs registers 1 through 5. Within a register, the robot closest to the
 	 * priority antenna moves first, with username breaking ties.
 	 */
-	void activateRound(Game game) {
+	List<List<RobotView>> activateRound(Game game) {
+		List<List<RobotView>> steps = new ArrayList<>();
 		Vector2D antenna = antennaPosition(game.getBoard());
 		List<Player> players = new ArrayList<>(game.getPlayersInGame());
 		if (players.isEmpty()) {
-			return;
+			return steps;
 		}
 		int registerCount = players.get(0).getPlayerMat().getRegisters().size();
 
@@ -124,9 +126,10 @@ public class GameService {
 			order.sort(activationOrder(antenna));
 
 			for (Player player : order) {
-				execute(instructionAt(player, register), player, game);
+				execute(instructionAt(player, register), player, game, steps);
 			}
 		}
+		return steps;
 	}
 
 	private Comparator<Player> activationOrder(Vector2D antenna) {
@@ -157,21 +160,35 @@ public class GameService {
 	}
 
 	private void execute(CommandInstruction instruction, Player player,
-			Game game) {
+			Game game, List<List<RobotView>> steps) {
 		switch (instruction) {
-			case RIGHT_TURN -> player.getRobot().turnRight();
-			case MOVE_1, MOVE_2 -> move(player, game, instruction.steps());
+			case LEFT_TURN -> {
+				player.getRobot().turnLeft();
+				steps.add(snapshot(game));
+			}
+			case RIGHT_TURN -> {
+				player.getRobot().turnRight();
+				steps.add(snapshot(game));
+			}
+			case MOVE_1, MOVE_2 ->
+				move(player, game, instruction.steps(), steps);
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);
 		}
 	}
 
-	private void move(Player player, Game game, int steps) {
-		for (int step = 0; step < steps; step++) {
+	private void move(Player player, Game game, int stepCount,
+			List<List<RobotView>> steps) {
+		for (int step = 0; step < stepCount; step++) {
 			if (!stepForward(player, game)) {
 				return;
 			}
+			steps.add(snapshot(game));
 		}
+	}
+
+	private List<RobotView> snapshot(Game game) {
+		return game.getPlayersInGame().stream().map(RobotView::from).toList();
 	}
 
 	/**
