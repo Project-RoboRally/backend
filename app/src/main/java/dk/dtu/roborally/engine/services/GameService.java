@@ -1,10 +1,27 @@
 package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
+import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.board.Space;
+import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.BoardElement;
+import dk.dtu.roborally.models.board.elements.PriorityAntenna;
+import dk.dtu.roborally.models.board.elements.Wall;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
+import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.lobby.GameLobby;
+import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.Robot;
 import dk.dtu.roborally.repository.GameRepository;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * Service for logic about a game
@@ -60,5 +77,174 @@ public class GameService {
 		gameRepository.add(game);
 		gameEventPublisher.publishBoard(lobbyId, game);
 		gameEventPublisher.publishGameStarted(lobbyId, game);
+	}
+
+	/**
+	 * Stores this player's five-card program. When every player has submitted,
+	 * resolves the round, clears the mats, republishes the board, and returns
+	 * true. Returns false while the round is still waiting.
+	 */
+	public boolean submitProgram(GameLobby lobby, String username,
+			List<CommandInstruction> registers) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+
+		Game game = getGame(lobby.getGameId());
+		findPlayer(game, username).getPlayerMat().program(registers);
+
+		boolean everyoneSubmitted = game.getPlayersInGame().stream()
+				.allMatch(player -> player.getPlayerMat().isSubmitted());
+		if (!everyoneSubmitted) {
+			return false;
+		}
+
+		activateRound(game);
+		for (Player player : game.getPlayersInGame()) {
+			player.getPlayerMat().clearProgram();
+		}
+		gameEventPublisher.publishBoard(lobby.getLobbyId(), game);
+		return true;
+	}
+
+	/**
+	 * Runs registers 1 through 5. Within a register, the robot closest to the
+	 * priority antenna moves first, with username breaking ties.
+	 */
+	void activateRound(Game game) {
+		Vector2D antenna = antennaPosition(game.getBoard());
+		List<Player> players = new ArrayList<>(game.getPlayersInGame());
+		if (players.isEmpty()) {
+			return;
+		}
+		int registerCount = players.get(0).getPlayerMat().getRegisters().size();
+
+		for (int register = 0; register < registerCount; register++) {
+			List<Player> order = new ArrayList<>(players);
+			order.sort(activationOrder(antenna));
+
+			for (Player player : order) {
+				execute(instructionAt(player, register), player, game);
+			}
+		}
+	}
+
+	private Comparator<Player> activationOrder(Vector2D antenna) {
+		return Comparator
+				.comparingInt(
+						(Player player) -> distanceToAntenna(player, antenna))
+				.thenComparing(player -> player.getUser().getUsername());
+	}
+
+	private Player findPlayer(Game game, String username) {
+		for (Player player : game.getPlayersInGame()) {
+			if (player.getUser().getUsername().equals(username)) {
+				return player;
+			}
+		}
+		throw new IllegalArgumentException(
+				"Player is not in this game: " + username);
+	}
+
+	private CommandInstruction instructionAt(Player player, int register) {
+		ProgrammableCard card = player.getPlayerMat().getRegisters()
+				.get(register).getCard();
+		if (card instanceof ProgrammingCard programmingCard) {
+			return programmingCard.getInstruction();
+		}
+		throw new IllegalStateException(
+				"Register " + (register + 1) + " has no programming card");
+	}
+
+	private void execute(CommandInstruction instruction, Player player,
+			Game game) {
+		switch (instruction) {
+			case RIGHT_TURN -> player.getRobot().turnRight();
+			case MOVE_1, MOVE_2 -> move(player, game, instruction.steps());
+			default -> throw new IllegalArgumentException(
+					"Cannot activate " + instruction);
+		}
+	}
+
+	private void move(Player player, Game game, int steps) {
+		for (int step = 0; step < steps; step++) {
+			if (!stepForward(player, game)) {
+				return;
+			}
+		}
+	}
+
+	/**
+	 * One space along the facing direction. Off the board, a wall on the
+	 * crossed edge, or another robot blocks the step.
+	 */
+	private boolean stepForward(Player player, Game game) {
+		Robot robot = player.getRobot();
+		Direction facing = robot.getOrientation();
+		Vector2D from = robot.getCurrentSpace();
+		Vector2D to = from.add(facing.step());
+		Board board = game.getBoard();
+
+		if (!board.isWithinBoard(to) || wallBlocks(board, from, to, facing)
+				|| occupied(game, to, player)) {
+			return false;
+		}
+
+		robot.moveTo(to);
+		return true;
+	}
+
+	private boolean wallBlocks(Board board, Vector2D from, Vector2D to,
+			Direction facing) {
+		if (hasWall(board.getSpace(from.x(), from.y()), facing)) {
+			return true;
+		}
+		return hasWall(board.getSpace(to.x(), to.y()), facing.uTurn());
+	}
+
+	private boolean hasWall(Space space, Direction side) {
+		if (space == null) {
+			return false;
+		}
+		for (BoardElement element : space.getBoardElements()) {
+			if (element instanceof Wall wall && wall.getSide() == side) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean occupied(Game game, Vector2D position, Player moving) {
+		for (Player other : game.getPlayersInGame()) {
+			if (other != moving
+					&& position.equals(other.getRobot().getCurrentSpace())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private Vector2D antennaPosition(Board board) {
+		for (Space space : board.getSpaceMap().values()) {
+			for (BoardElement element : space.getBoardElements()) {
+				if (element instanceof PriorityAntenna) {
+					return space.getPosition();
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Manhattan distance to the antenna. With no antenna on the board every
+	 * robot is equally close, so username decides the order.
+	 */
+	private int distanceToAntenna(Player player, Vector2D antenna) {
+		if (antenna == null) {
+			return 0;
+		}
+		Vector2D position = player.getRobot().getCurrentSpace();
+		return Math.abs(position.x() - antenna.x())
+				+ Math.abs(position.y() - antenna.y());
 	}
 }
