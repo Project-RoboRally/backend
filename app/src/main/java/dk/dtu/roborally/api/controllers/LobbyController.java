@@ -4,6 +4,8 @@ import dk.dtu.roborally.api.dto.AddToRemoveFromLobbyDTO;
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.KickUserDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
+import dk.dtu.roborally.api.dto.ProgramDTO;
+import dk.dtu.roborally.api.dto.ProgramResultDTO;
 import dk.dtu.roborally.api.dto.RenameLobbyDTO;
 import dk.dtu.roborally.api.dto.SetColorDTO;
 import dk.dtu.roborally.api.dto.SetReadyDTO;
@@ -113,6 +115,13 @@ public class LobbyController {
 				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
 	}
 
+	@PostMapping("/{id}/program")
+	public ResponseEntity<ProgramResultDTO> program(@PathVariable String id,
+			@RequestBody ProgramDTO payload) {
+		return ResponseEntity.ok(new ProgramResultDTO(lobbyService
+				.submitProgram(id, payload.username(), payload.registers())));
+	}
+
 	@ExceptionHandler(LobbyNotFoundException.class)
 	public ResponseEntity<Map<String, String>> handleNotFound(
 			LobbyNotFoundException ex) {
@@ -159,6 +168,13 @@ public class LobbyController {
 	public ResponseEntity<Map<String, String>> handleIllegalState(
 			IllegalStateException ex) {
 		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(Map.of("error", ex.getMessage()));
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<Map<String, String>> handleIllegalArgument(
+			IllegalArgumentException ex) {
+		return ResponseEntity.badRequest()
 				.body(Map.of("error", ex.getMessage()));
 	}
 }

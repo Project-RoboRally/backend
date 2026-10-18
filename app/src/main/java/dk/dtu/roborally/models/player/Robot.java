@@ -36,4 +36,8 @@ public class Robot {
 	public void uTurn() {
 		orientation = orientation.uTurn();
 	}
+
+	public void moveTo(Vector2D space) {
+		currentSpace = space;
+	}
 }
