@@ -21,6 +21,7 @@ import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Register;
 import dk.dtu.roborally.models.player.Robot;
+import dk.dtu.roborally.models.player.RobotView;
 import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryLobbyRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryUserRepository;
@@ -158,6 +159,40 @@ class GameServiceTest {
 
 		assertEquals(new Vector2D(1, 0), mover.getRobot().getCurrentSpace());
 		assertEquals(Direction.EAST, mover.getRobot().getOrientation());
+	}
+
+	@Test
+	void leftTurnRotatesWithoutLeavingTheSpace() {
+		Player mover = player("ada", 1, 1, Direction.NORTH, PlayerColor.RED);
+		run(game(board(space(1, 1)), mover),
+				five(CommandInstruction.LEFT_TURN));
+
+		Direction facing = Direction.NORTH;
+		for (int i = 0; i < 5; i++) {
+			facing = facing.turnLeft();
+		}
+		assertEquals(facing, mover.getRobot().getOrientation());
+		assertEquals(new Vector2D(1, 1), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void activationRecordsOneFramePerTurnOrStep() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		Game round = game(
+				board(space(0, 0), space(1, 0), space(2, 0), space(2, -1)),
+				mover);
+		mover.getPlayerMat()
+				.program(List.of(CommandInstruction.MOVE_2,
+						CommandInstruction.LEFT_TURN, CommandInstruction.MOVE_1,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1));
+
+		List<List<RobotView>> frames = gameService.activateRound(round);
+
+		assertEquals(4, frames.size());
+		assertEquals(1, frames.get(0).get(0).x());
+		assertEquals(2, frames.get(1).get(0).x());
+		assertEquals(Direction.NORTH, frames.get(2).get(0).orientation());
+		assertEquals(-1, frames.get(3).get(0).y());
 	}
 
 	@Test
