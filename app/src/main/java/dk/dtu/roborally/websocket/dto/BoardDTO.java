@@ -6,6 +6,7 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.RobotView;
 
 import java.util.Comparator;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.List;
  * @author Elias, Nicoleta
  */
 public record BoardDTO(int width, int height, List<SpaceDTO> spaces,
-		List<RobotDTO> robots) {
+		List<RobotDTO> robots, List<List<RobotDTO>> steps) {
 
 	public record SpaceDTO(int x, int y, List<BoardElementDTO> elements) {
 
@@ -34,10 +35,12 @@ public record BoardDTO(int width, int height, List<SpaceDTO> spaces,
 			Direction orientation) {
 
 		public static RobotDTO from(Player player) {
-			return new RobotDTO(player.getUser().getUsername(),
-					player.getColor(), player.getRobot().getCurrentSpace().x(),
-					player.getRobot().getCurrentSpace().y(),
-					player.getRobot().getOrientation());
+			return from(RobotView.from(player));
+		}
+
+		public static RobotDTO from(RobotView view) {
+			return new RobotDTO(view.username(), view.color(), view.x(),
+					view.y(), view.orientation());
 		}
 	}
 
@@ -46,13 +49,30 @@ public record BoardDTO(int width, int height, List<SpaceDTO> spaces,
 	}
 
 	public static BoardDTO from(Game game) {
-		List<RobotDTO> robots = game.getPlayersInGame().stream()
-				.map(RobotDTO::from)
+		return from(game, List.of());
+	}
+
+	public static BoardDTO from(Game game, List<List<RobotView>> steps) {
+		List<RobotDTO> robots = robotsOf(game);
+		List<List<RobotDTO>> frames = steps.stream()
+				.map(frame -> frame.stream().map(RobotDTO::from)
+						.sorted(Comparator.comparing(RobotDTO::username))
+						.toList())
+				.toList();
+		return from(game.getBoard(), robots, frames);
+	}
+
+	private static List<RobotDTO> robotsOf(Game game) {
+		return game.getPlayersInGame().stream().map(RobotDTO::from)
 				.sorted(Comparator.comparing(RobotDTO::username)).toList();
-		return from(game.getBoard(), robots);
 	}
 
 	private static BoardDTO from(Board board, List<RobotDTO> robots) {
+		return from(board, robots, List.of());
+	}
+
+	private static BoardDTO from(Board board, List<RobotDTO> robots,
+			List<List<RobotDTO>> steps) {
 		// Sort spaces by y coordinate, then x coordinate
 		List<SpaceDTO> spaces = board.getSpaceMap().values().stream()
 				.map(SpaceDTO::from).sorted(Comparator.comparingInt(SpaceDTO::y)
@@ -63,6 +83,6 @@ public record BoardDTO(int width, int height, List<SpaceDTO> spaces,
 		// found
 		int width = spaces.stream().mapToInt(SpaceDTO::x).max().orElse(-1) + 1;
 		int height = spaces.stream().mapToInt(SpaceDTO::y).max().orElse(-1) + 1;
-		return new BoardDTO(width, height, spaces, robots);
+		return new BoardDTO(width, height, spaces, robots, steps);
 	}
 }
