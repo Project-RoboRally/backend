@@ -1,6 +1,9 @@
 package dk.dtu.roborally.engine.publishers;
 
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.player.RobotView;
+
+import java.util.List;
 
 /**
  * Publishes game events to connected clients. Keeps the engine independent of
@@ -21,4 +24,13 @@ public interface GameEventPublisher {
 	 * subscribed to the lobby.
 	 */
 	void publishBoard(String lobbyId, Game game);
+
+	/**
+	 * Same board message, plus one pose per robot after each turn or step so
+	 * clients can animate the round. The default drops the frames.
+	 */
+	default void publishRound(String lobbyId, Game game,
+			List<List<RobotView>> steps) {
+		publishBoard(lobbyId, game);
+	}
 }
