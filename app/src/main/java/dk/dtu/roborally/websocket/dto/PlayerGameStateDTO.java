@@ -22,6 +22,7 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		PlayerMatDTO playerMat) {
 
 	public static final String GAME_STARTED = "GAME_STARTED";
+	public static final String CURRENT_STATE = "CURRENT_STATE";
 
 	public record RoundDTO(Phase phase, Integer currentRegisterIndex,
 			long programmingTimeLimitSeconds) {
