@@ -106,13 +106,25 @@ public class LevelLoader {
 		ConveyorBeltType cbt;
 
 		switch (belt.type) {
-			case ("blue") :
-				cbt = ConveyorBeltType.BLUE;
+			case ("blue_straight"):
+				cbt = ConveyorBeltType.BLUE_STRAIGHT;
 				break;
-			case ("green") :
-				cbt = ConveyorBeltType.GREEN;
+			case ("green_straight"):
+				cbt = ConveyorBeltType.GREEN_STRAIGHT;
 				break;
-			default :
+			case ("blue_curved_right"):
+				cbt = ConveyorBeltType.BLUE_RIGHT_CURVE;
+				break;
+			case ("blue_curved_left"):
+				cbt = ConveyorBeltType.BLUE_LEFT_CURVE;
+				break;
+			case ("green_curved_right"):
+				cbt = ConveyorBeltType.GREEN_RIGHT_CURVE;
+				break;
+			case ("green_curved_left"):
+				cbt = ConveyorBeltType.GREEN_LEFT_CURVE;
+				break;
+			default:
 				throw new IllegalArgumentException(
 						"Invalid conveyor belt type: " + belt.type);
 		}
@@ -120,30 +132,30 @@ public class LevelLoader {
 		Direction dir;
 
 		switch (belt.direction) {
-			case "east" :
+			case "east":
 				dir = Direction.EAST;
 				break;
 
-			case "north" :
+			case "north":
 				dir = Direction.NORTH;
 				break;
 
-			case "west" :
+			case "west":
 				dir = Direction.WEST;
 				break;
 
-			case "south" :
+			case "south":
 				dir = Direction.SOUTH;
 				break;
 
-			default :
+			default:
 				throw new IllegalArgumentException(
 						"Invalid conveyor belt direction: " + belt.direction);
 		}
 		ConveyorBelt cb = new ConveyorBelt(new Vector2D(belt.x, belt.y),
-				belt.length, dir, cbt, belt.curved);
+				belt.length, dir, cbt);
 		switch (dir) {
-			case Direction.NORTH : // we need to change this if the frontenders
+			case Direction.NORTH: // we need to change this if the frontenders
 									// are using negative Y as down
 				for (int i = belt.y; i > belt.y - belt.length; i--) {
 					getSpaceAt(spaceMap, new Vector2D(belt.x, i))
@@ -151,7 +163,7 @@ public class LevelLoader {
 				}
 				break;
 
-			case Direction.SOUTH : // we need to change this if the frontenders
+			case Direction.SOUTH: // we need to change this if the frontenders
 									// are using negative Y as down
 				for (int i = belt.y; i < belt.y + belt.length; i++) {
 					getSpaceAt(spaceMap, new Vector2D(belt.x, i))
@@ -159,14 +171,14 @@ public class LevelLoader {
 				}
 				break;
 
-			case Direction.WEST :
+			case Direction.WEST:
 				for (int i = belt.x; i > belt.x - belt.length; i--) {
 					getSpaceAt(spaceMap, new Vector2D(i, belt.y))
 							.addBoardElement(cb);
 				}
 				break;
 
-			case Direction.EAST :
+			case Direction.EAST:
 				for (int i = belt.x; i < belt.x + belt.length; i++) {
 					getSpaceAt(spaceMap, new Vector2D(i, belt.y))
 							.addBoardElement(cb);
@@ -197,23 +209,23 @@ public class LevelLoader {
 		Direction dir;
 		// Get the direction for wall
 		switch (wall.direction) {
-			case "east" :
+			case "east":
 				dir = Direction.EAST;
 				break;
 
-			case "north" :
+			case "north":
 				dir = Direction.NORTH;
 				break;
 
-			case "south" :
+			case "south":
 				dir = Direction.SOUTH;
 				break;
 
-			case "west" :
+			case "west":
 				dir = Direction.WEST;
 				break;
 
-			default :
+			default:
 				throw new IllegalArgumentException(
 						"Invalid wall direction: " + wall.direction);
 		}
@@ -237,23 +249,23 @@ public class LevelLoader {
 			Map<Vector2D, Space> spaceMap) {
 		Direction dir;
 		switch (laser.direction) {
-			case "east" :
+			case "east":
 				dir = Direction.EAST;
 				break;
 
-			case "north" :
+			case "north":
 				dir = Direction.NORTH;
 				break;
 
-			case "west" :
+			case "west":
 				dir = Direction.WEST;
 				break;
 
-			case "south" :
+			case "south":
 				dir = Direction.SOUTH;
 				break;
 
-			default :
+			default:
 				throw new IllegalArgumentException(
 						"Invalid laser direction: " + laser.direction);
 		}
@@ -302,15 +314,15 @@ public class LevelLoader {
 			Map<Vector2D, Space> spaceMap) {
 		RotationDirection rd;
 		switch (gear.rotation_direction) {
-			case "clockwise" :
+			case "clockwise":
 				rd = RotationDirection.CLOCKWISE;
 				break;
 
-			case "counterclockwise" :
+			case "counterclockwise":
 				rd = RotationDirection.COUNTERCLOCKWISE;
 				break;
 
-			default :
+			default:
 				throw new IllegalArgumentException(
 						"Invalid gear rotation direction: "
 								+ gear.rotation_direction);
@@ -324,23 +336,23 @@ public class LevelLoader {
 			Map<Vector2D, Space> spaceMap) {
 		Direction dir;
 		switch (pPanel.push_direction) {
-			case "east" :
+			case "east":
 				dir = Direction.EAST;
 				break;
 
-			case "north" :
+			case "north":
 				dir = Direction.NORTH;
 				break;
 
-			case "west" :
+			case "west":
 				dir = Direction.WEST;
 				break;
 
-			case "south" :
+			case "south":
 				dir = Direction.SOUTH;
 				break;
 
-			default :
+			default:
 				throw new IllegalArgumentException(
 						"Invalid push panel push direction: "
 								+ pPanel.push_direction);
