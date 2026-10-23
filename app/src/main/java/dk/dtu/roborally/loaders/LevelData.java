@@ -32,6 +32,7 @@ public class LevelData {
 		public int length;
 		public String direction;
 		public String type;
+		public Boolean curved;
 	}
 
 	public static class CheckpointData {

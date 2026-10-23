@@ -141,7 +141,7 @@ public class LevelLoader {
 						"Invalid conveyor belt direction: " + belt.direction);
 		}
 		ConveyorBelt cb = new ConveyorBelt(new Vector2D(belt.x, belt.y),
-				belt.length, dir, cbt);
+				belt.length, dir, cbt, belt.curved);
 		switch (dir) {
 			case Direction.NORTH : // we need to change this if the frontenders
 									// are using negative Y as down

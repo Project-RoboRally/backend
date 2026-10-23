@@ -25,11 +25,15 @@ public class ConveyorBelt extends BoardElement {
 	@Getter
 	private final Vector2D position;
 
+	@Getter 
+	private final Boolean curved;
+
 	public ConveyorBelt(Vector2D position, int length, Direction direction,
-			ConveyorBeltType type) {
+			ConveyorBeltType type, Boolean curved) {
 		this.direction = direction;
 		this.type = type;
 		this.position = position;
 		this.length = length;
+		this.curved = curved;
 	}
 }
