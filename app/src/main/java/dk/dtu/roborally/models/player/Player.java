@@ -21,6 +21,9 @@ public class Player {
 	private final PlayerMat playerMat;
 	private final Robot robot;
 	private final PlayerColor color;
+
+	@Setter
+	@Getter
 	private int EnergyAmount;
 
 	@Setter
