@@ -50,74 +50,46 @@ public class Robot {
 	public void moveTo(Vector2D space) {
 		currentSpace = space;
 	}
-	
+
 	public void conveyorRotate(ConveyorBelt conveyor) {
-		if (!conveyor.getCurved()) {
-			return;
-		}
-
-		Direction conveyorDirection = conveyor.getDirection();
-
-		switch (orientation) {
-			case NORTH:
-				if (conveyorDirection == Direction.EAST) {
-					turnRight();
-				} else if (conveyorDirection == Direction.WEST) {
-					turnLeft();
-				}
+		switch (conveyor.getType()) {
+			case BLUE_RIGHT_CURVE:
+			case GREEN_RIGHT_CURVE:
+				turnRight();
 				break;
-
-			case SOUTH:
-				if (conveyorDirection == Direction.WEST) {
-					turnRight();
-				} else if (conveyorDirection == Direction.EAST) {
-					turnLeft();
-				}
+			case BLUE_LEFT_CURVE:
+			case GREEN_LEFT_CURVE:
+				turnLeft();
 				break;
-
-			case EAST:
-				if (conveyorDirection == Direction.SOUTH) {
-					turnRight();
-				} else if (conveyorDirection == Direction.NORTH) {
-					turnLeft();
-				}
-				break;
-
-			case WEST:
-				if (conveyorDirection == Direction.NORTH) {
-					turnRight();
-				} else if (conveyorDirection == Direction.SOUTH) {
-					turnLeft();
-				}
-				break;
-
 			default:
-				break;
+				return;
 		}
-
 	}
 
-	// This function follows the "Activation order for Board Elements and Robot Lasers" from the rulebook page 8
+	// This function follows the "Activation order for Board Elements and Robot
+	// Lasers" from the rulebook page 8
 	public void restActions(Player player, Map<Vector2D, Space> spaceMap) {
 		Space currSpace = spaceMap.get(this.currentSpace);
 		List<BoardElement> attachments = currSpace.getBoardElements();
 		// Follows the activation order
-		for (int priority = 1; priority <= 8 ; priority++) { // used for the ordering of priorities
-			for (int i = 0; i < attachments.size() ; i++) {
+		for (int priority = 1; priority <= 8; priority++) { // used for the ordering of priorities
+			for (int i = 0; i < attachments.size(); i++) {
 				BoardElement element = attachments.get(i);
-				
+
 				// Conveyor
 				if (element instanceof ConveyorBelt) {
 					ConveyorBelt conveyorBelt = (ConveyorBelt) element;
 					// First: Blue conveyor belt
-					if (priority == 1 && conveyorBelt.getType() == ConveyorBeltType.BLUE) {
+					if (priority == 1 && (conveyorBelt.getType() == ConveyorBeltType.BLUE_STRAIGHT || conveyorBelt
+							.getType() == ConveyorBeltType.BLUE_RIGHT_CURVE || conveyorBelt
+									.getType() == ConveyorBeltType.BLUE_LEFT_CURVE)) {
 						// Move 1
 						currentSpace.add(conveyorBelt.getDirection().step());
 						conveyorRotate(conveyorBelt);
 						// Move 2
 						Space newSpace = spaceMap.get(this.currentSpace);
 						List<BoardElement> a = newSpace.getBoardElements();
-						for (int j = 0 ; j < a.size() ; j++) {
+						for (int j = 0; j < a.size(); j++) {
 							BoardElement e = a.get(i);
 							if (e instanceof ConveyorBelt) {
 								ConveyorBelt c = (ConveyorBelt) e;
@@ -127,11 +99,13 @@ public class Robot {
 						}
 					}
 					// Second: Green conveyor belt
-					if (priority == 2 && conveyorBelt.getType() == ConveyorBeltType.GREEN) {
+					if (priority == 2 && (conveyorBelt.getType() == ConveyorBeltType.GREEN_STRAIGHT || conveyorBelt
+							.getType() == ConveyorBeltType.GREEN_RIGHT_CURVE || conveyorBelt
+									.getType() == ConveyorBeltType.GREEN_LEFT_CURVE)) {
 						currentSpace.add(conveyorBelt.getDirection().step());
 						conveyorRotate(conveyorBelt);
 					}
-					
+
 				}
 
 				// Third: Push Panel
@@ -147,7 +121,7 @@ public class Robot {
 						case CLOCKWISE:
 							turnRight();
 							break;
-						
+
 						case COUNTERCLOCKWISE:
 							turnLeft();
 							break;
@@ -166,7 +140,7 @@ public class Robot {
 				// Eighth: Checkpoint
 				if (element instanceof Checkpoint && priority == 8) {
 					Checkpoint cp = (Checkpoint) element;
-					if (player.getCheckpointsReached() == cp.getNumber()-1) {
+					if (player.getCheckpointsReached() == cp.getNumber() - 1) {
 						player.setCheckpointsReached(cp.getNumber());
 					}
 				}

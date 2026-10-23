@@ -21,8 +21,9 @@ public class Player {
 	private final PlayerMat playerMat;
 	private final Robot robot;
 	private final PlayerColor color;
+	private int EnergyAmount;
 
-	@Setter 
+	@Setter
 	@Getter
 	private int checkpointsReached = 0;
 
@@ -32,5 +33,6 @@ public class Player {
 		this.color = Objects.requireNonNull(color);
 		this.robot = Objects.requireNonNull(robot);
 		this.playerMat = new PlayerMat();
+		this.EnergyAmount = 5;
 	}
 }

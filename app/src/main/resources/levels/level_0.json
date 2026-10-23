@@ -17,56 +17,49 @@
             "y": 7,
             "length": 7,
             "direction": "east",
-            "type": "blue",
-            "curved": false
+            "type": "blue_straight"
         },
         {
             "x": 13,
             "y": 7,
             "length": 6,
             "direction": "south",
-            "type": "blue",
-            "curved": false
+            "type": "blue_straight"
         },
         {
             "x": 13,
             "y": 13,
             "length": 7,
             "direction": "west",
-            "type": "blue",
-            "curved": false
+            "type": "blue_straight"
         },
         {
             "x": 6,
             "y": 13,
             "length": 6,
             "direction": "north",
-            "type": "blue",
-            "curved": false
+            "type": "blue_straight"
         },
         {
             "x": 2,
             "y": 1,
             "length": 6,
             "direction": "south",
-            "type": "green",
-            "curved": false
+            "type": "green_straight"
         },
         {
             "x": 17,
             "y": 10,
             "length": 6,
             "direction": "north",
-            "type": "green",
-            "curved": false
+            "type": "green_straight"
         },
         {
             "x": 12,
             "y": 15,
             "length": 5,
             "direction": "west",
-            "type": "green",
-            "curved": false
+            "type": "green_straight"
         }
     ],
     "start_points": [
