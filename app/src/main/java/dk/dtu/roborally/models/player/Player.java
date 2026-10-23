@@ -3,6 +3,7 @@ package dk.dtu.roborally.models.player;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.models.User;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Objects;
 
@@ -10,7 +11,7 @@ import java.util.Objects;
  * Represents a user's participation in a specific Robo Rally game. Holds the
  * user's game-specific robot, player mat and progress.
  *
- * @author Elias, Matthias, August
+ * @author Elias, Matthias, August, Victor
  */
 @Getter
 public class Player {
@@ -20,7 +21,10 @@ public class Player {
 	private final PlayerMat playerMat;
 	private final Robot robot;
 	private final PlayerColor color;
-	private int checkpointsReached;
+
+	@Setter 
+	@Getter
+	private int checkpointsReached = 0;
 
 	public Player(String id, User user, PlayerColor color, Robot robot) {
 		this.id = Objects.requireNonNull(id);
