@@ -26,8 +26,8 @@ public class PlayerMat {
 	 * card is added here and handled when a register activates.
 	 */
 	public static final Set<CommandInstruction> ALLOWED = Set.of(
-			CommandInstruction.MOVE_1, CommandInstruction.MOVE_2, 
-			CommandInstruction.MOVE_3, CommandInstruction.LEFT_TURN, 
+			CommandInstruction.MOVE_1, CommandInstruction.MOVE_2,
+			CommandInstruction.MOVE_3, CommandInstruction.LEFT_TURN,
 			CommandInstruction.RIGHT_TURN);
 
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
