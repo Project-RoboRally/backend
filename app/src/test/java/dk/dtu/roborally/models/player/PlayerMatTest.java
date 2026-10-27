@@ -21,7 +21,7 @@ class PlayerMatTest {
 	void allowListIsMove1Move2AndBothTurns() {
 		assertEquals(Set.of(CommandInstruction.MOVE_1,
 				CommandInstruction.MOVE_2, CommandInstruction.MOVE_3,
-				CommandInstruction.LEFT_TURN, CommandInstruction.RIGHT_TURN), 
+				CommandInstruction.LEFT_TURN, CommandInstruction.RIGHT_TURN),
 				PlayerMat.ALLOWED);
 
 		PlayerMat mat = new PlayerMat();
