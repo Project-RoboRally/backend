@@ -1,9 +1,11 @@
 package dk.dtu.roborally.models.player;
 
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -64,6 +66,20 @@ class PlayerMatTest {
 		assertNull(mat.getRegisters().get(0).getCard());
 		mat.program(five(CommandInstruction.RIGHT_TURN));
 		assertTrue(mat.isSubmitted());
+	}
+
+	@Test
+	void playerStartsWithTheStandardDeckAndNineCardsInHand() {
+		PlayerMat mat = new PlayerMat();
+
+		assertEquals(9, mat.getHand().size());
+		assertEquals(11, mat.getDrawPileSize());
+		assertTrue(mat.getDiscardPile().isEmpty());
+
+		List<ProgrammableCard> deck = new ArrayList<>(mat.getHand());
+		mat = new PlayerMat(deck);
+		assertEquals(9, mat.getHand().size());
+		assertEquals(0, mat.getDrawPileSize());
 	}
 
 	private static ProgrammingCard card(PlayerMat mat, int register) {
