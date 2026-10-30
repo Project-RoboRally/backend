@@ -48,6 +48,7 @@ class GameServiceTest {
 	private final List<Game> startedPublished = new ArrayList<>();
 	private final List<String> startedLobbyIds = new ArrayList<>();
 	private final List<String> boardLobbyIds = new ArrayList<>();
+	private final List<String> roundStartedLobbyIds = new ArrayList<>();
 	private GameService gameService;
 	private Game game;
 
@@ -63,6 +64,11 @@ class GameServiceTest {
 			@Override
 			public void publishBoard(String lobbyId, Game game) {
 				boardLobbyIds.add(lobbyId);
+			}
+
+			@Override
+			public void publishRoundStarted(String lobbyId, Game game) {
+				roundStartedLobbyIds.add(lobbyId);
 			}
 
 			@Override
@@ -347,6 +353,7 @@ class GameServiceTest {
 		assertFalse(gameService.submitProgram(lobby, "August", august));
 		assertEquals(before, facings(started));
 		assertEquals(boardsBefore, boardLobbyIds.size());
+		assertTrue(roundStartedLobbyIds.isEmpty());
 		assertTrue(named(started, "August").getPlayerMat().isSubmitted());
 		assertThrows(IllegalStateException.class,
 				() -> gameService.submitProgram(lobby, "August", august));
@@ -356,6 +363,7 @@ class GameServiceTest {
 		assertEquals(lobby.getLobbyId(),
 				boardLobbyIds.get(boardLobbyIds.size() - 1));
 
+		assertEquals(List.of(lobby.getLobbyId()), roundStartedLobbyIds);
 		for (Player player : started.getPlayersInGame()) {
 			assertFalse(player.getPlayerMat().isSubmitted());
 			assertEquals(9, player.getPlayerMat().getHand().size());
