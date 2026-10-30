@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -181,6 +182,29 @@ class WebSocketGameEventPublisherTest {
 						List.of(new BoardDTO.RegisterDTO.PlayedCardDTO("alice",
 								new CardDTO("PROGRAMMING", "MOVE_1"), 0, 1)))),
 				sent.getValue().registers());
+	}
+
+	@Test
+	void otherPlayersCannotSeeASubmittedProgram() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Player bob = player("bob", PlayerColor.BLUE, 1, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice, bob),
+				Map.of());
+		bob.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
+
+		publisher.publishRoundStarted("lobby-1", game);
+
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+				sent.capture());
+		assertTrue(sent.getValue().playerMat().registers().stream()
+				.allMatch(register -> register.card() == null));
+		assertFalse(sent.getValue().players().toString().contains("MOVE_1"));
 	}
 
 	@Test
