@@ -54,7 +54,6 @@ public class PlayerMat {
 			registers[i] = new Register(i);
 		}
 		deck.forEach(drawPile::addCard);
-		drawHand();
 	}
 
 	/** The 20 cards every player starts with, in random order. */

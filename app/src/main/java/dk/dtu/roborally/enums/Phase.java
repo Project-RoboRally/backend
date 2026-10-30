@@ -7,5 +7,5 @@ package dk.dtu.roborally.enums;
  */
 
 public enum Phase {
-	PROGRAMMING, ACTIVATION, ENDED
+	UPGRADE, PROGRAMMING, ACTIVATION, ENDED
 }

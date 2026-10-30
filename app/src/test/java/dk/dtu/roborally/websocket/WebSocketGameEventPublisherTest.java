@@ -82,7 +82,7 @@ class WebSocketGameEventPublisherTest {
 		assertEquals(PlayerGameStateDTO.GAME_STARTED, aliceState.type());
 		assertEquals("alice", aliceState.you());
 		assertEquals("game-1", aliceState.gameId());
-		assertEquals(Phase.PROGRAMMING, aliceState.round().phase());
+		assertEquals(Phase.UPGRADE, aliceState.round().phase());
 		assertEquals(2, aliceState.players().size());
 		assertEquals(2, aliceState.board().width());
 		assertEquals(1, aliceState.board().height());
@@ -94,21 +94,47 @@ class WebSocketGameEventPublisherTest {
 	}
 
 	@Test
-	void publishesRoundStartedWithTheNewHandToEachPlayersTopic() {
+	void publishesProgrammingStartedWithTheNewHandToEachPlayersTopic() {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
-		Game game = new Game("game-1", boardWithWall(),
-				Set.of(player("alice", PlayerColor.RED, 0, 0)), Map.of());
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice),
+				Map.of());
+		alice.getPlayerMat().drawHand();
 
-		publisher.publishRoundStarted("lobby-1", game);
+		publisher.publishProgrammingStarted("lobby-1", game);
 
-		ArgumentCaptor<PlayerGameStateDTO> alice = ArgumentCaptor
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
 		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
-				alice.capture());
-		assertEquals(PlayerGameStateDTO.ROUND_STARTED, alice.getValue().type());
-		assertEquals(9, alice.getValue().playerMat().hand().size());
+				sent.capture());
+		assertEquals(PlayerGameStateDTO.PROGRAMMING_STARTED,
+				sent.getValue().type());
+		assertEquals(9, sent.getValue().playerMat().hand().size());
+	}
+
+	@Test
+	void publishesTheShopAndWhoseTurnItIs() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice),
+				Map.of());
+		game.getUpgradeShop().refill(1);
+		game.setUpgradeOrder(List.of(alice));
+
+		publisher.publishUpgradeTurn("lobby-1", game);
+
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+				sent.capture());
+		assertEquals(PlayerGameStateDTO.UPGRADE_TURN, sent.getValue().type());
+		assertEquals(1, sent.getValue().upgradeShop().size());
+		assertEquals(3, sent.getValue().upgradeShop().get(0).cost());
+		assertEquals("alice", sent.getValue().currentBuyer());
 	}
 
 	@Test
