@@ -10,6 +10,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.Checkpoint;
 import dk.dtu.roborally.models.board.elements.ConveyorBelt;
+import dk.dtu.roborally.models.board.elements.EnergySpace;
 import dk.dtu.roborally.models.board.elements.Gear;
 import dk.dtu.roborally.models.board.elements.PushPanel;
 import lombok.Getter;
@@ -65,9 +66,41 @@ public class Robot {
 				return;
 		}
 	}
+	// This function follows the "Activation order for Board Elements and Robot
+	// Lasers" from the rulebook page 8, and is only for when the robot is doing 
+	// its registers, so it needs to be called every time a register is done.
+	public void registerActions(Player player, int register, Map<Vector2D, Space> spaceMap) {
+		Space currSpace = spaceMap.get(this.currentSpace);
+		List<BoardElement> attachments = currSpace.getBoardElements();
+		// Follows the activation order
+		for (int priority = 1; priority <= 8; priority++) { // used for the ordering of priorities
+			for (int i = 0; i < attachments.size(); i++) {
+				BoardElement element = attachments.get(i);
+				// Seventh: Energy Space
+				if (element instanceof EnergySpace && priority == 7) {
+					EnergySpace es = (EnergySpace) element;
+					if (register == 5) {
+						player.addEnergyAmount(1);
+					}
+					if (es.getCubeAmount() >= 1) {
+						player.addEnergyAmount(1);
+						es.addEnergyAmount(-1);
+					}
+				}
+
+				// Eighth: Checkpoint
+				if (element instanceof Checkpoint && priority == 8) {
+					Checkpoint cp = (Checkpoint) element;
+					if (player.getCheckpointsReached() == cp.getNumber() - 1) {
+						player.setCheckpointsReached(cp.getNumber());
+					}
+				}
+			}
+		}
+	}
 
 	// This function follows the "Activation order for Board Elements and Robot
-	// Lasers" from the rulebook page 8
+	// Lasers" from the rulebook page 8, and is only for when the robot is done with its registers
 	public void restActions(Player player, Map<Vector2D, Space> spaceMap) {
 		Space currSpace = spaceMap.get(this.currentSpace);
 		List<BoardElement> attachments = currSpace.getBoardElements();
@@ -133,17 +166,6 @@ public class Robot {
 
 				// Sixth: Robot Lasers
 				// TODO
-
-				// Seventh: Energy Space
-				// TODO, cause we do not have energy yet
-
-				// Eighth: Checkpoint
-				if (element instanceof Checkpoint && priority == 8) {
-					Checkpoint cp = (Checkpoint) element;
-					if (player.getCheckpointsReached() == cp.getNumber() - 1) {
-						player.setCheckpointsReached(cp.getNumber());
-					}
-				}
 			}
 		}
 	}

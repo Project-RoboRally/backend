@@ -38,4 +38,8 @@ public class Player {
 		this.playerMat = new PlayerMat();
 		this.EnergyAmount = 5;
 	}
+
+	public void addEnergyAmount(int e) {
+		this.EnergyAmount += e;
+	}
 }
