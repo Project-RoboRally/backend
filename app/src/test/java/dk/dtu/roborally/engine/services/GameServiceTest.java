@@ -15,6 +15,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.lobby.GameLobby;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +48,6 @@ class GameServiceTest {
 	private final List<Game> startedPublished = new ArrayList<>();
 	private final List<String> startedLobbyIds = new ArrayList<>();
 	private final List<String> boardLobbyIds = new ArrayList<>();
-	private final List<Map<String, Direction>> publishedFacings = new ArrayList<>();
 	private GameService gameService;
 	private Game game;
 
@@ -62,12 +63,6 @@ class GameServiceTest {
 			@Override
 			public void publishBoard(String lobbyId, Game game) {
 				boardLobbyIds.add(lobbyId);
-				Map<String, Direction> facings = new HashMap<>();
-				for (Player player : game.getPlayersInGame()) {
-					facings.put(player.getUser().getUsername(),
-							player.getRobot().getOrientation());
-				}
-				publishedFacings.add(facings);
 			}
 
 			@Override
@@ -181,10 +176,10 @@ class GameServiceTest {
 		Game round = game(
 				board(space(0, 0), space(1, 0), space(2, 0), space(2, -1)),
 				mover);
-		mover.getPlayerMat()
-				.program(List.of(CommandInstruction.MOVE_2,
-						CommandInstruction.LEFT_TURN, CommandInstruction.MOVE_1,
-						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1));
+		load(mover,
+				List.of(CommandInstruction.MOVE_2, CommandInstruction.LEFT_TURN,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
+						CommandInstruction.MOVE_1));
 
 		List<List<RobotView>> frames = gameService.activateRound(round);
 
@@ -219,8 +214,8 @@ class GameServiceTest {
 		Game round = game(board(space(0, 0, new PriorityAntenna()), space(1, 0),
 				space(2, 0), space(3, 0)), near, far);
 
-		near.getPlayerMat().program(registers);
-		far.getPlayerMat().program(registers);
+		load(near, registers);
+		load(far, registers);
 		gameService.activateRound(round);
 
 		assertEquals(new Vector2D(2, 0), near.getRobot().getCurrentSpace());
@@ -237,8 +232,8 @@ class GameServiceTest {
 		Game round = game(board(space(0, 0, new PriorityAntenna()), space(0, 1),
 				space(1, 0), space(1, 1)), alice, carol);
 
-		alice.getPlayerMat().program(registers);
-		carol.getPlayerMat().program(registers);
+		load(alice, registers);
+		load(carol, registers);
 		gameService.activateRound(round);
 
 		assertEquals(new Vector2D(1, 1), alice.getRobot().getCurrentSpace());
@@ -299,7 +294,7 @@ class GameServiceTest {
 		assertEquals(5, mover.getEnergy());
 
 		Game round = game(board(space(0, 0)), mover);
-		mover.getPlayerMat().program(five(CommandInstruction.POWER_UP));
+		load(mover, five(CommandInstruction.POWER_UP));
 
 		assertTrue(gameService.activateRound(round).isEmpty());
 		assertEquals(10, mover.getEnergy());
@@ -346,45 +341,57 @@ class GameServiceTest {
 		Game started = gameService.getGame(lobby.getGameId());
 		Map<String, Direction> before = facings(started);
 		int boardsBefore = boardLobbyIds.size();
-		List<CommandInstruction> registers = five(
-				CommandInstruction.RIGHT_TURN);
+		List<CommandInstruction> august = fromHand(named(started, "August"));
+		List<CommandInstruction> alice = fromHand(named(started, "Alice"));
 
-		assertFalse(gameService.submitProgram(lobby, "August", registers));
+		assertFalse(gameService.submitProgram(lobby, "August", august));
 		assertEquals(before, facings(started));
 		assertEquals(boardsBefore, boardLobbyIds.size());
 		assertTrue(named(started, "August").getPlayerMat().isSubmitted());
 		assertThrows(IllegalStateException.class,
-				() -> gameService.submitProgram(lobby, "August", registers));
+				() -> gameService.submitProgram(lobby, "August", august));
 
-		assertTrue(gameService.submitProgram(lobby, "Alice", registers));
+		assertTrue(gameService.submitProgram(lobby, "Alice", alice));
 		assertEquals(boardsBefore + 1, boardLobbyIds.size());
 		assertEquals(lobby.getLobbyId(),
 				boardLobbyIds.get(boardLobbyIds.size() - 1));
 
-		Map<String, Direction> turned = new HashMap<>();
-		for (Map.Entry<String, Direction> facing : before.entrySet()) {
-			Direction orientation = facing.getValue();
-			for (int i = 0; i < 5; i++) {
-				orientation = orientation.turnRight();
-			}
-			turned.put(facing.getKey(), orientation);
-		}
-		assertEquals(turned, publishedFacings.get(publishedFacings.size() - 1));
 		for (Player player : started.getPlayersInGame()) {
 			assertFalse(player.getPlayerMat().isSubmitted());
+			assertEquals(9, player.getPlayerMat().getHand().size());
+			assertEquals(9, player.getPlayerMat().getDiscardPile().size());
 			for (Register register : player.getPlayerMat().getRegisters()) {
 				assertNull(register.getCard());
 			}
 		}
 
-		assertFalse(gameService.submitProgram(lobby, "August", registers));
+		assertFalse(gameService.submitProgram(lobby, "August",
+				fromHand(named(started, "August"))));
 	}
 
 	private void run(Game round, List<CommandInstruction> registers) {
 		for (Player player : round.getPlayersInGame()) {
-			player.getPlayerMat().program(registers);
+			load(player, registers);
 		}
 		gameService.activateRound(round);
+	}
+
+	private static void load(Player player,
+			List<CommandInstruction> registers) {
+		for (int i = 0; i < registers.size(); i++) {
+			player.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(registers.get(i)));
+		}
+	}
+
+	private static List<CommandInstruction> fromHand(Player player) {
+		List<CommandInstruction> hand = new ArrayList<>();
+		for (ProgrammableCard card : player.getPlayerMat().getHand()) {
+			hand.add(((ProgrammingCard) card).getInstruction());
+		}
+		hand.sort(Comparator.comparing(
+				instruction -> instruction == CommandInstruction.AGAIN));
+		return hand.subList(0, 5);
 	}
 
 	private static Game game(Board board, Player... players) {

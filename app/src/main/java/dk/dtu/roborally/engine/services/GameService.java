@@ -82,8 +82,8 @@ public class GameService {
 
 	/**
 	 * Stores this player's five-card program. When every player has submitted,
-	 * resolves the round, clears the mats, republishes the board, and returns
-	 * true. Returns false while the round is still waiting.
+	 * resolves the round, clears the mats, draws new hands, republishes the
+	 * board, and returns true. Returns false while the round is still waiting.
 	 */
 	public boolean submitProgram(GameLobby lobby, String username,
 			List<CommandInstruction> registers) {
@@ -103,6 +103,7 @@ public class GameService {
 		List<List<RobotView>> steps = activateRound(game);
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
+			player.getPlayerMat().drawHand();
 		}
 		gameEventPublisher.publishRound(lobby.getLobbyId(), game, steps);
 		return true;
