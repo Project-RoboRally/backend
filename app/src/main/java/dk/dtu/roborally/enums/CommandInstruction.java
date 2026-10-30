@@ -7,7 +7,7 @@ package dk.dtu.roborally.enums;
  */
 
 public enum CommandInstruction {
-	MOVE_1, MOVE_2, MOVE_3, LEFT_TURN, RIGHT_TURN, U_TURN, MOVE_BACK, POWER_UP, AGAIN;
+	MOVE_1, MOVE_2, MOVE_3, LEFT_TURN, RIGHT_TURN, U_TURN, MOVE_BACK, POWER_UP, AGAIN, ENERGY_ROUTINE, SPEED_ROUTINE, REPEAT_ROUTINE;
 
 	/**
 	 * Spaces a forward move travels, one step at a time. Other instructions
@@ -17,9 +17,14 @@ public enum CommandInstruction {
 		return switch (this) {
 			case MOVE_1 -> 1;
 			case MOVE_2 -> 2;
-			case MOVE_3 -> 3;
+			case MOVE_3, SPEED_ROUTINE -> 3;
 			default ->
 				throw new IllegalArgumentException(this + " has no step count");
 		};
+	}
+
+	/** Whether this repeats the previous register instead of acting itself. */
+	public boolean repeatsPreviousRegister() {
+		return this == AGAIN || this == REPEAT_ROUTINE;
 	}
 }

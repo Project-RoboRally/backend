@@ -77,6 +77,28 @@ class PlayerMatTest {
 	}
 
 	@Test
+	void repeatRoutineIsRejectedInRegisterOne() {
+		PlayerMat mat = stacked();
+
+		assertThrows(IllegalArgumentException.class,
+				() -> mat.program(List.of(CommandInstruction.REPEAT_ROUTINE,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1)));
+		assertFalse(mat.isSubmitted());
+	}
+
+	@Test
+	void addedCardGoesToTheDiscardPile() {
+		PlayerMat mat = stacked();
+		ProgrammingCard routine = new ProgrammingCard(
+				CommandInstruction.SPEED_ROUTINE);
+
+		mat.addToDiscardPile(routine);
+
+		assertEquals(List.of(routine), mat.getDiscardPile());
+	}
+
+	@Test
 	void secondSubmitIsRejectedUntilTheRoundIsCleared() {
 		PlayerMat mat = stacked();
 		mat.program(PROGRAM);

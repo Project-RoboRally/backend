@@ -164,13 +164,13 @@ public class GameService {
 	}
 
 	/**
-	 * The instruction a register performs. Again repeats the nearest earlier
-	 * register that is not itself Again.
+	 * The instruction a register performs. Again and Repeat Routine repeat the
+	 * nearest earlier register that does not repeat anything itself.
 	 */
 	private CommandInstruction resolveInstruction(Player player, int register) {
 		for (int index = register; index >= 0; index--) {
 			CommandInstruction instruction = instructionAt(player, index);
-			if (instruction != CommandInstruction.AGAIN) {
+			if (!instruction.repeatsPreviousRegister()) {
 				return instruction;
 			}
 		}
@@ -202,10 +202,10 @@ public class GameService {
 				player.getRobot().uTurn();
 				steps.add(snapshot(game));
 			}
-			case MOVE_1, MOVE_2, MOVE_3 ->
+			case MOVE_1, MOVE_2, MOVE_3, SPEED_ROUTINE ->
 				move(player, game, instruction.steps(), steps);
 			case MOVE_BACK -> moveBack(player, game, steps);
-			case POWER_UP -> player.addEnergy(1);
+			case POWER_UP, ENERGY_ROUTINE -> player.addEnergy(1);
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);
 		}
