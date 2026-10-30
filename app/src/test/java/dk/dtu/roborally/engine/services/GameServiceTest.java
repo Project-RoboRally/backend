@@ -18,6 +18,9 @@ import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
+import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
+import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Register;
@@ -187,7 +190,7 @@ class GameServiceTest {
 						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
 						CommandInstruction.MOVE_1));
 
-		List<List<RobotView>> frames = gameService.activateRound(round);
+		List<List<RobotView>> frames = gameService.activateRound(round).steps();
 
 		assertEquals(4, frames.size());
 		assertEquals(1, frames.get(0).get(0).x());
@@ -302,7 +305,7 @@ class GameServiceTest {
 		Game round = game(board(space(0, 0)), mover);
 		load(mover, five(CommandInstruction.POWER_UP));
 
-		assertTrue(gameService.activateRound(round).isEmpty());
+		assertTrue(gameService.activateRound(round).steps().isEmpty());
 		assertEquals(10, mover.getEnergy());
 	}
 
@@ -329,6 +332,44 @@ class GameServiceTest {
 						CommandInstruction.POWER_UP));
 
 		assertEquals(new Vector2D(3, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void roundRecordsWhoPlayedWhatInActivationOrder() {
+		Player near = player("zzz", 1, 0, Direction.EAST, PlayerColor.RED);
+		Player far = player("aaa", 3, 0, Direction.EAST, PlayerColor.BLUE);
+		Game round = game(board(space(0, 0, new PriorityAntenna()), space(1, 0),
+				space(2, 0), space(3, 0), space(4, 0), space(5, 0), space(6, 0),
+				space(7, 0)), near, far);
+		load(near, List.of(CommandInstruction.POWER_UP,
+				CommandInstruction.AGAIN, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP, CommandInstruction.POWER_UP));
+		load(far, List.of(CommandInstruction.MOVE_2, CommandInstruction.AGAIN,
+				CommandInstruction.POWER_UP, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP));
+
+		RoundResult result = gameService.activateRound(round);
+
+		assertEquals(5, result.registers().size());
+		RegisterReveal first = result.registers().get(0);
+		assertEquals(0, first.register());
+		assertEquals(List.of("zzz", "aaa"),
+				first.cards().stream().map(PlayedCard::username).toList());
+
+		PlayedCard powerUp = first.cards().get(0);
+		assertEquals(0, powerUp.stepCount());
+		PlayedCard move = first.cards().get(1);
+		assertEquals(CommandInstruction.MOVE_2,
+				((ProgrammingCard) move.card()).getInstruction());
+		assertEquals(0, move.firstStep());
+		assertEquals(2, move.stepCount());
+
+		// Again shows as Again, but its frames come from the repeated card
+		PlayedCard again = result.registers().get(1).cards().get(1);
+		assertEquals(CommandInstruction.AGAIN,
+				((ProgrammingCard) again.card()).getInstruction());
+		assertEquals(2, again.firstStep());
+		assertEquals(2, again.stepCount());
 	}
 
 	@Test

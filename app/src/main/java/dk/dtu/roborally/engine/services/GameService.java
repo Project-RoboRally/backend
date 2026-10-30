@@ -14,6 +14,9 @@ import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
+import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
+import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
@@ -100,12 +103,13 @@ public class GameService {
 			return false;
 		}
 
-		List<List<RobotView>> steps = activateRound(game);
+		RoundResult result = activateRound(game);
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
 			player.getPlayerMat().drawHand();
 		}
-		gameEventPublisher.publishRound(lobby.getLobbyId(), game, steps);
+		gameEventPublisher.publishRound(lobby.getLobbyId(), game,
+				result.steps());
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
 		return true;
 	}
@@ -114,12 +118,13 @@ public class GameService {
 	 * Runs registers 1 through 5. Within a register, the robot closest to the
 	 * priority antenna moves first, with username breaking ties.
 	 */
-	List<List<RobotView>> activateRound(Game game) {
+	RoundResult activateRound(Game game) {
 		List<List<RobotView>> steps = new ArrayList<>();
+		List<RegisterReveal> reveals = new ArrayList<>();
 		Vector2D antenna = antennaPosition(game.getBoard());
 		List<Player> players = new ArrayList<>(game.getPlayersInGame());
 		if (players.isEmpty()) {
-			return steps;
+			return RoundResult.NONE;
 		}
 		int registerCount = players.get(0).getPlayerMat().getRegisters().size();
 
@@ -127,12 +132,19 @@ public class GameService {
 			List<Player> order = new ArrayList<>(players);
 			order.sort(activationOrder(antenna));
 
+			List<PlayedCard> cards = new ArrayList<>();
 			for (Player player : order) {
+				int firstStep = steps.size();
 				execute(resolveInstruction(player, register), player, game,
 						steps);
+				cards.add(new PlayedCard(player.getUser().getUsername(),
+						player.getPlayerMat().getRegisters().get(register)
+								.getCard(),
+						firstStep, steps.size() - firstStep));
 			}
+			reveals.add(new RegisterReveal(register, cards));
 		}
-		return steps;
+		return new RoundResult(steps, reveals);
 	}
 
 	private Comparator<Player> activationOrder(Vector2D antenna) {
