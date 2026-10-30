@@ -170,7 +170,7 @@ public class GameService {
 				player.getRobot().turnRight();
 				steps.add(snapshot(game));
 			}
-			case MOVE_1, MOVE_2 ->
+			case MOVE_1, MOVE_2, MOVE_3 ->
 				move(player, game, instruction.steps(), steps);
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);

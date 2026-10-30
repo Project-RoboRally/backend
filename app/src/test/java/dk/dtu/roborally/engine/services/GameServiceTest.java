@@ -250,7 +250,7 @@ class GameServiceTest {
 		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
 		Game round = game(board(space(0, 0)), mover);
 		mover.getPlayerMat().getRegisters().get(0)
-				.setCard(new ProgrammingCard(CommandInstruction.MOVE_3));
+				.setCard(new ProgrammingCard(CommandInstruction.U_TURN));
 
 		assertThrows(IllegalArgumentException.class,
 				() -> gameService.activateRound(round));

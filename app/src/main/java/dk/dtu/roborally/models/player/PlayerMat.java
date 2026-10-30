@@ -27,7 +27,8 @@ public class PlayerMat {
 	 */
 	public static final Set<CommandInstruction> ALLOWED = Set.of(
 			CommandInstruction.MOVE_1, CommandInstruction.MOVE_2,
-			CommandInstruction.LEFT_TURN, CommandInstruction.RIGHT_TURN);
+			CommandInstruction.MOVE_3, CommandInstruction.LEFT_TURN,
+			CommandInstruction.RIGHT_TURN);
 
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
 	private final List<ProgrammableCard> hand = new ArrayList<>();
