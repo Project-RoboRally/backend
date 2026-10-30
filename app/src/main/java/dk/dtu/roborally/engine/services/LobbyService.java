@@ -2,6 +2,7 @@ package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
@@ -167,6 +168,14 @@ public class LobbyService {
 			List<CommandInstruction> registers) {
 		return gameService.submitProgram(getLobby(lobbyId), username,
 				registers);
+	}
+
+	public void buyUpgrade(String lobbyId, String username, UpgradeType type) {
+		gameService.buyUpgrade(getLobby(lobbyId), username, type);
+	}
+
+	public void skipUpgrade(String lobbyId, String username) {
+		gameService.skipUpgrade(getLobby(lobbyId), username);
 	}
 
 	private void validateLobbyName(String name) {
