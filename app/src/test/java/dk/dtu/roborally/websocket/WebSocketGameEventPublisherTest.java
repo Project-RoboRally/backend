@@ -14,6 +14,9 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
+import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
+import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
 import dk.dtu.roborally.models.player.RobotView;
@@ -149,6 +152,7 @@ class WebSocketGameEventPublisherTest {
 						Direction.EAST)),
 				sent.getValue().robots());
 		assertTrue(sent.getValue().steps().isEmpty());
+		assertTrue(sent.getValue().registers().isEmpty());
 	}
 
 	@Test
@@ -159,9 +163,12 @@ class WebSocketGameEventPublisherTest {
 		Game game = new Game("game-1", boardWithWall(),
 				Set.of(player("alice", PlayerColor.RED, 1, 0)), Map.of());
 
-		publisher.publishRound("lobby-1", game,
+		ProgrammingCard card = new ProgrammingCard(CommandInstruction.MOVE_1);
+		publisher.publishRound("lobby-1", game, new RoundResult(
 				List.of(List.of(new RobotView("alice", PlayerColor.RED, 1, 0,
-						Direction.EAST))));
+						Direction.EAST))),
+				List.of(new RegisterReveal(0,
+						List.of(new PlayedCard("alice", card, 0, 1))))));
 
 		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
 		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
@@ -169,6 +176,11 @@ class WebSocketGameEventPublisherTest {
 		assertEquals(1, sent.getValue().steps().size());
 		assertEquals(new BoardDTO.RobotDTO("alice", PlayerColor.RED, 1, 0,
 				Direction.EAST), sent.getValue().steps().get(0).get(0));
+		assertEquals(
+				List.of(new BoardDTO.RegisterDTO(0,
+						List.of(new BoardDTO.RegisterDTO.PlayedCardDTO("alice",
+								new CardDTO("PROGRAMMING", "MOVE_1"), 0, 1)))),
+				sent.getValue().registers());
 	}
 
 	@Test
