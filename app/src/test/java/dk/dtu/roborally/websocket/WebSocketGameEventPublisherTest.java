@@ -90,6 +90,24 @@ class WebSocketGameEventPublisherTest {
 	}
 
 	@Test
+	void publishesRoundStartedWithTheNewHandToEachPlayersTopic() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Game game = new Game("game-1", boardWithWall(),
+				Set.of(player("alice", PlayerColor.RED, 0, 0)), Map.of());
+
+		publisher.publishRoundStarted("lobby-1", game);
+
+		ArgumentCaptor<PlayerGameStateDTO> alice = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+				alice.capture());
+		assertEquals(PlayerGameStateDTO.ROUND_STARTED, alice.getValue().type());
+		assertEquals(9, alice.getValue().playerMat().hand().size());
+	}
+
+	@Test
 	void publishesLoadedLevelToLobbyBoardTopic() {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(

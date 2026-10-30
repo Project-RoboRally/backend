@@ -9,7 +9,7 @@ import java.util.List;
  * Publishes game events to connected clients. Keeps the engine independent of
  * the transport used (STOMP over WebSocket).
  *
- * @author Nicoleta
+ * @author Nicoleta, Sebastian
  */
 public interface GameEventPublisher {
 	void publishStatus(Game game);
@@ -18,6 +18,12 @@ public interface GameEventPublisher {
 	 * Sends every player in the game the full game state, including their own
 	 */
 	void publishGameStarted(String lobbyId, Game game);
+
+	/**
+	 * Sends every player the full game state after a round, so they get their
+	 * new hand.
+	 */
+	void publishRoundStarted(String lobbyId, Game game);
 
 	/**
 	 * Sends the board layout, including robots placed on it, to everyone
