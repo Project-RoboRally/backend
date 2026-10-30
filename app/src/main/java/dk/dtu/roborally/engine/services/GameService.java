@@ -108,8 +108,7 @@ public class GameService {
 			player.getPlayerMat().clearProgram();
 			player.getPlayerMat().drawHand();
 		}
-		gameEventPublisher.publishRound(lobby.getLobbyId(), game,
-				result.steps());
+		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
 		return true;
 	}

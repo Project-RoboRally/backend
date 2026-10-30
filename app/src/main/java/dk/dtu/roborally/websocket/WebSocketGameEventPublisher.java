@@ -2,15 +2,13 @@ package dk.dtu.roborally.websocket;
 
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.player.Player;
-import dk.dtu.roborally.models.player.RobotView;
 import dk.dtu.roborally.websocket.dto.BoardDTO;
 import dk.dtu.roborally.websocket.dto.GameStatusDTO;
 import dk.dtu.roborally.websocket.dto.PlayerGameStateDTO;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * Broadcasts game events to subscribers over WebSocket.
@@ -41,14 +39,13 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 
 	@Override
 	public void publishBoard(String lobbyId, Game game) {
-		publishRound(lobbyId, game, List.of());
+		publishRound(lobbyId, game, RoundResult.NONE);
 	}
 
 	@Override
-	public void publishRound(String lobbyId, Game game,
-			List<List<RobotView>> steps) {
+	public void publishRound(String lobbyId, Game game, RoundResult result) {
 		messagingTemplate.convertAndSend(boardTopic(lobbyId),
-				BoardDTO.from(game, steps));
+				BoardDTO.from(game, result));
 	}
 
 	@Override
