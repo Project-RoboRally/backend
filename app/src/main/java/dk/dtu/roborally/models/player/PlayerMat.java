@@ -55,7 +55,7 @@ public class PlayerMat {
 	}
 
 	/** The 20 cards every player starts with, in random order. */
-	private static List<ProgrammableCard> startingDeck() {
+	static List<ProgrammableCard> startingDeck() {
 		List<ProgrammableCard> deck = new ArrayList<>();
 		addCards(deck, CommandInstruction.MOVE_1, 5);
 		addCards(deck, CommandInstruction.MOVE_2, 3);
@@ -101,7 +101,8 @@ public class PlayerMat {
 	}
 
 	/**
-	 * Fills the five registers and marks the mat submitted. A second program is
+	 * Moves the chosen cards from the hand to the five registers, discards the
+	 * rest of the hand and marks the mat submitted. A second program is
 	 * rejected until {@link #clearProgram()} runs.
 	 */
 	public void program(List<CommandInstruction> instructions) {
@@ -123,16 +124,41 @@ public class PlayerMat {
 			throw new IllegalArgumentException(
 					"Again cannot be placed in register 1");
 		}
-		for (int i = 0; i < REGISTER_COUNT; i++) {
-			registers[i].setCard(new ProgrammingCard(instructions.get(i)));
+		List<ProgrammableCard> remaining = new ArrayList<>(hand);
+		List<ProgrammableCard> chosen = new ArrayList<>();
+		for (CommandInstruction instruction : instructions) {
+			chosen.add(takeCard(remaining, instruction));
 		}
+		for (int i = 0; i < REGISTER_COUNT; i++) {
+			registers[i].setCard(chosen.get(i));
+		}
+		discardPile.addAll(remaining);
+		hand.clear();
 		submitted = true;
 	}
 
-	/** Empties the registers so the next round can be programmed. */
+	private ProgrammableCard takeCard(List<ProgrammableCard> cards,
+			CommandInstruction instruction) {
+		for (ProgrammableCard card : cards) {
+			if (card instanceof ProgrammingCard programmingCard
+					&& programmingCard.getInstruction() == instruction) {
+				cards.remove(card);
+				return card;
+			}
+		}
+		throw new IllegalArgumentException(
+				"Instruction is not in the hand: " + instruction);
+	}
+
+	/**
+	 * Discards the cards in the registers so the next round can be programmed.
+	 */
 	public void clearProgram() {
 		for (Register register : registers) {
-			register.setCard(null);
+			if (register.getCard() != null) {
+				discardPile.add(register.getCard());
+				register.setCard(null);
+			}
 		}
 		submitted = false;
 	}
