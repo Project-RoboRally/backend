@@ -66,106 +66,92 @@ public class Robot {
 				return;
 		}
 	}
+
 	// This function follows the "Activation order for Board Elements and Robot
-	// Lasers" from the rulebook page 8, and is only for when the robot is doing 
-	// its registers, so it needs to be called every time a register is done.
-	public void registerActions(Player player, int register, Map<Vector2D, Space> spaceMap) {
+	// Lasers" from the rulebook page 8
+	public void registerActions(List<Player> players, int register, int priority, Map<Vector2D, Space> spaceMap) {
 		Space currSpace = spaceMap.get(this.currentSpace);
 		List<BoardElement> attachments = currSpace.getBoardElements();
 		// Follows the activation order
-		for (int priority = 1; priority <= 8; priority++) { // used for the ordering of priorities
-			for (int i = 0; i < attachments.size(); i++) {
-				BoardElement element = attachments.get(i);
-				// Seventh: Energy Space
-				if (element instanceof EnergySpace && priority == 7) {
-					EnergySpace es = (EnergySpace) element;
-					if (register == 5) {
-						player.addEnergyAmount(1);
-					}
-					if (es.getCubeAmount() >= 1) {
-						player.addEnergyAmount(1);
-						es.addEnergyAmount(-1);
-					}
-				}
+		for (int i = 0; i < attachments.size(); i++) {
+			BoardElement element = attachments.get(i);
 
-				// Eighth: Checkpoint
-				if (element instanceof Checkpoint && priority == 8) {
-					Checkpoint cp = (Checkpoint) element;
-					if (player.getCheckpointsReached() == cp.getNumber() - 1) {
-						player.setCheckpointsReached(cp.getNumber());
-					}
-				}
-			}
-		}
-	}
-
-	// This function follows the "Activation order for Board Elements and Robot
-	// Lasers" from the rulebook page 8, and is only for when the robot is done with its registers
-	public void restActions(Player player, Map<Vector2D, Space> spaceMap) {
-		Space currSpace = spaceMap.get(this.currentSpace);
-		List<BoardElement> attachments = currSpace.getBoardElements();
-		// Follows the activation order
-		for (int priority = 1; priority <= 8; priority++) { // used for the ordering of priorities
-			for (int i = 0; i < attachments.size(); i++) {
-				BoardElement element = attachments.get(i);
-
-				// Conveyor
-				if (element instanceof ConveyorBelt) {
-					ConveyorBelt conveyorBelt = (ConveyorBelt) element;
-					// First: Blue conveyor belt
-					if (priority == 1 && (conveyorBelt.getType() == ConveyorBeltType.BLUE_STRAIGHT || conveyorBelt
-							.getType() == ConveyorBeltType.BLUE_RIGHT_CURVE || conveyorBelt
-									.getType() == ConveyorBeltType.BLUE_LEFT_CURVE)) {
-						// Move 1
-						currentSpace.add(conveyorBelt.getDirection().step());
-						conveyorRotate(conveyorBelt);
-						// Move 2
-						Space newSpace = spaceMap.get(this.currentSpace);
-						List<BoardElement> a = newSpace.getBoardElements();
-						for (int j = 0; j < a.size(); j++) {
-							BoardElement e = a.get(i);
-							if (e instanceof ConveyorBelt) {
-								ConveyorBelt c = (ConveyorBelt) e;
-								currentSpace.add(c.getDirection().step());
-								conveyorRotate(c);
-							}
+			// Conveyor
+			if (element instanceof ConveyorBelt) {
+				ConveyorBelt conveyorBelt = (ConveyorBelt) element;
+				// First: Blue conveyor belt
+				if (priority == 1 && (conveyorBelt.getType() == ConveyorBeltType.BLUE_STRAIGHT || conveyorBelt
+						.getType() == ConveyorBeltType.BLUE_RIGHT_CURVE || conveyorBelt
+								.getType() == ConveyorBeltType.BLUE_LEFT_CURVE)) {
+					// Move 1
+					currentSpace.add(conveyorBelt.getDirection().step());
+					conveyorRotate(conveyorBelt);
+					// Move 2
+					Space newSpace = spaceMap.get(this.currentSpace);
+					List<BoardElement> a = newSpace.getBoardElements();
+					for (int j = 0; j < a.size(); j++) {
+						BoardElement e = a.get(i);
+						if (e instanceof ConveyorBelt) {
+							ConveyorBelt c = (ConveyorBelt) e;
+							currentSpace.add(c.getDirection().step());
+							conveyorRotate(c);
 						}
 					}
-					// Second: Green conveyor belt
-					if (priority == 2 && (conveyorBelt.getType() == ConveyorBeltType.GREEN_STRAIGHT || conveyorBelt
-							.getType() == ConveyorBeltType.GREEN_RIGHT_CURVE || conveyorBelt
-									.getType() == ConveyorBeltType.GREEN_LEFT_CURVE)) {
-						currentSpace.add(conveyorBelt.getDirection().step());
-						conveyorRotate(conveyorBelt);
-					}
-
+				}
+				// Second: Green conveyor belt
+				if (priority == 2 && (conveyorBelt.getType() == ConveyorBeltType.GREEN_STRAIGHT || conveyorBelt
+						.getType() == ConveyorBeltType.GREEN_RIGHT_CURVE || conveyorBelt
+								.getType() == ConveyorBeltType.GREEN_LEFT_CURVE)) {
+					currentSpace.add(conveyorBelt.getDirection().step());
+					conveyorRotate(conveyorBelt);
 				}
 
-				// Third: Push Panel
-				if (element instanceof PushPanel && priority == 3) {
-					PushPanel pp = (PushPanel) element;
-					currentSpace.add(pp.getPushDirection().step());
+			}
+
+			// Third: Push Panel
+			if (element instanceof PushPanel && priority == 3) {
+				PushPanel pp = (PushPanel) element;
+				currentSpace.add(pp.getPushDirection().step());
+			}
+
+			// Fourth: Gears
+			if (element instanceof Gear && priority == 4) {
+				Gear gear = (Gear) element;
+				switch (gear.getRotationDirection()) {
+					case CLOCKWISE:
+						turnRight();
+						break;
+
+					case COUNTERCLOCKWISE:
+						turnLeft();
+						break;
 				}
+			}
 
-				// Fourth: Gears
-				if (element instanceof Gear && priority == 4) {
-					Gear gear = (Gear) element;
-					switch (gear.getRotationDirection()) {
-						case CLOCKWISE:
-							turnRight();
-							break;
+			// Fifth: Board Lasers
+			// TODO
 
-						case COUNTERCLOCKWISE:
-							turnLeft();
-							break;
-					}
+			// Sixth: Robot Lasers
+			// TODO
+
+			// Seventh: Energy Space
+			if (element instanceof EnergySpace && priority == 7) {
+				EnergySpace es = (EnergySpace) element;
+				if (register == 5) {
+					player.addEnergyAmount(1);
 				}
+				if (es.getCubeAmount() >= 1) {
+					player.addEnergyAmount(1);
+					es.addCubeAmount(-1);
+				}
+			}
 
-				// Fifth: Board Lasers
-				// TODO
-
-				// Sixth: Robot Lasers
-				// TODO
+			// Eighth: Checkpoint
+			if (element instanceof Checkpoint && priority == 8) {
+				Checkpoint cp = (Checkpoint) element;
+				if (player.getCheckpointsReached() == cp.getNumber() - 1) {
+					player.setCheckpointsReached(cp.getNumber());
+				}
 			}
 		}
 	}
