@@ -246,15 +246,88 @@ class GameServiceTest {
 	}
 
 	@Test
-	void unhandledInstructionThrowsDuringActivation() {
+	void againWithNothingToRepeatThrowsDuringActivation() {
 		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
 		Game round = game(board(space(0, 0)), mover);
 		mover.getPlayerMat().getRegisters().get(0)
-				.setCard(new ProgrammingCard(CommandInstruction.U_TURN));
+				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
 
-		assertThrows(IllegalArgumentException.class,
+		assertThrows(IllegalStateException.class,
 				() -> gameService.activateRound(round));
 		assertEquals(new Vector2D(0, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void uTurnRotatesWithoutLeavingTheSpace() {
+		Player mover = player("ada", 1, 1, Direction.NORTH, PlayerColor.RED);
+		run(game(board(space(1, 1)), mover),
+				List.of(CommandInstruction.U_TURN, CommandInstruction.U_TURN,
+						CommandInstruction.U_TURN, CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(Direction.SOUTH, mover.getRobot().getOrientation());
+		assertEquals(new Vector2D(1, 1), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void moveBackStepsBehindWithoutTurning() {
+		Player mover = player("ada", 2, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0)), mover), List.of(
+				CommandInstruction.MOVE_BACK, CommandInstruction.MOVE_BACK,
+				CommandInstruction.MOVE_BACK, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(0, 0), mover.getRobot().getCurrentSpace());
+		assertEquals(Direction.EAST, mover.getRobot().getOrientation());
+	}
+
+	@Test
+	void wallBehindTheRobotBlocksMoveBack() {
+		Player mover = player("ada", 1, 0, Direction.EAST, PlayerColor.RED);
+		run(game(
+				board(space(0, 0),
+						space(1, 0,
+								new Wall(new Vector2D(1, 0), Direction.WEST))),
+				mover), five(CommandInstruction.MOVE_BACK));
+
+		assertEquals(new Vector2D(1, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void powerUpGivesOneEnergyAndNoFrame() {
+		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
+		assertEquals(5, mover.getEnergy());
+
+		Game round = game(board(space(0, 0)), mover);
+		mover.getPlayerMat().program(five(CommandInstruction.POWER_UP));
+
+		assertTrue(gameService.activateRound(round).isEmpty());
+		assertEquals(10, mover.getEnergy());
+	}
+
+	@Test
+	void againRepeatsThePreviousRegister() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0), space(3, 0)),
+				mover),
+				List.of(CommandInstruction.MOVE_1, CommandInstruction.AGAIN,
+						CommandInstruction.POWER_UP, CommandInstruction.AGAIN,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(2, 0), mover.getRobot().getCurrentSpace());
+		assertEquals(8, mover.getEnergy());
+	}
+
+	@Test
+	void chainedAgainRepeatsTheLastRealInstruction() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0), space(3, 0)),
+				mover),
+				List.of(CommandInstruction.MOVE_1, CommandInstruction.AGAIN,
+						CommandInstruction.AGAIN, CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(3, 0), mover.getRobot().getCurrentSpace());
 	}
 
 	@Test

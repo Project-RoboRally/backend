@@ -15,7 +15,7 @@ import java.util.Set;
  * Represents the individual player mat used to store programming registers and
  * player-specific robot state.
  *
- * @author Matthias, August
+ * @author Matthias, August, Sebastian
  */
 public class PlayerMat {
 
@@ -28,7 +28,9 @@ public class PlayerMat {
 	public static final Set<CommandInstruction> ALLOWED = Set.of(
 			CommandInstruction.MOVE_1, CommandInstruction.MOVE_2,
 			CommandInstruction.MOVE_3, CommandInstruction.LEFT_TURN,
-			CommandInstruction.RIGHT_TURN);
+			CommandInstruction.RIGHT_TURN, CommandInstruction.U_TURN,
+			CommandInstruction.MOVE_BACK, CommandInstruction.POWER_UP,
+			CommandInstruction.AGAIN);
 
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
 	private final List<ProgrammableCard> hand = new ArrayList<>();
@@ -62,6 +64,10 @@ public class PlayerMat {
 				throw new IllegalArgumentException(
 						"Instruction is not allowed: " + instruction);
 			}
+		}
+		if (instructions.get(0) == CommandInstruction.AGAIN) {
+			throw new IllegalArgumentException(
+					"Again cannot be placed in register 1");
 		}
 		for (int i = 0; i < REGISTER_COUNT; i++) {
 			registers[i].setCard(new ProgrammingCard(instructions.get(i)));
