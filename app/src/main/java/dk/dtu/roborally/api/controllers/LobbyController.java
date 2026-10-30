@@ -1,6 +1,7 @@
 package dk.dtu.roborally.api.controllers;
 
 import dk.dtu.roborally.api.dto.AddToRemoveFromLobbyDTO;
+import dk.dtu.roborally.api.dto.BuyUpgradeDTO;
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.KickUserDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
@@ -9,6 +10,7 @@ import dk.dtu.roborally.api.dto.ProgramResultDTO;
 import dk.dtu.roborally.api.dto.RenameLobbyDTO;
 import dk.dtu.roborally.api.dto.SetColorDTO;
 import dk.dtu.roborally.api.dto.SetReadyDTO;
+import dk.dtu.roborally.api.dto.SkipUpgradeDTO;
 import dk.dtu.roborally.api.dto.StartGameDTO;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
@@ -120,6 +122,20 @@ public class LobbyController {
 			@RequestBody ProgramDTO payload) {
 		return ResponseEntity.ok(new ProgramResultDTO(lobbyService
 				.submitProgram(id, payload.username(), payload.registers())));
+	}
+
+	@PostMapping("/{id}/upgrade/buy")
+	public ResponseEntity<Void> buyUpgrade(@PathVariable String id,
+			@RequestBody BuyUpgradeDTO payload) {
+		lobbyService.buyUpgrade(id, payload.username(), payload.upgrade());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/upgrade/skip")
+	public ResponseEntity<Void> skipUpgrade(@PathVariable String id,
+			@RequestBody SkipUpgradeDTO payload) {
+		lobbyService.skipUpgrade(id, payload.username());
+		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(LobbyNotFoundException.class)

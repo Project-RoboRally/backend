@@ -36,4 +36,11 @@ public class Player {
 	public void addEnergy(int amount) {
 		energy += amount;
 	}
+
+	public void spendEnergy(int amount) {
+		if (amount > energy) {
+			throw new IllegalArgumentException("Not enough energy");
+		}
+		energy -= amount;
+	}
 }

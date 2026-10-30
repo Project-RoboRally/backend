@@ -4,6 +4,8 @@ import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
+import dk.dtu.roborally.enums.Phase;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
@@ -79,14 +81,16 @@ public class GameService {
 	 */
 	public void startGame(String lobbyId, Game game) {
 		gameRepository.add(game);
+		startUpgradePhase(game);
 		gameEventPublisher.publishBoard(lobbyId, game);
 		gameEventPublisher.publishGameStarted(lobbyId, game);
 	}
 
 	/**
 	 * Stores this player's five-card program. When every player has submitted,
-	 * resolves the round, clears the mats, draws new hands, republishes the
-	 * board, and returns true. Returns false while the round is still waiting.
+	 * resolves the round, clears the mats, republishes the board, starts the
+	 * next upgrade phase and returns true. Returns false while the round is
+	 * still waiting.
 	 */
 	public boolean submitProgram(GameLobby lobby, String username,
 			List<CommandInstruction> registers) {
@@ -95,6 +99,7 @@ public class GameService {
 		}
 
 		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.PROGRAMMING);
 		findPlayer(game, username).getPlayerMat().program(registers);
 
 		boolean everyoneSubmitted = game.getPlayersInGame().stream()
@@ -106,11 +111,90 @@ public class GameService {
 		RoundResult result = activateRound(game);
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
-			player.getPlayerMat().drawHand();
 		}
 		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
+		startUpgradePhase(game);
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
 		return true;
+	}
+
+	/**
+	 * Buys an upgrade for the player whose turn it is. Routines go straight to
+	 * the player's discard pile.
+	 */
+	public void buyUpgrade(GameLobby lobby, String username, UpgradeType type) {
+		Game game = upgradeGame(lobby);
+		Player player = currentBuyer(game, username);
+
+		if (player.getEnergy() < type.getCost()) {
+			throw new IllegalArgumentException("Not enough energy for " + type);
+		}
+		game.getUpgradeShop().buy(type);
+		player.spendEnergy(type.getCost());
+		player.getPlayerMat()
+				.addToDiscardPile(new ProgrammingCard(type.getRoutine()));
+		endUpgradeTurn(lobby, game);
+	}
+
+	/** Passes on buying an upgrade this round. */
+	public void skipUpgrade(GameLobby lobby, String username) {
+		Game game = upgradeGame(lobby);
+		currentBuyer(game, username);
+		endUpgradeTurn(lobby, game);
+	}
+
+	private Game upgradeGame(GameLobby lobby) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.UPGRADE);
+		return game;
+	}
+
+	private Player currentBuyer(Game game, String username) {
+		Player player = findPlayer(game, username);
+		if (game.getCurrentBuyer().orElse(null) != player) {
+			throw new IllegalStateException(
+					"It is not your turn to buy: " + username);
+		}
+		return player;
+	}
+
+	private void endUpgradeTurn(GameLobby lobby, Game game) {
+		game.endUpgradeTurn();
+		if (game.getCurrentBuyer().isPresent()) {
+			gameEventPublisher.publishUpgradeTurn(lobby.getLobbyId(), game);
+			return;
+		}
+		startProgrammingPhase(game);
+		gameEventPublisher.publishProgrammingStarted(lobby.getLobbyId(), game);
+	}
+
+	/**
+	 * Refills the shop and lets players buy in priority antenna order.
+	 */
+	private void startUpgradePhase(Game game) {
+		List<Player> order = new ArrayList<>(game.getPlayersInGame());
+		order.sort(activationOrder(antennaPosition(game.getBoard())));
+
+		game.getCurrentRound().setCurrentPhase(Phase.UPGRADE);
+		game.getUpgradeShop().refill(order.size());
+		game.setUpgradeOrder(order);
+	}
+
+	private void startProgrammingPhase(Game game) {
+		game.getCurrentRound().setCurrentPhase(Phase.PROGRAMMING);
+		for (Player player : game.getPlayersInGame()) {
+			player.getPlayerMat().drawHand();
+		}
+	}
+
+	private void requirePhase(Game game, Phase phase) {
+		if (game.getCurrentRound().getCurrentPhase() != phase) {
+			throw new IllegalStateException(
+					"The game is not in the " + phase + " phase.");
+		}
 	}
 
 	/**
@@ -164,13 +248,13 @@ public class GameService {
 	}
 
 	/**
-	 * The instruction a register performs. Again repeats the nearest earlier
-	 * register that is not itself Again.
+	 * The instruction a register performs. Again and Repeat Routine repeat the
+	 * nearest earlier register that does not repeat anything itself.
 	 */
 	private CommandInstruction resolveInstruction(Player player, int register) {
 		for (int index = register; index >= 0; index--) {
 			CommandInstruction instruction = instructionAt(player, index);
-			if (instruction != CommandInstruction.AGAIN) {
+			if (!instruction.repeatsPreviousRegister()) {
 				return instruction;
 			}
 		}
@@ -202,10 +286,10 @@ public class GameService {
 				player.getRobot().uTurn();
 				steps.add(snapshot(game));
 			}
-			case MOVE_1, MOVE_2, MOVE_3 ->
+			case MOVE_1, MOVE_2, MOVE_3, SPEED_ROUTINE ->
 				move(player, game, instruction.steps(), steps);
 			case MOVE_BACK -> moveBack(player, game, steps);
-			case POWER_UP -> player.addEnergy(1);
+			case POWER_UP, ENERGY_ROUTINE -> player.addEnergy(1);
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);
 		}

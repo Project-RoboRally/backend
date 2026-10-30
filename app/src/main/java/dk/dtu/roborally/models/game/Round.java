@@ -2,6 +2,7 @@ package dk.dtu.roborally.models.game;
 
 import dk.dtu.roborally.enums.Phase;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Optional;
 
@@ -13,7 +14,8 @@ import java.util.Optional;
 
 public class Round {
 	@Getter
-	private Phase currentPhase = Phase.PROGRAMMING;
+	@Setter
+	private Phase currentPhase = Phase.UPGRADE;
 
 	@Getter
 	private final ProgrammingTimer timer = new ProgrammingTimer();
