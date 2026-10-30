@@ -3,11 +3,11 @@ package dk.dtu.roborally.enums;
 /**
  * Hardcoded enum for all possible instructions.
  *
- * @author Matthias
+ * @author Matthias, Sebastian
  */
 
 public enum CommandInstruction {
-	MOVE_1, MOVE_2, MOVE_3, LEFT_TURN, RIGHT_TURN, U_TURN, MOVE_BACK, AGAIN;
+	MOVE_1, MOVE_2, MOVE_3, LEFT_TURN, RIGHT_TURN, U_TURN, MOVE_BACK, POWER_UP, AGAIN;
 
 	/**
 	 * Spaces a forward move travels, one step at a time. Other instructions
