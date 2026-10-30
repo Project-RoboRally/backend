@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * Service for logic about a game
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Sebastian
  */
 public class GameService {
 
@@ -126,7 +126,8 @@ public class GameService {
 			order.sort(activationOrder(antenna));
 
 			for (Player player : order) {
-				execute(instructionAt(player, register), player, game, steps);
+				execute(resolveInstruction(player, register), player, game,
+						steps);
 			}
 		}
 		return steps;
@@ -147,6 +148,20 @@ public class GameService {
 		}
 		throw new IllegalArgumentException(
 				"Player is not in this game: " + username);
+	}
+
+	/**
+	 * The instruction a register performs. Again repeats the nearest earlier
+	 * register that is not itself Again.
+	 */
+	private CommandInstruction resolveInstruction(Player player, int register) {
+		for (int index = register; index >= 0; index--) {
+			CommandInstruction instruction = instructionAt(player, index);
+			if (instruction != CommandInstruction.AGAIN) {
+				return instruction;
+			}
+		}
+		throw new IllegalStateException("Again has no register to repeat");
 	}
 
 	private CommandInstruction instructionAt(Player player, int register) {
@@ -170,8 +185,14 @@ public class GameService {
 				player.getRobot().turnRight();
 				steps.add(snapshot(game));
 			}
+			case U_TURN -> {
+				player.getRobot().uTurn();
+				steps.add(snapshot(game));
+			}
 			case MOVE_1, MOVE_2, MOVE_3 ->
 				move(player, game, instruction.steps(), steps);
+			case MOVE_BACK -> moveBack(player, game, steps);
+			case POWER_UP -> player.addEnergy(1);
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);
 		}
@@ -180,9 +201,16 @@ public class GameService {
 	private void move(Player player, Game game, int stepCount,
 			List<List<RobotView>> steps) {
 		for (int step = 0; step < stepCount; step++) {
-			if (!stepForward(player, game)) {
+			if (!step(player, game, player.getRobot().getOrientation())) {
 				return;
 			}
+			steps.add(snapshot(game));
+		}
+	}
+
+	private void moveBack(Player player, Game game,
+			List<List<RobotView>> steps) {
+		if (step(player, game, player.getRobot().getOrientation().uTurn())) {
 			steps.add(snapshot(game));
 		}
 	}
@@ -192,17 +220,16 @@ public class GameService {
 	}
 
 	/**
-	 * One space along the facing direction. Off the board, a wall on the
-	 * crossed edge, or another robot blocks the step.
+	 * One space along the given direction. Off the board, a wall on the crossed
+	 * edge, or another robot blocks the step.
 	 */
-	private boolean stepForward(Player player, Game game) {
+	private boolean step(Player player, Game game, Direction direction) {
 		Robot robot = player.getRobot();
-		Direction facing = robot.getOrientation();
 		Vector2D from = robot.getCurrentSpace();
-		Vector2D to = from.add(facing.step());
+		Vector2D to = from.add(direction.step());
 		Board board = game.getBoard();
 
-		if (!board.isWithinBoard(to) || wallBlocks(board, from, to, facing)
+		if (!board.isWithinBoard(to) || wallBlocks(board, from, to, direction)
 				|| occupied(game, to, player)) {
 			return false;
 		}
@@ -212,11 +239,11 @@ public class GameService {
 	}
 
 	private boolean wallBlocks(Board board, Vector2D from, Vector2D to,
-			Direction facing) {
-		if (hasWall(board.getSpace(from.x(), from.y()), facing)) {
+			Direction direction) {
+		if (hasWall(board.getSpace(from.x(), from.y()), direction)) {
 			return true;
 		}
-		return hasWall(board.getSpace(to.x(), to.y()), facing.uTurn());
+		return hasWall(board.getSpace(to.x(), to.y()), direction.uTurn());
 	}
 
 	private boolean hasWall(Space space, Direction side) {
