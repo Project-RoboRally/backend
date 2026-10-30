@@ -4,7 +4,6 @@ import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -18,11 +17,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PlayerMatTest {
 
 	@Test
-	void allowListIsMove1Move2AndBothTurns() {
-		assertEquals(Set.of(CommandInstruction.MOVE_1,
-				CommandInstruction.MOVE_2, CommandInstruction.MOVE_3,
-				CommandInstruction.LEFT_TURN, CommandInstruction.RIGHT_TURN),
-				PlayerMat.ALLOWED);
+	void allowListHoldsEveryStandardCard() {
+		assertEquals(Set.of(CommandInstruction.values()), PlayerMat.ALLOWED);
 
 		PlayerMat mat = new PlayerMat();
 		mat.program(List.of(CommandInstruction.MOVE_1,
@@ -33,23 +29,24 @@ class PlayerMatTest {
 		assertEquals(CommandInstruction.MOVE_2, card(mat, 1).getInstruction());
 		assertEquals(CommandInstruction.RIGHT_TURN,
 				card(mat, 2).getInstruction());
+	}
 
-		for (CommandInstruction instruction : CommandInstruction.values()) {
-			if (PlayerMat.ALLOWED.contains(instruction)) {
-				continue;
-			}
-			PlayerMat rejected = new PlayerMat();
-			List<CommandInstruction> program = new ArrayList<>();
-			program.add(instruction);
-			program.addAll(List.of(CommandInstruction.MOVE_1,
-					CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
-					CommandInstruction.MOVE_1));
+	@Test
+	void againIsRejectedInRegisterOneAndAllowedLater() {
+		PlayerMat rejected = new PlayerMat();
 
-			assertThrows(IllegalArgumentException.class,
-					() -> rejected.program(program));
-			assertFalse(rejected.isSubmitted());
-			assertNull(rejected.getRegisters().get(0).getCard());
-		}
+		assertThrows(IllegalArgumentException.class,
+				() -> rejected.program(List.of(CommandInstruction.AGAIN,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1)));
+		assertFalse(rejected.isSubmitted());
+		assertNull(rejected.getRegisters().get(0).getCard());
+
+		PlayerMat mat = new PlayerMat();
+		mat.program(List.of(CommandInstruction.MOVE_1, CommandInstruction.AGAIN,
+				CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
+				CommandInstruction.MOVE_1));
+		assertTrue(mat.isSubmitted());
 	}
 
 	@Test
