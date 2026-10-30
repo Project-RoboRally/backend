@@ -39,7 +39,7 @@ public class Player {
 		this.EnergyAmount = 5;
 	}
 
-	public void addEnergyAmount(int e) {
-		this.EnergyAmount += e;
+	public void addEnergyAmount(int energy) {
+		this.EnergyAmount += energy;
 	}
 }
