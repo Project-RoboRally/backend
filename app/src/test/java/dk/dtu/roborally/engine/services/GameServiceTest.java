@@ -335,6 +335,40 @@ class GameServiceTest {
 	}
 
 	@Test
+	void speedRoutineMovesThreeSpaces() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0), space(3, 0)),
+				mover),
+				List.of(CommandInstruction.SPEED_ROUTINE,
+						CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(3, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void energyRoutineGivesOneEnergy() {
+		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
+		run(game(board(space(0, 0)), mover),
+				five(CommandInstruction.ENERGY_ROUTINE));
+
+		assertEquals(10, mover.getEnergy());
+	}
+
+	@Test
+	void repeatRoutineWorksLikeAgain() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0)), mover), List.of(
+				CommandInstruction.MOVE_1, CommandInstruction.REPEAT_ROUTINE,
+				CommandInstruction.POWER_UP, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(2, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
 	void roundRecordsWhoPlayedWhatInActivationOrder() {
 		Player near = player("zzz", 1, 0, Direction.EAST, PlayerColor.RED);
 		Player far = player("aaa", 3, 0, Direction.EAST, PlayerColor.BLUE);

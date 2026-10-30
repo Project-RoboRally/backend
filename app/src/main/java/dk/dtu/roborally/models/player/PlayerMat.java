@@ -9,6 +9,7 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -32,7 +33,9 @@ public class PlayerMat {
 			CommandInstruction.MOVE_3, CommandInstruction.LEFT_TURN,
 			CommandInstruction.RIGHT_TURN, CommandInstruction.U_TURN,
 			CommandInstruction.MOVE_BACK, CommandInstruction.POWER_UP,
-			CommandInstruction.AGAIN);
+			CommandInstruction.AGAIN, CommandInstruction.ENERGY_ROUTINE,
+			CommandInstruction.SPEED_ROUTINE,
+			CommandInstruction.REPEAT_ROUTINE);
 
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
 	private final List<ProgrammableCard> hand = new ArrayList<>();
@@ -100,6 +103,11 @@ public class PlayerMat {
 		drawPile.shuffle();
 	}
 
+	/** Puts a new card in the discard pile, it now cycles like any other. */
+	public void addToDiscardPile(ProgrammableCard card) {
+		discardPile.add(Objects.requireNonNull(card));
+	}
+
 	/**
 	 * Moves the chosen cards from the hand to the five registers, discards the
 	 * rest of the hand and marks the mat submitted. A second program is
@@ -120,9 +128,9 @@ public class PlayerMat {
 						"Instruction is not allowed: " + instruction);
 			}
 		}
-		if (instructions.get(0) == CommandInstruction.AGAIN) {
+		if (instructions.get(0).repeatsPreviousRegister()) {
 			throw new IllegalArgumentException(
-					"Again cannot be placed in register 1");
+					instructions.get(0) + " cannot be placed in register 1");
 		}
 		List<ProgrammableCard> remaining = new ArrayList<>(hand);
 		List<ProgrammableCard> chosen = new ArrayList<>();
