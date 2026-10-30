@@ -15,7 +15,7 @@ import java.util.List;
  * players, plus that player's private mat. {@code type} identifies the event
  * that caused the message.
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Sebastian
  */
 public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		RoundDTO round, BoardDTO board, List<PlayerDTO> players, String you,
@@ -23,6 +23,7 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 
 	public static final String GAME_STARTED = "GAME_STARTED";
 	public static final String CURRENT_STATE = "CURRENT_STATE";
+	public static final String ROUND_STARTED = "ROUND_STARTED";
 
 	public record RoundDTO(Phase phase, Integer currentRegisterIndex,
 			long programmingTimeLimitSeconds) {

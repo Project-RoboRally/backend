@@ -9,6 +9,7 @@ import lombok.Getter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -20,6 +21,7 @@ import java.util.Set;
 public class PlayerMat {
 
 	private static final int REGISTER_COUNT = 5;
+	private static final int HAND_SIZE = 9;
 
 	/**
 	 * Instructions a player may program. This is the only allow-list: a new
@@ -40,14 +42,67 @@ public class PlayerMat {
 	private boolean submitted;
 
 	public PlayerMat() {
+		this(startingDeck());
+	}
+
+	/** Uses the given cards as the draw pile, the last card is on top. */
+	PlayerMat(List<ProgrammableCard> deck) {
 		for (int i = 0; i < registers.length; i++) {
 			registers[i] = new Register(i);
 		}
+		deck.forEach(drawPile::addCard);
+		drawHand();
 	}
-	// TODO: Implement logic for drawing cards and discarding cards.
+
+	/** The 20 cards every player starts with, in random order. */
+	static List<ProgrammableCard> startingDeck() {
+		List<ProgrammableCard> deck = new ArrayList<>();
+		addCards(deck, CommandInstruction.MOVE_1, 5);
+		addCards(deck, CommandInstruction.MOVE_2, 3);
+		addCards(deck, CommandInstruction.MOVE_3, 1);
+		addCards(deck, CommandInstruction.LEFT_TURN, 3);
+		addCards(deck, CommandInstruction.RIGHT_TURN, 3);
+		addCards(deck, CommandInstruction.U_TURN, 1);
+		addCards(deck, CommandInstruction.MOVE_BACK, 1);
+		addCards(deck, CommandInstruction.POWER_UP, 1);
+		addCards(deck, CommandInstruction.AGAIN, 2);
+		Collections.shuffle(deck);
+		return deck;
+	}
+
+	private static void addCards(List<ProgrammableCard> deck,
+			CommandInstruction instruction, int amount) {
+		for (int i = 0; i < amount; i++) {
+			deck.add(new ProgrammingCard(instruction));
+		}
+	}
 
 	/**
-	 * Fills the five registers and marks the mat submitted. A second program is
+	 * Draws until the hand holds nine cards. An empty draw pile is refilled by
+	 * shuffling the discard pile into it.
+	 */
+	public void drawHand() {
+		while (hand.size() < HAND_SIZE) {
+			if (drawPile.isEmpty()) {
+				shuffleDiscardPileIntoDrawPile();
+			}
+			Optional<ProgrammableCard> card = drawPile.drawCard();
+			if (card.isEmpty()) {
+				return;
+			}
+			hand.add(card.get());
+		}
+	}
+
+	private void shuffleDiscardPileIntoDrawPile() {
+		discardPile.forEach(drawPile::addCard);
+		discardPile.clear();
+		drawPile.shuffle();
+	}
+
+	/**
+	 * Moves the chosen cards from the hand to the five registers, discards the
+	 * rest of the hand and marks the mat submitted. A second program is
 	 * rejected until {@link #clearProgram()} runs.
 	 */
 	public void program(List<CommandInstruction> instructions) {
@@ -69,16 +124,41 @@ public class PlayerMat {
 			throw new IllegalArgumentException(
 					"Again cannot be placed in register 1");
 		}
-		for (int i = 0; i < REGISTER_COUNT; i++) {
-			registers[i].setCard(new ProgrammingCard(instructions.get(i)));
+		List<ProgrammableCard> remaining = new ArrayList<>(hand);
+		List<ProgrammableCard> chosen = new ArrayList<>();
+		for (CommandInstruction instruction : instructions) {
+			chosen.add(takeCard(remaining, instruction));
 		}
+		for (int i = 0; i < REGISTER_COUNT; i++) {
+			registers[i].setCard(chosen.get(i));
+		}
+		discardPile.addAll(remaining);
+		hand.clear();
 		submitted = true;
 	}
 
-	/** Empties the registers so the next round can be programmed. */
+	private ProgrammableCard takeCard(List<ProgrammableCard> cards,
+			CommandInstruction instruction) {
+		for (ProgrammableCard card : cards) {
+			if (card instanceof ProgrammingCard programmingCard
+					&& programmingCard.getInstruction() == instruction) {
+				cards.remove(card);
+				return card;
+			}
+		}
+		throw new IllegalArgumentException(
+				"Instruction is not in the hand: " + instruction);
+	}
+
+	/**
+	 * Discards the cards in the registers so the next round can be programmed.
+	 */
 	public void clearProgram() {
 		for (Register register : registers) {
-			register.setCard(null);
+			if (register.getCard() != null) {
+				discardPile.add(register.getCard());
+				register.setCard(null);
+			}
 		}
 		submitted = false;
 	}

@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Broadcasts game events to subscribers over WebSocket.
  *
- * @author Nicoleta, Elias
+ * @author Nicoleta, Elias, Sebastian
  */
 @Component
 public class WebSocketGameEventPublisher implements GameEventPublisher {
@@ -59,12 +59,20 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 
 	@Override
 	public void publishGameStarted(String lobbyId, Game game) {
-		// Publish the game started event to all players in the game
+		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.GAME_STARTED);
+	}
+
+	@Override
+	public void publishRoundStarted(String lobbyId, Game game) {
+		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.ROUND_STARTED);
+	}
+
+	private void publishPlayerStates(String lobbyId, Game game, String type) {
+		// Each player gets their own message since it holds their private mat
 		for (Player player : game.getPlayersInGame()) {
 			messagingTemplate.convertAndSend(
 					playerTopic(lobbyId, player.getUser().getUsername()),
-					PlayerGameStateDTO.from(PlayerGameStateDTO.GAME_STARTED,
-							game, player));
+					PlayerGameStateDTO.from(type, game, player));
 		}
 	}
 }
