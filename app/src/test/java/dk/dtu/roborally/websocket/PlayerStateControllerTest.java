@@ -35,6 +35,18 @@ class PlayerStateControllerTest {
 			}
 
 			@Override
+			public void publishRoundStarted(String lobbyId, Game game) {
+			}
+
+			@Override
+			public void publishUpgradeTurn(String lobbyId, Game game) {
+			}
+
+			@Override
+			public void publishProgrammingStarted(String lobbyId, Game game) {
+			}
+
+			@Override
 			public void publishBoard(String lobbyId, Game game) {
 			}
 		};
