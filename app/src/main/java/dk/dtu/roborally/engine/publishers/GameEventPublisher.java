@@ -18,10 +18,21 @@ public interface GameEventPublisher {
 	void publishGameStarted(String lobbyId, Game game);
 
 	/**
-	 * Sends every player the full game state after a round, so they get their
-	 * new hand.
+	 * Sends every player the full game state when a new round starts with its
+	 * upgrade phase.
 	 */
 	void publishRoundStarted(String lobbyId, Game game);
+
+	/**
+	 * Sends every player the full game state after someone bought or skipped.
+	 */
+	void publishUpgradeTurn(String lobbyId, Game game);
+
+	/**
+	 * Sends every player the full game state when programming starts, so they
+	 * get their new hand.
+	 */
+	void publishProgrammingStarted(String lobbyId, Game game);
 
 	/**
 	 * Sends the board layout, including robots placed on it, to everyone

@@ -2,6 +2,8 @@ package dk.dtu.roborally.websocket.dto;
 
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
+import dk.dtu.roborally.enums.UpgradeType;
+import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.ProgrammingTimer;
 import dk.dtu.roborally.models.game.Round;
@@ -19,11 +21,22 @@ import java.util.List;
  */
 public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		RoundDTO round, BoardDTO board, List<PlayerDTO> players, String you,
-		PlayerMatDTO playerMat) {
+		PlayerMatDTO playerMat, List<UpgradeDTO> upgradeShop,
+		String currentBuyer) {
 
 	public static final String GAME_STARTED = "GAME_STARTED";
 	public static final String CURRENT_STATE = "CURRENT_STATE";
 	public static final String ROUND_STARTED = "ROUND_STARTED";
+	public static final String UPGRADE_TURN = "UPGRADE_TURN";
+	public static final String PROGRAMMING_STARTED = "PROGRAMMING_STARTED";
+
+	public record UpgradeDTO(UpgradeType type, int cost) {
+
+		public static UpgradeDTO from(UpgradeCard card) {
+			// Convert the upgrade card to the corresponding DTO
+			return new UpgradeDTO(card.getType(), card.getType().getCost());
+		}
+	}
 
 	public record RoundDTO(Phase phase, Integer currentRegisterIndex,
 			long programmingTimeLimitSeconds) {
@@ -49,6 +62,11 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 				game.getGameStatus(), RoundDTO.from(game.getCurrentRound()),
 				BoardDTO.from(game.getBoard()), players,
 				recipient.getUser().getUsername(),
-				PlayerMatDTO.from(recipient.getPlayerMat()));
+				PlayerMatDTO.from(recipient.getPlayerMat()),
+				game.getUpgradeShop().getCards().stream().map(UpgradeDTO::from)
+						.toList(),
+				game.getCurrentBuyer()
+						.map(player -> player.getUser().getUsername())
+						.orElse(null));
 	}
 }
