@@ -20,7 +20,7 @@ public class Player {
 	private final PlayerMat playerMat;
 	private final Robot robot;
 	private final PlayerColor color;
-	private int checkpointsReached;
+	private int checkpointsReached = 0;
 
 	public Player(String id, User user, PlayerColor color, Robot robot) {
 		this.id = Objects.requireNonNull(id);
@@ -28,5 +28,9 @@ public class Player {
 		this.color = Objects.requireNonNull(color);
 		this.robot = Objects.requireNonNull(robot);
 		this.playerMat = new PlayerMat();
+	}
+
+	public void reachNextCheckpoint() {
+		checkpointsReached++;
 	}
 }
