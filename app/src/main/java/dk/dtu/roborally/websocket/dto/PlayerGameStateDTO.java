@@ -6,6 +6,7 @@ import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.ProgrammingTimer;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.RobotView;
 
 import java.util.Comparator;
 import java.util.List;
@@ -15,11 +16,11 @@ import java.util.List;
  * players, plus that player's private mat. {@code type} identifies the event
  * that caused the message.
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Matthias
  */
 public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		RoundDTO round, BoardDTO board, List<PlayerDTO> players, String you,
-		PlayerMatDTO playerMat) {
+		PlayerMatDTO playerMat, String winnerUsername) {
 
 	public static final String GAME_STARTED = "GAME_STARTED";
 	public static final String CURRENT_STATE = "CURRENT_STATE";
@@ -35,19 +36,32 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		}
 	}
 
+	/**
+	 * Creates the current player state without round animation frames.
+	 */
 	public static PlayerGameStateDTO from(String type, Game game,
 			Player recipient) {
-		// Convert the players to the corresponding DTOs in sorted order by
-		// username
+		return from(type, game, recipient, List.of());
+	}
+
+	/**
+	 * Creates player state including checkpoint progress, the winner, and the
+	 * supplied round animation frames.
+	 */
+	public static PlayerGameStateDTO from(String type, Game game,
+			Player recipient, List<List<RobotView>> steps) {
 		List<PlayerDTO> players = game.getPlayersInGame().stream()
 				.map(PlayerDTO::from)
 				.sorted(Comparator.comparing(PlayerDTO::username)).toList();
 
-		// Convert the game to the corresponding DTO
+		String winnerUsername = game.getWinner() == null
+				? null
+				: game.getWinner().getUser().getUsername();
+
 		return new PlayerGameStateDTO(type, game.getGameID(),
 				game.getGameStatus(), RoundDTO.from(game.getCurrentRound()),
-				BoardDTO.from(game.getBoard()), players,
+				BoardDTO.from(game, steps), players,
 				recipient.getUser().getUsername(),
-				PlayerMatDTO.from(recipient.getPlayerMat()));
+				PlayerMatDTO.from(recipient.getPlayerMat()), winnerUsername);
 	}
 }
