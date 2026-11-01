@@ -77,6 +77,28 @@ class PlayerMatTest {
 	}
 
 	@Test
+	void repeatRoutineIsRejectedInRegisterOne() {
+		PlayerMat mat = stacked();
+
+		assertThrows(IllegalArgumentException.class,
+				() -> mat.program(List.of(CommandInstruction.REPEAT_ROUTINE,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1)));
+		assertFalse(mat.isSubmitted());
+	}
+
+	@Test
+	void addedCardGoesToTheDiscardPile() {
+		PlayerMat mat = stacked();
+		ProgrammingCard routine = new ProgrammingCard(
+				CommandInstruction.SPEED_ROUTINE);
+
+		mat.addToDiscardPile(routine);
+
+		assertEquals(List.of(routine), mat.getDiscardPile());
+	}
+
+	@Test
 	void secondSubmitIsRejectedUntilTheRoundIsCleared() {
 		PlayerMat mat = stacked();
 		mat.program(PROGRAM);
@@ -95,6 +117,8 @@ class PlayerMatTest {
 	void playerStartsWithTheStandardDeckAndNineCardsInHand() {
 		PlayerMat mat = new PlayerMat();
 
+		assertTrue(mat.getHand().isEmpty());
+		mat.drawHand();
 		assertEquals(9, mat.getHand().size());
 		assertEquals(11, mat.getDrawPileSize());
 		assertTrue(mat.getDiscardPile().isEmpty());
@@ -116,6 +140,7 @@ class PlayerMatTest {
 	@Test
 	void everyRoundDrawsANewHandAndKeepsAllTwentyCards() {
 		PlayerMat mat = new PlayerMat();
+		mat.drawHand();
 
 		for (int round = 0; round < 10; round++) {
 			mat.program(playable(mat));
@@ -156,7 +181,9 @@ class PlayerMatTest {
 				CommandInstruction.MOVE_1, CommandInstruction.LEFT_TURN)) {
 			deck.add(0, new ProgrammingCard(instruction));
 		}
-		return new PlayerMat(deck);
+		PlayerMat mat = new PlayerMat(deck);
+		mat.drawHand();
+		return mat;
 	}
 
 	// Five cards from the hand, none of them Again in the first register
