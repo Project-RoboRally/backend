@@ -49,6 +49,13 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 			List<List<RobotView>> steps) {
 		messagingTemplate.convertAndSend(boardTopic(lobbyId),
 				BoardDTO.from(game, steps));
+
+		for (Player player : game.getPlayersInGame()) {
+			messagingTemplate.convertAndSend(
+					playerTopic(lobbyId, player.getUser().getUsername()),
+					PlayerGameStateDTO.from(PlayerGameStateDTO.CURRENT_STATE,
+							game, player, steps));
+		}
 	}
 
 	@Override

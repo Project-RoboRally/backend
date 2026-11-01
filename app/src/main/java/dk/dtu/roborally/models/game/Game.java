@@ -28,6 +28,9 @@ public class Game {
 	@Setter
 	private GameStatus gameStatus = GameStatus.IN_PROGRESS;
 	@Getter
+	@Setter
+	private Player winner;
+	@Getter
 	private final Board board;
 	@Getter
 	private Round currentRound = new Round();
