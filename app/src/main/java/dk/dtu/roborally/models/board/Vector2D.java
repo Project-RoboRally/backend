@@ -19,6 +19,10 @@ public record Vector2D(int x, int y) {
 
 	@Override
 	public int hashCode() {
-		return 67 * x + y;
+		// Dot Product Hashing
+		int a1 = 17; // prime
+		int a2 = 31; // prime
+		int m = 997; // prime
+		return (a1 * x + a2 * y) % m;
 	}
 }
