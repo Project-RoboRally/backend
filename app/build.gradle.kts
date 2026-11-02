@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.websocket)
+    implementation(libs.spring.security.crypto)
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
     implementation("org.postgresql:postgresql")
 
