@@ -4,6 +4,7 @@ import dk.dtu.roborally.api.dto.LoginDTO;
 import dk.dtu.roborally.api.dto.LoginResponseDTO;
 import dk.dtu.roborally.engine.services.UserService;
 import dk.dtu.roborally.exceptions.auth.LoginException;
+import dk.dtu.roborally.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -33,17 +34,19 @@ public class AuthController {
 	}
 
 	@PostMapping("/api/login")
-	public ResponseEntity<?> login(@RequestBody LoginDTO payload) {
-		String username = payload.username();
+	public ResponseEntity<LoginResponseDTO> login(
+			@RequestBody LoginDTO payload) {
+		User user;
 
-		try {
-			userService.ensureUser(username);
-		} catch (IllegalArgumentException ex) {
-			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body(Map.of("error", ex.getMessage()));
+		// create user if does not exist
+		if (userService.findByUsername(payload.username()).isPresent()) {
+			user = userService.authenticate(payload.username(),
+					payload.password());
+		} else {
+			user = userService.addUser(payload.username(), payload.password());
 		}
 
-		return ResponseEntity.ok(new LoginResponseDTO(username));
+		return ResponseEntity.ok(new LoginResponseDTO(user.getUsername()));
 	}
 
 	@ExceptionHandler(LoginException.class)
@@ -58,5 +61,19 @@ public class AuthController {
 			HttpMessageNotReadableException ex) {
 		return ResponseEntity.badRequest().body(Map.of("error",
 				"Request body is required. Send JSON with Content-Type application/json, e.g. {\"username\":\"alice\",\"password\":\"password\"}."));
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<Map<String, String>> handleInvalidInput(
+			IllegalArgumentException ex) {
+		return ResponseEntity.badRequest()
+				.body(Map.of("error", ex.getMessage()));
+	}
+
+	@ExceptionHandler(IllegalStateException.class)
+	public ResponseEntity<Map<String, String>> handleUserNotCreated(
+			IllegalStateException ex) {
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(Map.of("error", ex.getMessage()));
 	}
 }
