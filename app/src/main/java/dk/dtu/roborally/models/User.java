@@ -15,14 +15,16 @@ public class User {
 
 	private final String id;
 	private String username;
+	private final String passwordHash;
 
 	public User(String username) {
-		this(UUID.randomUUID().toString(), username);
+		this(UUID.randomUUID().toString(), username, null);
 	}
 
-	public User(String id, String username) {
+	public User(String id, String username, String passwordHash) {
 		this.id = Objects.requireNonNull(id);
 		this.username = Objects.requireNonNull(username);
+		this.passwordHash = passwordHash;
 	}
 
 }

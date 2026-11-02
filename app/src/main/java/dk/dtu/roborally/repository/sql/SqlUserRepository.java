@@ -76,7 +76,8 @@ public class SqlUserRepository implements UserRepository {
 
 	private void loadAll() {
 		jdbc.query("SELECT id, username FROM users", (rs, rowNum) -> {
-			cache(new User(rs.getString("id"), rs.getString("username")));
+			cache(new User(rs.getString("id"), rs.getString("username"),
+					null));
 			return null;
 		});
 	}

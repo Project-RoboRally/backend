@@ -9,6 +9,7 @@ import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
 import lombok.Getter;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 /**
  * Game Engine entry point. Initializes from App.java
@@ -34,7 +35,8 @@ public class GameEngine {
 			GameEventPublisher gameEventPublisher) {
 
 		// Setup services
-		this.userService = new UserService(userRepository);
+		this.userService = new UserService(userRepository,
+				new BCryptPasswordEncoder());
 		this.gameService = new GameService(gameRepository, gameEventPublisher);
 		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
 				gameService);
