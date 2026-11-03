@@ -22,7 +22,7 @@ public class Player {
 	private final PlayerMat playerMat;
 	private final Robot robot;
 	private final PlayerColor color;
-	private int checkpointsReached;
+	private int checkpointsReached = 0;
 	private int energy = STARTING_ENERGY;
 
 	public Player(String id, User user, PlayerColor color, Robot robot) {
@@ -42,5 +42,9 @@ public class Player {
 			throw new IllegalArgumentException("Not enough energy");
 		}
 		energy -= amount;
+	}
+
+	public void reachNextCheckpoint() {
+		checkpointsReached++;
 	}
 }
