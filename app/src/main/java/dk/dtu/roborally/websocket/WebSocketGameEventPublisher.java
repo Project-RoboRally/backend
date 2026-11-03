@@ -2,20 +2,18 @@ package dk.dtu.roborally.websocket;
 
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.player.Player;
-import dk.dtu.roborally.models.player.RobotView;
 import dk.dtu.roborally.websocket.dto.BoardDTO;
 import dk.dtu.roborally.websocket.dto.GameStatusDTO;
 import dk.dtu.roborally.websocket.dto.PlayerGameStateDTO;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
  * Broadcasts game events to subscribers over WebSocket.
  *
- * @author Nicoleta, Elias
+ * @author Nicoleta, Elias, Matthias, Sebastian
  */
 @Component
 public class WebSocketGameEventPublisher implements GameEventPublisher {
@@ -41,20 +39,19 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 
 	@Override
 	public void publishBoard(String lobbyId, Game game) {
-		publishRound(lobbyId, game, List.of());
+		publishRound(lobbyId, game, RoundResult.NONE);
 	}
 
 	@Override
-	public void publishRound(String lobbyId, Game game,
-			List<List<RobotView>> steps) {
+	public void publishRound(String lobbyId, Game game, RoundResult result) {
 		messagingTemplate.convertAndSend(boardTopic(lobbyId),
-				BoardDTO.from(game, steps));
+				BoardDTO.from(game, result));
 
 		for (Player player : game.getPlayersInGame()) {
 			messagingTemplate.convertAndSend(
 					playerTopic(lobbyId, player.getUser().getUsername()),
 					PlayerGameStateDTO.from(PlayerGameStateDTO.CURRENT_STATE,
-							game, player, steps));
+							game, player, result));
 		}
 	}
 
@@ -66,12 +63,31 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 
 	@Override
 	public void publishGameStarted(String lobbyId, Game game) {
-		// Publish the game started event to all players in the game
+		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.GAME_STARTED);
+	}
+
+	@Override
+	public void publishRoundStarted(String lobbyId, Game game) {
+		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.ROUND_STARTED);
+	}
+
+	@Override
+	public void publishUpgradeTurn(String lobbyId, Game game) {
+		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.UPGRADE_TURN);
+	}
+
+	@Override
+	public void publishProgrammingStarted(String lobbyId, Game game) {
+		publishPlayerStates(lobbyId, game,
+				PlayerGameStateDTO.PROGRAMMING_STARTED);
+	}
+
+	private void publishPlayerStates(String lobbyId, Game game, String type) {
+		// Each player gets their own message since it holds their private mat
 		for (Player player : game.getPlayersInGame()) {
 			messagingTemplate.convertAndSend(
 					playerTopic(lobbyId, player.getUser().getUsername()),
-					PlayerGameStateDTO.from(PlayerGameStateDTO.GAME_STARTED,
-							game, player));
+					PlayerGameStateDTO.from(type, game, player));
 		}
 	}
 }

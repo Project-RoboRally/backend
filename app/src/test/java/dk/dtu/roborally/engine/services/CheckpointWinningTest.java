@@ -3,12 +3,14 @@ package dk.dtu.roborally.engine.services;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
+import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.Checkpoint;
+import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
@@ -128,6 +130,7 @@ class CheckpointWinningTest {
 		Player alice = player("alice", 0, 0, PlayerColor.RED);
 		Game game = game(board(1), alice);
 		GameLobby lobby = lobby(game);
+		readyToProgram(game, alice);
 		assertTrue(service.submitProgram(lobby, "alice", moves()));
 
 		IllegalStateException error = assertThrows(IllegalStateException.class,
@@ -145,6 +148,7 @@ class CheckpointWinningTest {
 		Player bob = player("bob", 0, 1, PlayerColor.BLUE);
 		Game game = game(board(1), alice, bob);
 		GameLobby lobby = lobby(game);
+		readyToProgram(game, alice, bob);
 
 		assertFalse(service.submitProgram(lobby, "alice", moves()));
 		assertTrue(service.submitProgram(lobby, "bob", turns()));
@@ -182,6 +186,7 @@ class CheckpointWinningTest {
 		Player bob = player("bob", 0, 1, PlayerColor.BLUE);
 		Game game = game(board(1), alice, bob);
 		GameLobby lobby = lobby(game);
+		readyToProgram(game, alice, bob);
 		service.submitProgram(lobby, "alice", moves());
 		service.submitProgram(lobby, "bob", turns());
 		LobbyService lobbies = mock(LobbyService.class);
@@ -241,9 +246,30 @@ class CheckpointWinningTest {
 			List<CommandInstruction> program) {
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
+			hold(player, program);
 			player.getPlayerMat().program(program);
 		}
-		return service.activateRound(game);
+		return service.activateRound(game).steps();
+	}
+
+	/**
+	 * Programs are dealt from the hand, and a new round starts in the upgrade
+	 * phase. Gives each player the cards they will submit and opens
+	 * programming.
+	 */
+	private static void readyToProgram(Game game, Player... players) {
+		game.getCurrentRound().setCurrentPhase(Phase.PROGRAMMING);
+		hold(players[0], moves());
+		for (int i = 1; i < players.length; i++) {
+			hold(players[i], turns());
+		}
+	}
+
+	private static void hold(Player player,
+			List<CommandInstruction> instructions) {
+		for (CommandInstruction instruction : instructions) {
+			player.getPlayerMat().addToHand(new ProgrammingCard(instruction));
+		}
 	}
 
 	/**
