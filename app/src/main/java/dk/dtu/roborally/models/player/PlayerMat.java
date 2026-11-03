@@ -107,6 +107,11 @@ public class PlayerMat {
 		discardPile.add(Objects.requireNonNull(card));
 	}
 
+	/** Puts a card in the hand so it can be programmed. */
+	public void addToHand(ProgrammableCard card) {
+		hand.add(Objects.requireNonNull(card));
+	}
+
 	/**
 	 * Moves the chosen cards from the hand to the five registers, discards the
 	 * rest of the hand and marks the mat submitted. A second program is

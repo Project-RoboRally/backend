@@ -11,6 +11,7 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
+import dk.dtu.roborally.models.board.elements.Checkpoint;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
@@ -32,7 +33,7 @@ import java.util.List;
 /**
  * Service for logic about a game
  *
- * @author Elias, Nicoleta, Sebastian
+ * @author Elias, Nicoleta, Matthias, Sebastian
  */
 public class GameService {
 
@@ -88,9 +89,9 @@ public class GameService {
 
 	/**
 	 * Stores this player's five-card program. When every player has submitted,
-	 * resolves the round, clears the mats, republishes the board, starts the
-	 * next upgrade phase and returns true. Returns false while the round is
-	 * still waiting.
+	 * resolves the round, clears the mats and republishes the board. A finished
+	 * game rejects further programs and does not start another upgrade phase.
+	 * Returns false while the round is still waiting.
 	 */
 	public boolean submitProgram(GameLobby lobby, String username,
 			List<CommandInstruction> registers) {
@@ -99,6 +100,9 @@ public class GameService {
 		}
 
 		Game game = getGame(lobby.getGameId());
+		if (game.getGameStatus() == GameStatus.FINISHED) {
+			throw new IllegalStateException("The game has already finished.");
+		}
 		requirePhase(game, Phase.PROGRAMMING);
 		findPlayer(game, username).getPlayerMat().program(registers);
 
@@ -113,6 +117,9 @@ public class GameService {
 			player.getPlayerMat().clearProgram();
 		}
 		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
+		if (game.getGameStatus() == GameStatus.FINISHED) {
+			return true;
+		}
 		startUpgradePhase(game);
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
 		return true;
@@ -226,6 +233,11 @@ public class GameService {
 						firstStep, steps.size() - firstStep));
 			}
 			reveals.add(new RegisterReveal(register, cards));
+			evaluateCheckpoints(game, order);
+
+			if (game.getGameStatus() == GameStatus.FINISHED) {
+				break;
+			}
 		}
 		return new RoundResult(steps, reveals);
 	}
@@ -387,5 +399,59 @@ public class GameService {
 		Vector2D position = player.getRobot().getCurrentSpace();
 		return Math.abs(position.x() - antenna.x())
 				+ Math.abs(position.y() - antenna.y());
+	}
+
+	/**
+	 * Counts the checkpoints on the board.
+	 */
+	private int checkpointCount(Board board) {
+		return (int) board.getSpaceMap().values().stream()
+				.flatMap(space -> space.getBoardElements().stream())
+				.filter(element -> element instanceof Checkpoint).count();
+	}
+
+	/**
+	 * Awards checkpoints in numbered order based on robot positions after a
+	 * register. Records the first winner in the supplied player order, finishes
+	 * the game, and publishes the updated status.
+	 */
+	private void evaluateCheckpoints(Game game, List<Player> players) {
+		int total = checkpointCount(game.getBoard());
+
+		if (total == 0) {
+			return;
+		}
+
+		for (Player player : players) {
+			Vector2D position = player.getRobot().getCurrentSpace();
+			Space space = game.getBoard().getSpace(position.x(), position.y());
+
+			if (space == null) {
+				continue;
+			}
+
+			int nextCheckpoint = player.getCheckpointsReached() + 1;
+
+			for (BoardElement element : space.getBoardElements()) {
+				if (!(element instanceof Checkpoint checkpoint)) {
+					continue;
+				}
+
+				if (checkpoint.getNumber() != nextCheckpoint) {
+					continue;
+				}
+
+				player.reachNextCheckpoint();
+
+				if (player.getCheckpointsReached() == total) {
+					game.setWinner(player);
+					game.setGameStatus(GameStatus.FINISHED);
+					gameEventPublisher.publishStatus(game);
+					return;
+				}
+
+				break;
+			}
+		}
 	}
 }

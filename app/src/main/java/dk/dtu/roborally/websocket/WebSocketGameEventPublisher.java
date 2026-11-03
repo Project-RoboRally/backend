@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 /**
  * Broadcasts game events to subscribers over WebSocket.
  *
- * @author Nicoleta, Elias, Sebastian
+ * @author Nicoleta, Elias, Matthias, Sebastian
  */
 @Component
 public class WebSocketGameEventPublisher implements GameEventPublisher {
@@ -46,6 +46,13 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 	public void publishRound(String lobbyId, Game game, RoundResult result) {
 		messagingTemplate.convertAndSend(boardTopic(lobbyId),
 				BoardDTO.from(game, result));
+
+		for (Player player : game.getPlayersInGame()) {
+			messagingTemplate.convertAndSend(
+					playerTopic(lobbyId, player.getUser().getUsername()),
+					PlayerGameStateDTO.from(PlayerGameStateDTO.CURRENT_STATE,
+							game, player, result));
+		}
 	}
 
 	@Override

@@ -54,7 +54,7 @@ class WebSocketGameEventPublisherTest {
 		publisher.publishStatus(game);
 
 		verify(template).convertAndSend("/game/game-1/status",
-				new GameStatusDTO("game-1", GameStatus.FINISHED));
+				new GameStatusDTO("game-1", GameStatus.FINISHED, null));
 	}
 
 	@Test
