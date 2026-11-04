@@ -139,10 +139,10 @@ public class Robot {
 				if (element instanceof EnergySpace && priority == 7) {
 					EnergySpace es = (EnergySpace) element;
 					if (register == 5) {
-						player.addEnergyAmount(1);
+						player.addEnergy(1);
 					}
 					if (es.getCubeAmount() >= 1) {
-						player.addEnergyAmount(1);
+						player.addEnergy(1);
 						es.addCubeAmount(-1);
 					}
 				}
@@ -151,7 +151,7 @@ public class Robot {
 				if (element instanceof Checkpoint && priority == 8) {
 					Checkpoint cp = (Checkpoint) element;
 					if (player.getCheckpointsReached() == cp.getNumber() - 1) {
-						player.setCheckpointsReached(cp.getNumber());
+						player.reachNextCheckpoint();
 					}
 				}
 			}
