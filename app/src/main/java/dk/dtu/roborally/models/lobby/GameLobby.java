@@ -30,7 +30,7 @@ import dk.dtu.roborally.models.player.Robot;
  * The Server needs to hold n lobbies, and every lobby can initiate a game, if
  * there is the right amount of players and they are ready.
  *
- * @author Victor, Sebastian, August
+ * @author Victor, Sebastian, August, Elias
  */
 
 public class GameLobby {
@@ -56,15 +56,36 @@ public class GameLobby {
 	private User lobbyOwner;
 
 	public GameLobby(Config config, String lobbyName, User lobbyOwner) {
-		this.lobbyId = java.util.UUID.randomUUID().toString();
+		this(java.util.UUID.randomUUID().toString(), config, lobbyName,
+				lobbyOwner, config.levels.level_0);
+		addUserToLobby(lobbyOwner);
+	}
+
+	/**
+	 * Rebuilds a stored lobby. Membership and the linked game are applied with
+	 * {@link #restoreMembers}.
+	 */
+	public GameLobby(String lobbyId, Config config, String lobbyName,
+			User lobbyOwner, String levelPath) {
+		this.lobbyId = Objects.requireNonNull(lobbyId);
 		this.lobbyName = Objects.requireNonNull(lobbyName);
 		this.lobbyOwner = Objects.requireNonNull(lobbyOwner);
-		// Create the JsonLoader
 		this.config = config;
-		this.levelPath = config.levels.level_0;
+		this.levelPath = Objects.requireNonNull(levelPath);
 		this.level = LevelLoader.load(levelPath);
+	}
 
-		addUserToLobby(lobbyOwner);
+	public String getLevelPath() {
+		return levelPath;
+	}
+
+	/** Replaces membership and the linked game id from stored rows. */
+	public void restoreMembers(String gameId, List<LobbyMember> members) {
+		this.gameId = gameId;
+		lobbyUsers.clear();
+		for (LobbyMember member : members) {
+			lobbyUsers.put(member.user().getId(), member);
+		}
 	}
 
 	public void setLobbyName(String lobbyName) {
