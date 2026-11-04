@@ -67,6 +67,7 @@ public class GameService {
 		}
 
 		game.setGameStatus(newStatus);
+		gameRepository.update(game);
 		gameEventPublisher.publishStatus(game);
 		return game;
 	}
@@ -81,8 +82,8 @@ public class GameService {
 	 * Validation already happened in GameLobby.startGame().
 	 */
 	public void startGame(String lobbyId, Game game) {
-		gameRepository.add(game);
 		startUpgradePhase(game);
+		gameRepository.add(game);
 		gameEventPublisher.publishBoard(lobbyId, game);
 		gameEventPublisher.publishGameStarted(lobbyId, game);
 	}
@@ -109,6 +110,7 @@ public class GameService {
 		boolean everyoneSubmitted = game.getPlayersInGame().stream()
 				.allMatch(player -> player.getPlayerMat().isSubmitted());
 		if (!everyoneSubmitted) {
+			gameRepository.update(game);
 			return false;
 		}
 
@@ -118,10 +120,12 @@ public class GameService {
 		}
 		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
 		if (game.getGameStatus() == GameStatus.FINISHED) {
+			gameRepository.update(game);
 			return true;
 		}
 		startUpgradePhase(game);
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
+		gameRepository.update(game);
 		return true;
 	}
 
@@ -171,10 +175,12 @@ public class GameService {
 	private void endUpgradeTurn(GameLobby lobby, Game game) {
 		game.endUpgradeTurn();
 		if (game.getCurrentBuyer().isPresent()) {
+			gameRepository.update(game);
 			gameEventPublisher.publishUpgradeTurn(lobby.getLobbyId(), game);
 			return;
 		}
 		startProgrammingPhase(game);
+		gameRepository.update(game);
 		gameEventPublisher.publishProgrammingStarted(lobby.getLobbyId(), game);
 	}
 
