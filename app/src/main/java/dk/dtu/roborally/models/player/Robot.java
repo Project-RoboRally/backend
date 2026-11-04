@@ -77,82 +77,92 @@ public class Robot {
 			for (int i = 0; i < attachments.size(); i++) {
 				BoardElement element = attachments.get(i);
 
-				// Conveyor
-				if (element instanceof ConveyorBelt) {
-					ConveyorBelt conveyorBelt = (ConveyorBelt) element;
-					// First: Blue conveyor belt
-					if (priority == 1 && (conveyorBelt.getType() == ConveyorBeltType.BLUE_STRAIGHT || conveyorBelt
-							.getType() == ConveyorBeltType.BLUE_RIGHT_CURVE || conveyorBelt
-									.getType() == ConveyorBeltType.BLUE_LEFT_CURVE)) {
-						// Move 1
-						currentSpace.add(conveyorBelt.getDirection().step());
-						conveyorRotate(conveyorBelt);
-						// Move 2
-						Space newSpace = spaceMap.get(this.currentSpace);
-						List<BoardElement> a = newSpace.getBoardElements();
-						for (int j = 0; j < a.size(); j++) {
-							BoardElement e = a.get(i);
-							if (e instanceof ConveyorBelt) {
-								ConveyorBelt c = (ConveyorBelt) e;
-								currentSpace.add(c.getDirection().step());
-								conveyorRotate(c);
+				switch (priority) {
+					case 1:
+						// Conveyor
+						if (element instanceof ConveyorBelt) {
+							ConveyorBelt conveyorBelt = (ConveyorBelt) element;
+							// Second: Green conveyor belt
+							if ((conveyorBelt.getType() == ConveyorBeltType.GREEN_STRAIGHT || conveyorBelt
+									.getType() == ConveyorBeltType.GREEN_RIGHT_CURVE || conveyorBelt
+											.getType() == ConveyorBeltType.GREEN_LEFT_CURVE)) {
+								currentSpace.add(conveyorBelt.getDirection().step());
+								conveyorRotate(conveyorBelt);
 							}
+
 						}
-					}
-					// Second: Green conveyor belt
-					if (priority == 2 && (conveyorBelt.getType() == ConveyorBeltType.GREEN_STRAIGHT || conveyorBelt
-							.getType() == ConveyorBeltType.GREEN_RIGHT_CURVE || conveyorBelt
-									.getType() == ConveyorBeltType.GREEN_LEFT_CURVE)) {
-						currentSpace.add(conveyorBelt.getDirection().step());
-						conveyorRotate(conveyorBelt);
-					}
+						break;
 
-				}
+					case 2:
+						// Conveyor
+						if (element instanceof ConveyorBelt) {
+							ConveyorBelt conveyorBelt = (ConveyorBelt) element;
+							// Second: Green conveyor belt
+							if ((conveyorBelt.getType() == ConveyorBeltType.GREEN_STRAIGHT || conveyorBelt
+									.getType() == ConveyorBeltType.GREEN_RIGHT_CURVE || conveyorBelt
+											.getType() == ConveyorBeltType.GREEN_LEFT_CURVE)) {
+								currentSpace.add(conveyorBelt.getDirection().step());
+								conveyorRotate(conveyorBelt);
+							}
 
-				// Third: Push Panel
-				if (element instanceof PushPanel && priority == 3) {
-					PushPanel pp = (PushPanel) element;
-					currentSpace.add(pp.getPushDirection().step());
-				}
+						}
+						break;
 
-				// Fourth: Gears
-				if (element instanceof Gear && priority == 4) {
-					Gear gear = (Gear) element;
-					switch (gear.getRotationDirection()) {
-						case CLOCKWISE:
-							turnRight();
+						case 3:
+							// Third: Push Panel
+							if (element instanceof PushPanel) {
+								PushPanel pp = (PushPanel) element;
+								currentSpace.add(pp.getPushDirection().step());
+							}
 							break;
 
-						case COUNTERCLOCKWISE:
-							turnLeft();
+						case 4:
+							// Fourth: Gears
+							if (element instanceof Gear) {
+								Gear gear = (Gear) element;
+								switch (gear.getRotationDirection()) {
+									case CLOCKWISE:
+										turnRight();
+										break;
+
+									case COUNTERCLOCKWISE:
+										turnLeft();
+										break;
+								}
+							}
 							break;
-					}
-				}
 
-				// Fifth: Board Lasers
-				// TODO
+						case 5: case 6:
+							// Fifth: Board Lasers
+							// TODO
 
-				// Sixth: Robot Lasers
-				// TODO
+							// Sixth: Robot Lasers
+							// TODO
+							break;
 
-				// Seventh: Energy Space
-				if (element instanceof EnergySpace && priority == 7) {
-					EnergySpace es = (EnergySpace) element;
-					if (register == 5) {
-						player.addEnergy(1);
-					}
-					if (es.getCubeAmount() >= 1) {
-						player.addEnergy(1);
-						es.addCubeAmount(-1);
-					}
-				}
+						case 7:
+							// Seventh: Energy Space
+							if (element instanceof EnergySpace) {
+								EnergySpace es = (EnergySpace) element;
+								if (register == 5) {
+									player.addEnergy(1);
+								}
+								if (es.getCubeAmount() >= 1) {
+									player.addEnergy(1);
+									es.addCubeAmount(-1);
+								}
+							}
+							break;
 
-				// Eighth: Checkpoint
-				if (element instanceof Checkpoint && priority == 8) {
-					Checkpoint cp = (Checkpoint) element;
-					if (player.getCheckpointsReached() == cp.getNumber() - 1) {
-						player.reachNextCheckpoint();
-					}
+						case 8:
+							// Eighth: Checkpoint
+							if (element instanceof Checkpoint) {
+								Checkpoint cp = (Checkpoint) element;
+								if (player.getCheckpointsReached() == cp.getNumber() - 1) {
+									player.reachNextCheckpoint();
+								}
+							}
+							break;
 				}
 			}
 		}
