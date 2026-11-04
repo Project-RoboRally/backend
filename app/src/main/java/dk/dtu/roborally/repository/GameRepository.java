@@ -20,4 +20,12 @@ public interface GameRepository {
 	List<Game> getAll();
 
 	void delete(String gameID);
+
+	/**
+	 * Persists the current state of a game that is already stored. Called after
+	 * each change so a restart can resume the game. In-memory storage keeps the
+	 * same instance, so the default does nothing.
+	 */
+	default void update(Game game) {
+	}
 }
