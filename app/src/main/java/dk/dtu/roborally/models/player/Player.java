@@ -3,7 +3,6 @@ package dk.dtu.roborally.models.player;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.models.User;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.Objects;
 
@@ -33,7 +32,7 @@ public class Player {
 		this.robot = Objects.requireNonNull(robot);
 		this.playerMat = new PlayerMat();
 	}
-	
+
 	public void addEnergy(int amount) {
 		energy += amount;
 	}
