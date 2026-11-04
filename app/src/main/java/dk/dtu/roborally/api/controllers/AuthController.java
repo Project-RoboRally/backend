@@ -3,34 +3,37 @@ package dk.dtu.roborally.api.controllers;
 import dk.dtu.roborally.api.dto.LoginDTO;
 import dk.dtu.roborally.api.dto.LoginResponseDTO;
 import dk.dtu.roborally.engine.services.UserService;
+import dk.dtu.roborally.engine.services.SessionService;
 import dk.dtu.roborally.exceptions.auth.LoginException;
 import dk.dtu.roborally.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
 public class AuthController {
 	private final UserService userService;
+	private final SessionService sessionService;
 
-	public AuthController(UserService userService) {
+	public AuthController(UserService userService,
+			SessionService sessionService) {
 		this.userService = userService;
+		this.sessionService = sessionService;
+
 	}
 
 	@GetMapping("/api/session")
-	public ResponseEntity<?> session(@RequestParam String username) {
-		return userService.findByUsername(username)
-				.<ResponseEntity<?>>map(user -> ResponseEntity
-						.ok(new LoginResponseDTO(user.getUsername())))
-				.orElseGet(() -> ResponseEntity.notFound().build());
+	public ResponseEntity<LoginResponseDTO> session(
+			@RequestHeader(value = "Authorization", required = false) String authorization) {
+		String token = bearerToken(authorization);
+		User user = sessionService.findUser(token)
+				.orElseThrow(() -> new LoginException("Not logged in"));
+		return ResponseEntity
+				.ok(new LoginResponseDTO(user.getUsername(), token));
+
 	}
 
 	@PostMapping("/api/login")
@@ -46,7 +49,23 @@ public class AuthController {
 			user = userService.addUser(payload.username(), payload.password());
 		}
 
-		return ResponseEntity.ok(new LoginResponseDTO(user.getUsername()));
+		String token = sessionService.createSession(user);
+		return ResponseEntity
+				.ok(new LoginResponseDTO(user.getUsername(), token));
+	}
+
+	private static String bearerToken(String authorization) {
+		if (authorization == null || !authorization.startsWith("Bearer ")) {
+			return null;
+		}
+		return authorization.substring("Bearer ".length());
+	}
+
+	@PostMapping("/api/logout")
+	public ResponseEntity<Void> logout(
+			@RequestHeader(value = "Authorization", required = false) String authorization) {
+		sessionService.endSession(bearerToken(authorization));
+		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(LoginException.class)
