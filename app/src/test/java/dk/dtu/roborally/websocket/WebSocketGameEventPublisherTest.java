@@ -14,6 +14,9 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
+import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
+import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
 import dk.dtu.roborally.models.player.RobotView;
@@ -32,6 +35,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -50,7 +54,7 @@ class WebSocketGameEventPublisherTest {
 		publisher.publishStatus(game);
 
 		verify(template).convertAndSend("/game/game-1/status",
-				new GameStatusDTO("game-1", GameStatus.FINISHED));
+				new GameStatusDTO("game-1", GameStatus.FINISHED, null));
 	}
 
 	@Test
@@ -78,7 +82,7 @@ class WebSocketGameEventPublisherTest {
 		assertEquals(PlayerGameStateDTO.GAME_STARTED, aliceState.type());
 		assertEquals("alice", aliceState.you());
 		assertEquals("game-1", aliceState.gameId());
-		assertEquals(Phase.PROGRAMMING, aliceState.round().phase());
+		assertEquals(Phase.UPGRADE, aliceState.round().phase());
 		assertEquals(2, aliceState.players().size());
 		assertEquals(2, aliceState.board().width());
 		assertEquals(1, aliceState.board().height());
@@ -87,6 +91,50 @@ class WebSocketGameEventPublisherTest {
 				aliceState.board().spaces().get(0).elements());
 		assertEquals(5, aliceState.playerMat().registers().size());
 		assertEquals("bob", bob.getValue().you());
+	}
+
+	@Test
+	void publishesProgrammingStartedWithTheNewHandToEachPlayersTopic() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice),
+				Map.of());
+		alice.getPlayerMat().drawHand();
+
+		publisher.publishProgrammingStarted("lobby-1", game);
+
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+				sent.capture());
+		assertEquals(PlayerGameStateDTO.PROGRAMMING_STARTED,
+				sent.getValue().type());
+		assertEquals(9, sent.getValue().playerMat().hand().size());
+	}
+
+	@Test
+	void publishesTheShopAndWhoseTurnItIs() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice),
+				Map.of());
+		game.getUpgradeShop().refill(1);
+		game.setUpgradeOrder(List.of(alice));
+
+		publisher.publishUpgradeTurn("lobby-1", game);
+
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+				sent.capture());
+		assertEquals(PlayerGameStateDTO.UPGRADE_TURN, sent.getValue().type());
+		assertEquals(1, sent.getValue().upgradeShop().size());
+		assertEquals(3, sent.getValue().upgradeShop().get(0).cost());
+		assertEquals("alice", sent.getValue().currentBuyer());
 	}
 
 	@Test
@@ -131,6 +179,7 @@ class WebSocketGameEventPublisherTest {
 						Direction.EAST)),
 				sent.getValue().robots());
 		assertTrue(sent.getValue().steps().isEmpty());
+		assertTrue(sent.getValue().registers().isEmpty());
 	}
 
 	@Test
@@ -141,9 +190,12 @@ class WebSocketGameEventPublisherTest {
 		Game game = new Game("game-1", boardWithWall(),
 				Set.of(player("alice", PlayerColor.RED, 1, 0)), Map.of());
 
-		publisher.publishRound("lobby-1", game,
+		ProgrammingCard card = new ProgrammingCard(CommandInstruction.MOVE_1);
+		publisher.publishRound("lobby-1", game, new RoundResult(
 				List.of(List.of(new RobotView("alice", PlayerColor.RED, 1, 0,
-						Direction.EAST))));
+						Direction.EAST))),
+				List.of(new RegisterReveal(0,
+						List.of(new PlayedCard("alice", card, 0, 1))))));
 
 		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
 		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
@@ -151,6 +203,34 @@ class WebSocketGameEventPublisherTest {
 		assertEquals(1, sent.getValue().steps().size());
 		assertEquals(new BoardDTO.RobotDTO("alice", PlayerColor.RED, 1, 0,
 				Direction.EAST), sent.getValue().steps().get(0).get(0));
+		assertEquals(
+				List.of(new BoardDTO.RegisterDTO(0,
+						List.of(new BoardDTO.RegisterDTO.PlayedCardDTO("alice",
+								new CardDTO("PROGRAMMING", "MOVE_1"), 0, 1)))),
+				sent.getValue().registers());
+	}
+
+	@Test
+	void otherPlayersCannotSeeASubmittedProgram() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Player bob = player("bob", PlayerColor.BLUE, 1, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice, bob),
+				Map.of());
+		bob.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
+
+		publisher.publishRoundStarted("lobby-1", game);
+
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+				sent.capture());
+		assertTrue(sent.getValue().playerMat().registers().stream()
+				.allMatch(register -> register.card() == null));
+		assertFalse(sent.getValue().players().toString().contains("MOVE_1"));
 	}
 
 	@Test

@@ -7,10 +7,10 @@ import dk.dtu.roborally.models.player.Robot;
 /**
  * Public information about a player that every player in the game may see.
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Sebastian
  */
 public record PlayerDTO(String username, RobotDTO robot, int checkpointsReached,
-		boolean programSubmitted) {
+		int energy, boolean programSubmitted) {
 
 	public record RobotDTO(int x, int y, Direction orientation,
 			boolean rebootedThisRound) {
@@ -27,7 +27,7 @@ public record PlayerDTO(String username, RobotDTO robot, int checkpointsReached,
 		// Convert the player to the corresponding DTO
 		return new PlayerDTO(player.getUser().getUsername(),
 				RobotDTO.from(player.getRobot()),
-				player.getCheckpointsReached(),
+				player.getCheckpointsReached(), player.getEnergy(),
 				player.getPlayerMat().isSubmitted());
 	}
 }
