@@ -11,24 +11,20 @@ import java.util.Objects;
  * Represents a user's participation in a specific Robo Rally game. Holds the
  * user's game-specific robot, player mat and progress.
  *
- * @author Elias, Matthias, August, Victor
+ * @author Elias, Matthias, August, Victor, Sebastian
  */
 @Getter
 public class Player {
+
+	private static final int STARTING_ENERGY = 5;
 
 	private final String id;
 	private final User user;
 	private final PlayerMat playerMat;
 	private final Robot robot;
 	private final PlayerColor color;
-
-	@Setter
-	@Getter
-	private int EnergyAmount;
-
-	@Setter
-	@Getter
 	private int checkpointsReached = 0;
+	private int energy = STARTING_ENERGY;
 
 	public Player(String id, User user, PlayerColor color, Robot robot) {
 		this.id = Objects.requireNonNull(id);
@@ -36,10 +32,20 @@ public class Player {
 		this.color = Objects.requireNonNull(color);
 		this.robot = Objects.requireNonNull(robot);
 		this.playerMat = new PlayerMat();
-		this.EnergyAmount = 5;
+	}
+	
+	public void addEnergy(int amount) {
+		energy += amount;
 	}
 
-	public void addEnergyAmount(int energy) {
-		this.EnergyAmount += energy;
+	public void spendEnergy(int amount) {
+		if (amount > energy) {
+			throw new IllegalArgumentException("Not enough energy");
+		}
+		energy -= amount;
+	}
+
+	public void reachNextCheckpoint() {
+		checkpointsReached++;
 	}
 }

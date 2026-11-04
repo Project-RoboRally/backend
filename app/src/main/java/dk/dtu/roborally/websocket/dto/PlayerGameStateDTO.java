@@ -2,9 +2,12 @@ package dk.dtu.roborally.websocket.dto;
 
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
+import dk.dtu.roborally.enums.UpgradeType;
+import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.ProgrammingTimer;
 import dk.dtu.roborally.models.game.Round;
+import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.player.Player;
 
 import java.util.Comparator;
@@ -15,14 +18,26 @@ import java.util.List;
  * players, plus that player's private mat. {@code type} identifies the event
  * that caused the message.
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Matthias, Sebastian
  */
 public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		RoundDTO round, BoardDTO board, List<PlayerDTO> players, String you,
-		PlayerMatDTO playerMat) {
+		PlayerMatDTO playerMat, List<UpgradeDTO> upgradeShop,
+		String currentBuyer, String winnerUsername) {
 
 	public static final String GAME_STARTED = "GAME_STARTED";
 	public static final String CURRENT_STATE = "CURRENT_STATE";
+	public static final String ROUND_STARTED = "ROUND_STARTED";
+	public static final String UPGRADE_TURN = "UPGRADE_TURN";
+	public static final String PROGRAMMING_STARTED = "PROGRAMMING_STARTED";
+
+	public record UpgradeDTO(UpgradeType type, int cost) {
+
+		public static UpgradeDTO from(UpgradeCard card) {
+			// Convert the upgrade card to the corresponding DTO
+			return new UpgradeDTO(card.getType(), card.getType().getCost());
+		}
+	}
 
 	public record RoundDTO(Phase phase, Integer currentRegisterIndex,
 			long programmingTimeLimitSeconds) {
@@ -35,19 +50,38 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		}
 	}
 
+	/**
+	 * Creates the current player state without round animation frames.
+	 */
 	public static PlayerGameStateDTO from(String type, Game game,
 			Player recipient) {
-		// Convert the players to the corresponding DTOs in sorted order by
-		// username
+		return from(type, game, recipient, RoundResult.NONE);
+	}
+
+	/**
+	 * Creates player state including checkpoint progress, the winner, and the
+	 * supplied round animation.
+	 */
+	public static PlayerGameStateDTO from(String type, Game game,
+			Player recipient, RoundResult result) {
 		List<PlayerDTO> players = game.getPlayersInGame().stream()
 				.map(PlayerDTO::from)
 				.sorted(Comparator.comparing(PlayerDTO::username)).toList();
 
-		// Convert the game to the corresponding DTO
+		String winnerUsername = game.getWinner() == null
+				? null
+				: game.getWinner().getUser().getUsername();
+
 		return new PlayerGameStateDTO(type, game.getGameID(),
 				game.getGameStatus(), RoundDTO.from(game.getCurrentRound()),
-				BoardDTO.from(game.getBoard()), players,
+				BoardDTO.from(game, result), players,
 				recipient.getUser().getUsername(),
-				PlayerMatDTO.from(recipient.getPlayerMat()));
+				PlayerMatDTO.from(recipient.getPlayerMat()),
+				game.getUpgradeShop().getCards().stream().map(UpgradeDTO::from)
+						.toList(),
+				game.getCurrentBuyer()
+						.map(player -> player.getUser().getUsername())
+						.orElse(null),
+				winnerUsername);
 	}
 }

@@ -5,7 +5,9 @@ import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
+import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.User;
@@ -15,8 +17,12 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
+import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
+import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Register;
@@ -29,6 +35,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,7 +53,9 @@ class GameServiceTest {
 	private final List<Game> startedPublished = new ArrayList<>();
 	private final List<String> startedLobbyIds = new ArrayList<>();
 	private final List<String> boardLobbyIds = new ArrayList<>();
-	private final List<Map<String, Direction>> publishedFacings = new ArrayList<>();
+	private final List<String> roundStartedLobbyIds = new ArrayList<>();
+	private final List<String> upgradeTurns = new ArrayList<>();
+	private final List<String> programmingStartedLobbyIds = new ArrayList<>();
 	private GameService gameService;
 	private Game game;
 
@@ -62,12 +71,21 @@ class GameServiceTest {
 			@Override
 			public void publishBoard(String lobbyId, Game game) {
 				boardLobbyIds.add(lobbyId);
-				Map<String, Direction> facings = new HashMap<>();
-				for (Player player : game.getPlayersInGame()) {
-					facings.put(player.getUser().getUsername(),
-							player.getRobot().getOrientation());
-				}
-				publishedFacings.add(facings);
+			}
+
+			@Override
+			public void publishRoundStarted(String lobbyId, Game game) {
+				roundStartedLobbyIds.add(lobbyId);
+			}
+
+			@Override
+			public void publishUpgradeTurn(String lobbyId, Game game) {
+				upgradeTurns.add(lobbyId);
+			}
+
+			@Override
+			public void publishProgrammingStarted(String lobbyId, Game game) {
+				programmingStartedLobbyIds.add(lobbyId);
 			}
 
 			@Override
@@ -114,7 +132,7 @@ class GameServiceTest {
 		GameLobby lobby = new GameLobby(JsonLoader.loadConfig(), "lobby",
 				new User("alice"));
 		lobby.addUserToLobby(new User("bob"));
-		Game newGame = new Game("game-2", null, Set.of(), Map.of());
+		Game newGame = new Game("game-2", board(), Set.of(), Map.of());
 
 		gameService.startGame(lobby.getLobbyId(), newGame);
 
@@ -181,12 +199,12 @@ class GameServiceTest {
 		Game round = game(
 				board(space(0, 0), space(1, 0), space(2, 0), space(2, -1)),
 				mover);
-		mover.getPlayerMat()
-				.program(List.of(CommandInstruction.MOVE_2,
-						CommandInstruction.LEFT_TURN, CommandInstruction.MOVE_1,
-						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1));
+		load(mover,
+				List.of(CommandInstruction.MOVE_2, CommandInstruction.LEFT_TURN,
+						CommandInstruction.MOVE_1, CommandInstruction.MOVE_1,
+						CommandInstruction.MOVE_1));
 
-		List<List<RobotView>> frames = gameService.activateRound(round);
+		List<List<RobotView>> frames = gameService.activateRound(round).steps();
 
 		assertEquals(4, frames.size());
 		assertEquals(1, frames.get(0).get(0).x());
@@ -219,8 +237,8 @@ class GameServiceTest {
 		Game round = game(board(space(0, 0, new PriorityAntenna()), space(1, 0),
 				space(2, 0), space(3, 0)), near, far);
 
-		near.getPlayerMat().program(registers);
-		far.getPlayerMat().program(registers);
+		load(near, registers);
+		load(far, registers);
 		gameService.activateRound(round);
 
 		assertEquals(new Vector2D(2, 0), near.getRobot().getCurrentSpace());
@@ -237,8 +255,8 @@ class GameServiceTest {
 		Game round = game(board(space(0, 0, new PriorityAntenna()), space(0, 1),
 				space(1, 0), space(1, 1)), alice, carol);
 
-		alice.getPlayerMat().program(registers);
-		carol.getPlayerMat().program(registers);
+		load(alice, registers);
+		load(carol, registers);
 		gameService.activateRound(round);
 
 		assertEquals(new Vector2D(1, 1), alice.getRobot().getCurrentSpace());
@@ -246,15 +264,160 @@ class GameServiceTest {
 	}
 
 	@Test
-	void unhandledInstructionThrowsDuringActivation() {
+	void againWithNothingToRepeatThrowsDuringActivation() {
 		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
 		Game round = game(board(space(0, 0)), mover);
 		mover.getPlayerMat().getRegisters().get(0)
-				.setCard(new ProgrammingCard(CommandInstruction.MOVE_3));
+				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
 
-		assertThrows(IllegalArgumentException.class,
+		assertThrows(IllegalStateException.class,
 				() -> gameService.activateRound(round));
 		assertEquals(new Vector2D(0, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void uTurnRotatesWithoutLeavingTheSpace() {
+		Player mover = player("ada", 1, 1, Direction.NORTH, PlayerColor.RED);
+		run(game(board(space(1, 1)), mover),
+				List.of(CommandInstruction.U_TURN, CommandInstruction.U_TURN,
+						CommandInstruction.U_TURN, CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(Direction.SOUTH, mover.getRobot().getOrientation());
+		assertEquals(new Vector2D(1, 1), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void moveBackStepsBehindWithoutTurning() {
+		Player mover = player("ada", 2, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0)), mover), List.of(
+				CommandInstruction.MOVE_BACK, CommandInstruction.MOVE_BACK,
+				CommandInstruction.MOVE_BACK, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(0, 0), mover.getRobot().getCurrentSpace());
+		assertEquals(Direction.EAST, mover.getRobot().getOrientation());
+	}
+
+	@Test
+	void wallBehindTheRobotBlocksMoveBack() {
+		Player mover = player("ada", 1, 0, Direction.EAST, PlayerColor.RED);
+		run(game(
+				board(space(0, 0),
+						space(1, 0,
+								new Wall(new Vector2D(1, 0), Direction.WEST))),
+				mover), five(CommandInstruction.MOVE_BACK));
+
+		assertEquals(new Vector2D(1, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void powerUpGivesOneEnergyAndNoFrame() {
+		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
+		assertEquals(5, mover.getEnergy());
+
+		Game round = game(board(space(0, 0)), mover);
+		load(mover, five(CommandInstruction.POWER_UP));
+
+		assertTrue(gameService.activateRound(round).steps().isEmpty());
+		assertEquals(10, mover.getEnergy());
+	}
+
+	@Test
+	void againRepeatsThePreviousRegister() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0), space(3, 0)),
+				mover),
+				List.of(CommandInstruction.MOVE_1, CommandInstruction.AGAIN,
+						CommandInstruction.POWER_UP, CommandInstruction.AGAIN,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(2, 0), mover.getRobot().getCurrentSpace());
+		assertEquals(8, mover.getEnergy());
+	}
+
+	@Test
+	void chainedAgainRepeatsTheLastRealInstruction() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0), space(3, 0)),
+				mover),
+				List.of(CommandInstruction.MOVE_1, CommandInstruction.AGAIN,
+						CommandInstruction.AGAIN, CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(3, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void speedRoutineMovesThreeSpaces() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0), space(3, 0)),
+				mover),
+				List.of(CommandInstruction.SPEED_ROUTINE,
+						CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP,
+						CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(3, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void energyRoutineGivesOneEnergy() {
+		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
+		run(game(board(space(0, 0)), mover),
+				five(CommandInstruction.ENERGY_ROUTINE));
+
+		assertEquals(10, mover.getEnergy());
+	}
+
+	@Test
+	void repeatRoutineWorksLikeAgain() {
+		Player mover = player("ada", 0, 0, Direction.EAST, PlayerColor.RED);
+		run(game(board(space(0, 0), space(1, 0), space(2, 0)), mover), List.of(
+				CommandInstruction.MOVE_1, CommandInstruction.REPEAT_ROUTINE,
+				CommandInstruction.POWER_UP, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP));
+
+		assertEquals(new Vector2D(2, 0), mover.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void roundRecordsWhoPlayedWhatInActivationOrder() {
+		Player near = player("zzz", 1, 0, Direction.EAST, PlayerColor.RED);
+		Player far = player("aaa", 3, 0, Direction.EAST, PlayerColor.BLUE);
+		Game round = game(board(space(0, 0, new PriorityAntenna()), space(1, 0),
+				space(2, 0), space(3, 0), space(4, 0), space(5, 0), space(6, 0),
+				space(7, 0)), near, far);
+		load(near, List.of(CommandInstruction.POWER_UP,
+				CommandInstruction.AGAIN, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP, CommandInstruction.POWER_UP));
+		load(far, List.of(CommandInstruction.MOVE_2, CommandInstruction.AGAIN,
+				CommandInstruction.POWER_UP, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP));
+
+		RoundResult result = gameService.activateRound(round);
+
+		assertEquals(5, result.registers().size());
+		RegisterReveal first = result.registers().get(0);
+		assertEquals(0, first.register());
+		assertEquals(List.of("zzz", "aaa"),
+				first.cards().stream().map(PlayedCard::username).toList());
+
+		PlayedCard powerUp = first.cards().get(0);
+		assertEquals(0, powerUp.stepCount());
+		PlayedCard move = first.cards().get(1);
+		assertEquals(CommandInstruction.MOVE_2,
+				((ProgrammingCard) move.card()).getInstruction());
+		assertEquals(0, move.firstStep());
+		assertEquals(2, move.stepCount());
+
+		// Again shows as Again, but its frames come from the repeated card
+		PlayedCard again = result.registers().get(1).cards().get(1);
+		assertEquals(CommandInstruction.AGAIN,
+				((ProgrammingCard) again.card()).getInstruction());
+		assertEquals(2, again.firstStep());
+		assertEquals(2, again.stepCount());
 	}
 
 	@Test
@@ -271,47 +434,151 @@ class GameServiceTest {
 		lobbies.startGame(lobby.getLobbyId(), "August");
 
 		Game started = gameService.getGame(lobby.getGameId());
+		skipUpgrades(lobby, started);
 		Map<String, Direction> before = facings(started);
 		int boardsBefore = boardLobbyIds.size();
-		List<CommandInstruction> registers = five(
-				CommandInstruction.RIGHT_TURN);
+		List<CommandInstruction> august = fromHand(named(started, "August"));
+		List<CommandInstruction> alice = fromHand(named(started, "Alice"));
 
-		assertFalse(gameService.submitProgram(lobby, "August", registers));
+		assertFalse(gameService.submitProgram(lobby, "August", august));
 		assertEquals(before, facings(started));
 		assertEquals(boardsBefore, boardLobbyIds.size());
+		assertTrue(roundStartedLobbyIds.isEmpty());
 		assertTrue(named(started, "August").getPlayerMat().isSubmitted());
 		assertThrows(IllegalStateException.class,
-				() -> gameService.submitProgram(lobby, "August", registers));
+				() -> gameService.submitProgram(lobby, "August", august));
 
-		assertTrue(gameService.submitProgram(lobby, "Alice", registers));
+		assertTrue(gameService.submitProgram(lobby, "Alice", alice));
 		assertEquals(boardsBefore + 1, boardLobbyIds.size());
 		assertEquals(lobby.getLobbyId(),
 				boardLobbyIds.get(boardLobbyIds.size() - 1));
 
-		Map<String, Direction> turned = new HashMap<>();
-		for (Map.Entry<String, Direction> facing : before.entrySet()) {
-			Direction orientation = facing.getValue();
-			for (int i = 0; i < 5; i++) {
-				orientation = orientation.turnRight();
-			}
-			turned.put(facing.getKey(), orientation);
-		}
-		assertEquals(turned, publishedFacings.get(publishedFacings.size() - 1));
+		assertEquals(List.of(lobby.getLobbyId()), roundStartedLobbyIds);
+		assertEquals(Phase.UPGRADE,
+				started.getCurrentRound().getCurrentPhase());
+		skipUpgrades(lobby, started);
 		for (Player player : started.getPlayersInGame()) {
 			assertFalse(player.getPlayerMat().isSubmitted());
+			assertEquals(9, player.getPlayerMat().getHand().size());
+			assertEquals(9, player.getPlayerMat().getDiscardPile().size());
 			for (Register register : player.getPlayerMat().getRegisters()) {
 				assertNull(register.getCard());
 			}
 		}
 
-		assertFalse(gameService.submitProgram(lobby, "August", registers));
+		assertFalse(gameService.submitProgram(lobby, "August",
+				fromHand(named(started, "August"))));
+	}
+
+	@Test
+	void programsAreRejectedDuringTheUpgradePhase() {
+		GameLobby lobby = startedLobby();
+		Game started = gameService.getGame(lobby.getGameId());
+
+		assertEquals(Phase.UPGRADE,
+				started.getCurrentRound().getCurrentPhase());
+		assertEquals(2, started.getUpgradeShop().getCards().size());
+		assertThrows(IllegalStateException.class,
+				() -> gameService.submitProgram(lobby, "August",
+						five(CommandInstruction.MOVE_1)));
+	}
+
+	@Test
+	void playersBuyOneAtATimeThenEveryoneDrawsTheirHand() {
+		GameLobby lobby = startedLobby();
+		Game started = gameService.getGame(lobby.getGameId());
+		Player first = started.getCurrentBuyer().orElseThrow();
+		String firstName = first.getUser().getUsername();
+		String secondName = firstName.equals("August") ? "Alice" : "August";
+		UpgradeType type = started.getUpgradeShop().getCards().get(0).getType();
+
+		assertThrows(IllegalStateException.class,
+				() -> gameService.skipUpgrade(lobby, secondName));
+
+		gameService.buyUpgrade(lobby, firstName, type);
+
+		assertEquals(5 - type.getCost(), first.getEnergy());
+		assertEquals(1, first.getPlayerMat().getDiscardPile().size());
+		assertEquals(type.getRoutine(),
+				((ProgrammingCard) first.getPlayerMat().getDiscardPile().get(0))
+						.getInstruction());
+		assertEquals(1, started.getUpgradeShop().getCards().size());
+		assertEquals(List.of(lobby.getLobbyId()), upgradeTurns);
+		assertTrue(first.getPlayerMat().getHand().isEmpty());
+		assertThrows(IllegalStateException.class,
+				() -> gameService.skipUpgrade(lobby, firstName));
+
+		gameService.skipUpgrade(lobby, secondName);
+
+		assertEquals(Phase.PROGRAMMING,
+				started.getCurrentRound().getCurrentPhase());
+		assertEquals(List.of(lobby.getLobbyId()), programmingStartedLobbyIds);
+		for (Player player : started.getPlayersInGame()) {
+			assertEquals(9, player.getPlayerMat().getHand().size());
+		}
+	}
+
+	@Test
+	void upgradeCannotBeBoughtWithoutEnoughEnergy() {
+		GameLobby lobby = startedLobby();
+		Game started = gameService.getGame(lobby.getGameId());
+		Player buyer = started.getCurrentBuyer().orElseThrow();
+		buyer.spendEnergy(3);
+		UpgradeType type = started.getUpgradeShop().getCards().get(0).getType();
+
+		assertThrows(IllegalArgumentException.class, () -> gameService
+				.buyUpgrade(lobby, buyer.getUser().getUsername(), type));
+
+		assertEquals(2, buyer.getEnergy());
+		assertEquals(2, started.getUpgradeShop().getCards().size());
+		assertTrue(buyer.getPlayerMat().getDiscardPile().isEmpty());
+		assertEquals(buyer, started.getCurrentBuyer().orElseThrow());
+	}
+
+	private GameLobby startedLobby() {
+		InMemoryUserRepository users = new InMemoryUserRepository();
+		users.add(new User("August"));
+		users.add(new User("Alice"));
+		LobbyService lobbies = new LobbyService(new InMemoryLobbyRepository(),
+				users, gameService);
+		GameLobby lobby = lobbies
+				.createLobby(new CreateLobbyDTO("Lobby", "August"));
+		lobbies.joinLobby(lobby.getLobbyId(), "Alice");
+		lobbies.setReady(lobby.getLobbyId(), "Alice", true);
+		lobbies.startGame(lobby.getLobbyId(), "August");
+		return lobby;
+	}
+
+	private void skipUpgrades(GameLobby lobby, Game round) {
+		while (round.getCurrentBuyer().isPresent()) {
+			gameService.skipUpgrade(lobby,
+					round.getCurrentBuyer().get().getUser().getUsername());
+		}
 	}
 
 	private void run(Game round, List<CommandInstruction> registers) {
 		for (Player player : round.getPlayersInGame()) {
-			player.getPlayerMat().program(registers);
+			load(player, registers);
 		}
 		gameService.activateRound(round);
+	}
+
+	private static void load(Player player,
+			List<CommandInstruction> registers) {
+		for (int i = 0; i < registers.size(); i++) {
+			player.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(registers.get(i)));
+		}
+	}
+
+	private static List<CommandInstruction> fromHand(Player player) {
+		List<CommandInstruction> hand = new ArrayList<>();
+		for (ProgrammableCard card : player.getPlayerMat().getHand()) {
+			hand.add(((ProgrammingCard) card).getInstruction());
+		}
+		hand.sort(Comparator.comparing(
+				instruction -> instruction == CommandInstruction.AGAIN));
+		return hand.subList(0, 5);
 	}
 
 	private static Game game(Board board, Player... players) {
