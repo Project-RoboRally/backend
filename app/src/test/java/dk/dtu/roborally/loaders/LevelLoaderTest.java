@@ -44,4 +44,19 @@ class LevelLoaderTest {
 				new Vector2D(8, 18), new Vector2D(11, 18), new Vector2D(14, 18),
 				new Vector2D(17, 18)), positions);
 	}
+
+	@Test
+	void loadAllowsMissingOptionalLevelObjects() {
+		assertNotNull(assertDoesNotThrow(() -> LevelLoader
+				.load("levels/level_without_optional_objects.json")));
+	}
+
+	@Test
+	void loadRejectsMissingSquares() {
+		IllegalArgumentException thrown = assertThrows(
+				IllegalArgumentException.class,
+				() -> LevelLoader.load("levels/level_without_squares.json"));
+		assertTrue(thrown.getMessage()
+				.contains("Level must contain at least one square"));
+	}
 }
