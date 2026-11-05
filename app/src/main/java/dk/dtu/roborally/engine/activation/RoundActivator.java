@@ -4,14 +4,11 @@ import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
-import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
-import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.Checkpoint;
-import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
@@ -25,7 +22,6 @@ import dk.dtu.roborally.models.player.Register;
 import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
 import dk.dtu.roborally.models.player.Player;
-import dk.dtu.roborally.models.player.Robot;
 import dk.dtu.roborally.models.player.RobotView;
 import java.util.List;
 import java.util.Optional;
@@ -280,7 +276,8 @@ public class RoundActivator {
 	private void move(Player player, Game game, int stepCount,
 			ActivationLog log) {
 		for (int step = 0; step < stepCount; step++) {
-			if (!step(player, game, player.getRobot().getOrientation())) {
+			if (!Movement.step(game, player,
+					player.getRobot().getOrientation())) {
 				return;
 			}
 			log.addStep(snapshot(game));
@@ -288,62 +285,14 @@ public class RoundActivator {
 	}
 
 	private void moveBack(Player player, Game game, ActivationLog log) {
-		if (step(player, game, player.getRobot().getOrientation().uTurn())) {
+		if (Movement.step(game, player,
+				player.getRobot().getOrientation().uTurn())) {
 			log.addStep(snapshot(game));
 		}
 	}
 
 	private List<RobotView> snapshot(Game game) {
 		return game.getPlayersInGame().stream().map(RobotView::from).toList();
-	}
-
-	/**
-	 * One space along the given direction. Off the board, a wall on the crossed
-	 * edge, or another robot blocks the step.
-	 */
-	private boolean step(Player player, Game game, Direction direction) {
-		Robot robot = player.getRobot();
-		Vector2D from = robot.getCurrentSpace();
-		Vector2D to = from.add(direction.step());
-		Board board = game.getBoard();
-
-		if (!board.isWithinBoard(to) || wallBlocks(board, from, to, direction)
-				|| occupied(game, to, player)) {
-			return false;
-		}
-
-		robot.moveTo(to);
-		return true;
-	}
-
-	private boolean wallBlocks(Board board, Vector2D from, Vector2D to,
-			Direction direction) {
-		if (hasWall(board.getSpace(from), direction)) {
-			return true;
-		}
-		return hasWall(board.getSpace(to), direction.uTurn());
-	}
-
-	private boolean hasWall(Space space, Direction side) {
-		if (space == null) {
-			return false;
-		}
-		for (BoardElement element : space.getBoardElements()) {
-			if (element instanceof Wall wall && wall.getSide() == side) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean occupied(Game game, Vector2D position, Player moving) {
-		for (Player other : game.getPlayersInGame()) {
-			if (other != moving
-					&& position.equals(other.getRobot().getCurrentSpace())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
