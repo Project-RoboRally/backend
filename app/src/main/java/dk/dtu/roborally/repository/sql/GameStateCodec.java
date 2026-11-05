@@ -196,6 +196,7 @@ public final class GameStateCodec {
 		stored.upgrades = names(player.getUpgrades().getAll());
 		stored.checkpointsReached = player.getCheckpointsReached();
 		stored.submitted = player.getPlayerMat().isSubmitted();
+		stored.cardsToPutBack = player.getPlayerMat().getCardsToPutBack();
 		stored.drawPile = instructions(player.getPlayerMat().getDrawPile());
 		stored.hand = instructions(player.getPlayerMat().getHand());
 		stored.discard = instructions(player.getPlayerMat().getDiscardPile());
@@ -231,6 +232,7 @@ public final class GameStateCodec {
 		player.getPlayerMat().restore(cards(stored.drawPile),
 				cards(stored.hand), cards(stored.discard),
 				cards(stored.registers), stored.submitted);
+		player.getPlayerMat().restoreCardsToPutBack(stored.cardsToPutBack);
 		if (stored.damagedRegisters != null) {
 			for (int index : stored.damagedRegisters) {
 				player.getPlayerMat().getRegisters().get(index)
@@ -337,6 +339,7 @@ public final class GameStateCodec {
 		private List<String> upgrades;
 		private int checkpointsReached;
 		private boolean submitted;
+		private int cardsToPutBack;
 		private List<String> drawPile;
 		private List<String> hand;
 		private List<String> discard;

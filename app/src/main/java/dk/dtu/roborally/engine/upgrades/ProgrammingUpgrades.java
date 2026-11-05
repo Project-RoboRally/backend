@@ -18,6 +18,7 @@ import java.util.List;
 public final class ProgrammingUpgrades {
 
 	private static final int HAND_SIZE = 9;
+	private static final int SWAPPED_CARDS = 3;
 
 	private ProgrammingUpgrades() {
 	}
@@ -53,6 +54,8 @@ public final class ProgrammingUpgrades {
 				}
 				mat.drawCards(blocked);
 			}
+			case MEMORY_SWAP -> mat.swapCards(SWAPPED_CARDS);
+			case CACHE_MEMORY -> mat.putOnTopOfDeck(cards);
 			default -> throw new IllegalArgumentException(
 					type + " can not be used while programming");
 		}

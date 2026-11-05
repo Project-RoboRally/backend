@@ -8,6 +8,7 @@ import dk.dtu.roborally.api.dto.LobbyDTO;
 import dk.dtu.roborally.api.dto.MakeChoiceDTO;
 import dk.dtu.roborally.api.dto.ProgramDTO;
 import dk.dtu.roborally.api.dto.ProgramResultDTO;
+import dk.dtu.roborally.api.dto.PutBackCardsDTO;
 import dk.dtu.roborally.api.dto.RenameLobbyDTO;
 import dk.dtu.roborally.api.dto.SetColorDTO;
 import dk.dtu.roborally.api.dto.SetReadyDTO;
@@ -146,6 +147,13 @@ public class LobbyController {
 			@RequestBody UseUpgradeDTO payload) {
 		lobbyService.useUpgrade(id, payload.username(), payload.upgrade(),
 				payload.cards());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/hand/put-back")
+	public ResponseEntity<Void> putBackCards(@PathVariable String id,
+			@RequestBody PutBackCardsDTO payload) {
+		lobbyService.putBackCards(id, payload.username(), payload.cards());
 		return ResponseEntity.noContent().build();
 	}
 

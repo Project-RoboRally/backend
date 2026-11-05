@@ -280,6 +280,23 @@ public class GameService {
 		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
 	}
 
+	/** The cards owed after a Memory Swap go back on top of the deck. */
+	public synchronized void putBackCards(GameLobby lobby, String username,
+			List<String> cards) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.PROGRAMMING);
+		Player player = findPlayer(game, username);
+		if (player.getPlayerMat().getCardsToPutBack() == 0) {
+			throw new IllegalStateException("No cards to put back");
+		}
+		player.getPlayerMat().putOnTopOfDeck(cards);
+		gameRepository.update(game);
+		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
+	}
+
 	/** Passes on buying an upgrade this round. */
 	public synchronized void skipUpgrade(GameLobby lobby, String username) {
 		Game game = upgradeGame(lobby);
