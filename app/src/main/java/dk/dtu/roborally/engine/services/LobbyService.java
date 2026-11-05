@@ -176,8 +176,9 @@ public class LobbyService {
 				registers);
 	}
 
-	public void buyUpgrade(String lobbyId, String username, UpgradeType type) {
-		gameService.buyUpgrade(getLobby(lobbyId), username, type);
+	public void buyUpgrade(String lobbyId, String username, UpgradeType type,
+			UpgradeType replacing) {
+		gameService.buyUpgrade(getLobby(lobbyId), username, type, replacing);
 	}
 
 	public void skipUpgrade(String lobbyId, String username) {

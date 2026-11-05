@@ -128,7 +128,8 @@ public class LobbyController {
 	@PostMapping("/{id}/upgrade/buy")
 	public ResponseEntity<Void> buyUpgrade(@PathVariable String id,
 			@RequestBody BuyUpgradeDTO payload) {
-		lobbyService.buyUpgrade(id, payload.username(), payload.upgrade());
+		lobbyService.buyUpgrade(id, payload.username(), payload.upgrade(),
+				payload.replace());
 		return ResponseEntity.noContent().build();
 	}
 

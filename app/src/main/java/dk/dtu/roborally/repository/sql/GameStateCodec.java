@@ -52,7 +52,6 @@ public final class GameStateCodec {
 		}
 		stored.shop = new StoredShop();
 		stored.shop.deck = names(game.getUpgradeShop().getDeckTypes());
-		stored.shop.discard = names(game.getUpgradeShop().getDiscardTypes());
 		stored.shop.forSale = new ArrayList<>();
 		for (UpgradeCard card : game.getUpgradeShop().getCards()) {
 			stored.shop.forSale.add(card.getType().name());
@@ -147,7 +146,7 @@ public final class GameStateCodec {
 			game.getDamagePiles().restore(sizes);
 		}
 		game.getUpgradeShop().restore(types(stored.shop.deck),
-				types(stored.shop.discard), types(stored.shop.forSale));
+				types(stored.shop.forSale));
 
 		List<Player> order = new ArrayList<>();
 		if (stored.upgradeOrder != null) {
@@ -319,7 +318,6 @@ public final class GameStateCodec {
 
 	private static final class StoredShop {
 		private List<String> deck;
-		private List<String> discard;
 		private List<String> forSale;
 	}
 
