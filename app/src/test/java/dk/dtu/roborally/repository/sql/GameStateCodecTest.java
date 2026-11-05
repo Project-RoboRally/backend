@@ -1,9 +1,11 @@
 package dk.dtu.roborally.repository.sql;
 
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +54,22 @@ class GameStateCodecTest {
 	@Test
 	void aRoundOutsideActivationLoadsAsNotActivating() {
 		assertFalse(reload().getCurrentRound().isActivating());
+	}
+
+	@Test
+	void keepsAPendingChoiceAndItsAnswer() {
+		String playerId = game.getPlayersInGame().iterator().next().getId();
+		PendingChoice choice = new PendingChoice(playerId,
+				ChoiceType.SANDBOX_ACTION, List.of("MOVE_1", "U_TURN"));
+		game.getCurrentRound().ask(choice);
+
+		assertEquals(Optional.of(choice),
+				reload().getCurrentRound().getPendingChoice());
+
+		game.getCurrentRound().answer(playerId, "U_TURN");
+
+		assertEquals(Optional.of("U_TURN"),
+				reload().getCurrentRound().ask(choice));
 	}
 
 	private Game reload() {

@@ -40,9 +40,10 @@ public class RoundActivator {
 	}
 
 	/**
-	 * Runs the activation phase from wherever it got to and returns everything
-	 * that happened in it. Within a register, players go in priority order,
-	 * then the end of register effects happen.
+	 * Runs the activation phase from wherever it got to and returns what
+	 * happened since the last call. Within a register, players go in priority
+	 * order, then the end of register effects happen. Stops early when a player
+	 * has to choose something, the round then says what it is waiting for.
 	 */
 	public RoundResult activate(Game game) {
 		Round round = game.getCurrentRound();
@@ -53,14 +54,14 @@ public class RoundActivator {
 			round.startActivation();
 			startRegister(game, 0);
 		}
-		while (round.isActivating()) {
+		while (round.isActivating() && round.getPendingChoice().isEmpty()) {
 			if (game.getGameStatus() == GameStatus.FINISHED) {
 				round.finishActivation();
 				break;
 			}
 			step(game);
 		}
-		return round.getLog().toResult();
+		return round.takeLog().toResult();
 	}
 
 	/** Does the next bit of the current register. */

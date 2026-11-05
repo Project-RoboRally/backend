@@ -2,6 +2,7 @@ package dk.dtu.roborally.repository.sql;
 
 import com.google.gson.Gson;
 
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
@@ -17,6 +18,7 @@ import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
@@ -63,6 +65,7 @@ public final class GameStateCodec {
 				: round.getStage().name();
 		stored.activationOrder = round.getActivationOrder();
 		stored.activated = round.getActivatedCount();
+		stored.choice = storeChoice(round);
 		stored.players = new ArrayList<>();
 		for (Player player : game.getPlayersInGame()) {
 			stored.players.add(storePlayer(player));
@@ -103,6 +106,14 @@ public final class GameStateCodec {
 						? List.of()
 						: stored.activationOrder,
 				stored.activated);
+		if (stored.choice != null) {
+			game.getCurrentRound()
+					.restoreChoice(
+							new PendingChoice(stored.choice.playerId,
+									ChoiceType.valueOf(stored.choice.type),
+									stored.choice.options),
+							stored.choice.answer);
+		}
 		game.getUpgradeShop().restore(types(stored.shop.deck),
 				types(stored.shop.discard), types(stored.shop.forSale));
 
@@ -114,6 +125,24 @@ public final class GameStateCodec {
 		}
 		game.setUpgradeOrder(order);
 		return game;
+	}
+
+	private static StoredChoice storeChoice(Round round) {
+		PendingChoice choice = round.getPendingChoice().orElse(null);
+		String answer = round.getAnswer().orElse(null);
+		if (choice == null && answer == null) {
+			return null;
+		}
+		if (choice == null) {
+			// Answered but not used yet, the question is still on the round
+			choice = round.getAnsweredChoice().orElseThrow();
+		}
+		StoredChoice stored = new StoredChoice();
+		stored.playerId = choice.playerId();
+		stored.type = choice.type().name();
+		stored.options = choice.options();
+		stored.answer = answer;
+		return stored;
 	}
 
 	private static StoredPlayer storePlayer(Player player) {
@@ -239,8 +268,16 @@ public final class GameStateCodec {
 		private String stage;
 		private List<String> activationOrder;
 		private int activated;
+		private StoredChoice choice;
 		private StoredShop shop;
 		private List<StoredPlayer> players;
+	}
+
+	private static final class StoredChoice {
+		private String playerId;
+		private String type;
+		private List<String> options;
+		private String answer;
 	}
 
 	private static final class StoredShop {
