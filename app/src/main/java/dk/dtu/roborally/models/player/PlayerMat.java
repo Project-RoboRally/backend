@@ -1,6 +1,7 @@
 package dk.dtu.roborally.models.player;
 
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.models.cards.CardDeck;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
@@ -36,7 +37,7 @@ public class PlayerMat {
 			CommandInstruction.AGAIN, CommandInstruction.ENERGY_ROUTINE,
 			CommandInstruction.SPEED_ROUTINE, CommandInstruction.REPEAT_ROUTINE,
 			CommandInstruction.SANDBOX_ROUTINE,
-			CommandInstruction.WEASEL_ROUTINE);
+			CommandInstruction.WEASEL_ROUTINE, CommandInstruction.SPAM_FOLDER);
 
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
 	private final List<ProgrammableCard> hand = new ArrayList<>();
@@ -97,6 +98,17 @@ public class PlayerMat {
 		}
 	}
 
+	/**
+	 * Takes the top card of the draw pile, shuffling the discard pile into it
+	 * first if it is empty. Empty when there are no cards left anywhere.
+	 */
+	public Optional<ProgrammableCard> drawTop() {
+		if (drawPile.isEmpty()) {
+			shuffleDiscardPileIntoDrawPile();
+		}
+		return drawPile.drawCard();
+	}
+
 	private void shuffleDiscardPileIntoDrawPile() {
 		discardPile.forEach(drawPile::addCard);
 		discardPile.clear();
@@ -108,39 +120,61 @@ public class PlayerMat {
 		discardPile.add(Objects.requireNonNull(card));
 	}
 
+	/**
+	 * Takes a card with the given name out of the discard pile, if there is
+	 * one.
+	 */
+	public Optional<ProgrammableCard> removeFromDiscardPile(String name) {
+		for (ProgrammableCard card : discardPile) {
+			if (card.getName().equals(name)) {
+				discardPile.remove(card);
+				return Optional.of(card);
+			}
+		}
+		return Optional.empty();
+	}
+
 	/** Puts a card in the hand so it can be programmed. */
 	public void addToHand(ProgrammableCard card) {
 		hand.add(Objects.requireNonNull(card));
 	}
 
+	/** Same as {@link #programCards(List)} for programs without damage. */
+	public void program(List<CommandInstruction> instructions) {
+		programCards(instructions == null
+				? null
+				: instructions.stream().map(CommandInstruction::name).toList());
+	}
+
 	/**
 	 * Moves the chosen cards from the hand to the five registers, discards the
-	 * rest of the hand and marks the mat submitted. A second program is
+	 * rest of the hand and marks the mat submitted. Cards are named like MOVE_1
+	 * or SPAM, so damage cards can be programmed too. A second program is
 	 * rejected until {@link #clearProgram()} runs.
 	 */
-	public void program(List<CommandInstruction> instructions) {
+	public void programCards(List<String> cards) {
 		if (submitted) {
 			throw new IllegalStateException(
 					"Program has already been submitted");
 		}
-		if (instructions == null || instructions.size() != REGISTER_COUNT) {
+		if (cards == null || cards.size() != REGISTER_COUNT) {
 			throw new IllegalArgumentException("A program must contain exactly "
 					+ REGISTER_COUNT + " instructions");
 		}
-		for (CommandInstruction instruction : instructions) {
-			if (!ALLOWED.contains(instruction)) {
+		for (String card : cards) {
+			if (!isAllowed(card)) {
 				throw new IllegalArgumentException(
-						"Instruction is not allowed: " + instruction);
+						"Instruction is not allowed: " + card);
 			}
 		}
-		if (instructions.get(0).repeatsPreviousRegister()) {
+		if (repeatsPreviousRegister(cards.get(0))) {
 			throw new IllegalArgumentException(
-					instructions.get(0) + " cannot be placed in register 1");
+					cards.get(0) + " cannot be placed in register 1");
 		}
 		List<ProgrammableCard> remaining = new ArrayList<>(hand);
 		List<ProgrammableCard> chosen = new ArrayList<>();
-		for (CommandInstruction instruction : instructions) {
-			chosen.add(takeCard(remaining, instruction));
+		for (String card : cards) {
+			chosen.add(takeCard(remaining, card));
 		}
 		for (int i = 0; i < REGISTER_COUNT; i++) {
 			registers[i].setCard(chosen.get(i));
@@ -150,17 +184,36 @@ public class PlayerMat {
 		submitted = true;
 	}
 
+	private static boolean isAllowed(String card) {
+		for (CommandInstruction instruction : ALLOWED) {
+			if (instruction.name().equals(card)) {
+				return true;
+			}
+		}
+		for (DamageInstruction instruction : DamageInstruction.values()) {
+			if (instruction.name().equals(card)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean repeatsPreviousRegister(String card) {
+		return ALLOWED.stream()
+				.anyMatch(instruction -> instruction.name().equals(card)
+						&& instruction.repeatsPreviousRegister());
+	}
+
 	private ProgrammableCard takeCard(List<ProgrammableCard> cards,
-			CommandInstruction instruction) {
+			String name) {
 		for (ProgrammableCard card : cards) {
-			if (card instanceof ProgrammingCard programmingCard
-					&& programmingCard.getInstruction() == instruction) {
+			if (card.getName().equals(name)) {
 				cards.remove(card);
 				return card;
 			}
 		}
 		throw new IllegalArgumentException(
-				"Instruction is not in the hand: " + instruction);
+				"Instruction is not in the hand: " + name);
 	}
 
 	/**
@@ -172,6 +225,7 @@ public class PlayerMat {
 				discardPile.add(register.getCard());
 				register.setCard(null);
 			}
+			register.setDamaged(false);
 		}
 		submitted = false;
 	}
@@ -182,12 +236,13 @@ public class PlayerMat {
 
 	/**
 	 * Replaces every pile and register. Used when a saved game is loaded. Draw
-	 * pile order is bottom to top, and the last card is drawn next.
+	 * pile order is bottom to top, and the last card is drawn next. Empty
+	 * registers are null.
 	 */
-	public void restore(List<CommandInstruction> draw,
-			List<CommandInstruction> handCards,
-			List<CommandInstruction> discardCards,
-			List<CommandInstruction> registerCards, boolean submitted) {
+	public void restore(List<ProgrammableCard> draw,
+			List<ProgrammableCard> handCards,
+			List<ProgrammableCard> discardCards,
+			List<ProgrammableCard> registerCards, boolean submitted) {
 		Objects.requireNonNull(draw);
 		Objects.requireNonNull(handCards);
 		Objects.requireNonNull(discardCards);
@@ -196,24 +251,14 @@ public class PlayerMat {
 			throw new IllegalArgumentException(
 					"A player mat has " + REGISTER_COUNT + " registers");
 		}
-
 		drawPile.clear();
-		for (CommandInstruction instruction : draw) {
-			drawPile.addCard(new ProgrammingCard(instruction));
-		}
+		draw.forEach(drawPile::addCard);
 		hand.clear();
-		for (CommandInstruction instruction : handCards) {
-			hand.add(new ProgrammingCard(instruction));
-		}
+		hand.addAll(handCards);
 		discardPile.clear();
-		for (CommandInstruction instruction : discardCards) {
-			discardPile.add(new ProgrammingCard(instruction));
-		}
+		discardPile.addAll(discardCards);
 		for (int i = 0; i < REGISTER_COUNT; i++) {
-			CommandInstruction instruction = registerCards.get(i);
-			registers[i].setCard(instruction == null
-					? null
-					: new ProgrammingCard(instruction));
+			registers[i].setCard(registerCards.get(i));
 		}
 		this.submitted = submitted;
 	}

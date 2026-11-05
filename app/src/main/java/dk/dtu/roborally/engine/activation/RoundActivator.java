@@ -3,6 +3,7 @@ package dk.dtu.roborally.engine.activation;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.models.board.Board;
@@ -11,6 +12,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.Checkpoint;
 import dk.dtu.roborally.models.board.elements.Wall;
+import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.enums.RegisterStage;
@@ -19,6 +21,7 @@ import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.player.PlayerMat;
+import dk.dtu.roborally.models.player.Register;
 import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
 import dk.dtu.roborally.models.player.Player;
@@ -34,6 +37,9 @@ import java.util.Optional;
  * @author Elias, Nicoleta, Matthias, Sebastian
  */
 public class RoundActivator {
+
+	/** Virus spreads to every robot this many spaces away or closer. */
+	private static final int VIRUS_RANGE = 6;
 
 	private final GameEventPublisher gameEventPublisher;
 
@@ -103,6 +109,14 @@ public class RoundActivator {
 	 * waits on the player choosing an action, nothing has happened yet then.
 	 */
 	private boolean activateCard(Game game, Player player, int register) {
+		Register slot = player.getPlayerMat().getRegisters().get(register);
+		while (mustBeReplaced(player, register)) {
+			replaceCard(game, player, slot);
+		}
+		if (slot.getCard() == null) {
+			// Nothing left in the deck to replace the card with
+			return true;
+		}
 		CommandInstruction instruction = resolveInstruction(player, register);
 		if (!instruction.actionsToChooseFrom().isEmpty()) {
 			Optional<CommandInstruction> chosen = chooseAction(game, player,
@@ -121,6 +135,65 @@ public class RoundActivator {
 								.getCard(),
 						firstStep, log.stepCount() - firstStep));
 		return true;
+	}
+
+	/**
+	 * Damage cards are swapped for the top card of the deck. So is an Again
+	 * with nothing to repeat, which happens when it is drawn into register 1,
+	 * or right after a damage card.
+	 */
+	private boolean mustBeReplaced(Player player, int register) {
+		List<Register> registers = player.getPlayerMat().getRegisters();
+		ProgrammableCard card = registers.get(register).getCard();
+		if (card instanceof DamageCard) {
+			return true;
+		}
+		if (card instanceof ProgrammingCard programming
+				&& programming.getInstruction().repeatsPreviousRegister()) {
+			return register == 0 || registers.get(register - 1).isDamaged();
+		}
+		return false;
+	}
+
+	/**
+	 * Plays out a card that gets replaced. A damage card does its effect and
+	 * goes back to its pile, anything else goes to the discard pile.
+	 */
+	private void replaceCard(Game game, Player player, Register slot) {
+		ActivationLog log = game.getCurrentRound().getLog();
+		ProgrammableCard card = slot.getCard();
+		int firstStep = log.stepCount();
+		if (card instanceof DamageCard damage) {
+			damageEffect(game, player, damage.getInstruction());
+			game.getDamagePiles().giveBack(damage);
+			slot.setDamaged(true);
+		} else {
+			player.getPlayerMat().addToDiscardPile(card);
+		}
+		log.addCard(slot.getIndex(),
+				new PlayedCard(player.getUser().getUsername(), card, firstStep,
+						log.stepCount() - firstStep));
+		slot.setCard(player.getPlayerMat().drawTop().orElse(null));
+	}
+
+	private void damageEffect(Game game, Player player,
+			DamageInstruction damage) {
+		switch (damage) {
+			case TROJAN_HORSE ->
+				Damage.take(game, player, DamageInstruction.SPAM, 2);
+			case VIRUS -> {
+				Vector2D position = player.getRobot().getCurrentSpace();
+				for (Player other : game.getPlayersInGame()) {
+					if (other != player && other.getRobot().getCurrentSpace()
+							.distanceTo(position) <= VIRUS_RANGE) {
+						Damage.take(game, other, DamageInstruction.VIRUS, 1);
+					}
+				}
+			}
+			case SPAM, WORM -> {
+				// SPAM only clogs the deck. Worm reboots, which comes later
+			}
+		}
 	}
 
 	/** Sandbox and Weasel routines let the player pick what they do. */
@@ -195,6 +268,10 @@ public class RoundActivator {
 				move(player, game, instruction.steps(), log);
 			case MOVE_BACK -> moveBack(player, game, log);
 			case POWER_UP, ENERGY_ROUTINE -> player.addEnergy(1);
+			case SPAM_FOLDER -> player.getPlayerMat()
+					.removeFromDiscardPile(DamageInstruction.SPAM.name())
+					.ifPresent(spam -> game.getDamagePiles()
+							.giveBack((DamageCard) spam));
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);
 		}

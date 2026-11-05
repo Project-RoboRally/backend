@@ -131,10 +131,10 @@ class CheckpointWinningTest {
 		Game game = game(board(1), alice);
 		GameLobby lobby = lobby(game);
 		readyToProgram(game, alice);
-		assertTrue(service.submitProgram(lobby, "alice", moves()));
+		assertTrue(service.submitProgram(lobby, "alice", names(moves())));
 
 		IllegalStateException error = assertThrows(IllegalStateException.class,
-				() -> service.submitProgram(lobby, "alice", moves()));
+				() -> service.submitProgram(lobby, "alice", names(moves())));
 
 		assertEquals("The game has already finished.", error.getMessage());
 		assertFalse(alice.getPlayerMat().isSubmitted());
@@ -151,8 +151,8 @@ class CheckpointWinningTest {
 		GameLobby lobby = lobby(game);
 		readyToProgram(game, alice, bob);
 
-		assertFalse(service.submitProgram(lobby, "alice", moves()));
-		assertTrue(service.submitProgram(lobby, "bob", turns()));
+		assertFalse(service.submitProgram(lobby, "alice", names(moves())));
+		assertTrue(service.submitProgram(lobby, "bob", names(turns())));
 
 		for (String username : List.of("alice", "bob")) {
 			ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
@@ -188,8 +188,8 @@ class CheckpointWinningTest {
 		Game game = game(board(1), alice, bob);
 		GameLobby lobby = lobby(game);
 		readyToProgram(game, alice, bob);
-		service.submitProgram(lobby, "alice", moves());
-		service.submitProgram(lobby, "bob", turns());
+		service.submitProgram(lobby, "alice", names(moves()));
+		service.submitProgram(lobby, "bob", names(turns()));
 		LobbyService lobbies = mock(LobbyService.class);
 		when(lobbies.getLobby("test-lobby")).thenReturn(lobby);
 		PlayerStateController controller = new PlayerStateController(lobbies,
@@ -230,7 +230,7 @@ class CheckpointWinningTest {
 	}
 
 	private Game game(Board board, Player... players) {
-		Game game = new Game("test-game", board, Set.of(players), Map.of());
+		Game game = new Game("test-game", board, Set.of(players));
 		repository.add(game);
 		return game;
 	}
@@ -304,5 +304,9 @@ class CheckpointWinningTest {
 
 	private static List<CommandInstruction> moves() {
 		return java.util.Collections.nCopies(5, CommandInstruction.MOVE_1);
+	}
+
+	private static List<String> names(List<CommandInstruction> instructions) {
+		return instructions.stream().map(CommandInstruction::name).toList();
 	}
 }

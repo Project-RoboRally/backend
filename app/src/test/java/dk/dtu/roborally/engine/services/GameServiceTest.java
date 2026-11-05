@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -102,7 +104,7 @@ class GameServiceTest {
 		};
 		gameService = new GameService(repository, publisher);
 
-		game = new Game("game-1", null, Set.of(), Map.of());
+		game = new Game("game-1", null, Set.of());
 		repository.add(game);
 	}
 
@@ -138,7 +140,7 @@ class GameServiceTest {
 		GameLobby lobby = new GameLobby(JsonLoader.loadConfig(), "lobby",
 				new User("alice"));
 		lobby.addUserToLobby(new User("bob"));
-		Game newGame = new Game("game-2", board(), Set.of(), Map.of());
+		Game newGame = new Game("game-2", board(), Set.of());
 
 		gameService.startGame(lobby.getLobbyId(), newGame);
 
@@ -270,15 +272,19 @@ class GameServiceTest {
 	}
 
 	@Test
-	void againWithNothingToRepeatThrowsDuringActivation() {
-		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
-		Game round = game(board(space(0, 0)), mover);
+	void againInRegisterOneIsSwappedForTheTopCard() {
+		Player mover = player("ada", 0, 1, Direction.NORTH, PlayerColor.RED);
+		Game round = game(board(space(0, 0), space(0, 1)), mover);
 		mover.getPlayerMat().getRegisters().get(0)
 				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
 
-		assertThrows(IllegalStateException.class,
-				() -> gameService.activateRound(round));
-		assertEquals(new Vector2D(0, 0), mover.getRobot().getCurrentSpace());
+		gameService.activateRound(round);
+
+		assertTrue(mover.getPlayerMat().getDiscardPile().stream()
+				.anyMatch(card -> card.getName().equals("AGAIN")));
+		assertNotNull(mover.getPlayerMat().getRegisters().get(0).getCard());
+		assertNotEquals("AGAIN",
+				mover.getPlayerMat().getRegisters().get(0).getCard().getName());
 	}
 
 	@Test
@@ -446,15 +452,15 @@ class GameServiceTest {
 		List<CommandInstruction> august = fromHand(named(started, "August"));
 		List<CommandInstruction> alice = fromHand(named(started, "Alice"));
 
-		assertFalse(gameService.submitProgram(lobby, "August", august));
+		assertFalse(gameService.submitProgram(lobby, "August", names(august)));
 		assertEquals(before, facings(started));
 		assertEquals(boardsBefore, boardLobbyIds.size());
 		assertTrue(roundStartedLobbyIds.isEmpty());
 		assertTrue(named(started, "August").getPlayerMat().isSubmitted());
-		assertThrows(IllegalStateException.class,
-				() -> gameService.submitProgram(lobby, "August", august));
+		assertThrows(IllegalStateException.class, () -> gameService
+				.submitProgram(lobby, "August", names(august)));
 
-		assertTrue(gameService.submitProgram(lobby, "Alice", alice));
+		assertTrue(gameService.submitProgram(lobby, "Alice", names(alice)));
 		assertEquals(boardsBefore + 1, boardLobbyIds.size());
 		assertEquals(lobby.getLobbyId(),
 				boardLobbyIds.get(boardLobbyIds.size() - 1));
@@ -473,7 +479,7 @@ class GameServiceTest {
 		}
 
 		assertFalse(gameService.submitProgram(lobby, "August",
-				fromHand(named(started, "August"))));
+				names(fromHand(named(started, "August")))));
 	}
 
 	@Test
@@ -486,7 +492,7 @@ class GameServiceTest {
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertThrows(IllegalStateException.class,
 				() -> gameService.submitProgram(lobby, "August",
-						five(CommandInstruction.MOVE_1)));
+						names(five(CommandInstruction.MOVE_1))));
 	}
 
 	@Test
@@ -529,13 +535,14 @@ class GameServiceTest {
 		GameLobby lobby = startedLobby();
 		Game started = gameService.getGame(lobby.getGameId());
 		Player buyer = started.getCurrentBuyer().orElseThrow();
-		buyer.spendEnergy(3);
 		UpgradeType type = started.getUpgradeShop().getCards().get(0).getType();
+		// One short of the price, whatever card ended up first in the shop
+		buyer.spendEnergy(buyer.getEnergy() - type.getCost() + 1);
 
 		assertThrows(IllegalArgumentException.class, () -> gameService
 				.buyUpgrade(lobby, buyer.getUser().getUsername(), type));
 
-		assertEquals(2, buyer.getEnergy());
+		assertEquals(type.getCost() - 1, buyer.getEnergy());
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertTrue(buyer.getPlayerMat().getDiscardPile().isEmpty());
 		assertEquals(buyer, started.getCurrentBuyer().orElseThrow());
@@ -599,8 +606,7 @@ class GameServiceTest {
 	}
 
 	private static Game game(Board board, Player... players) {
-		return new Game("round", board, new HashSet<>(List.of(players)),
-				Map.of());
+		return new Game("round", board, new HashSet<>(List.of(players)));
 	}
 
 	private static Board board(Space... spaces) {
@@ -644,5 +650,9 @@ class GameServiceTest {
 					player.getRobot().getOrientation());
 		}
 		return facings;
+	}
+
+	private static List<String> names(List<CommandInstruction> instructions) {
+		return instructions.stream().map(CommandInstruction::name).toList();
 	}
 }
