@@ -158,6 +158,8 @@ public final class GameStateCodec {
 		stored.x = player.getRobot().getCurrentSpace().x();
 		stored.y = player.getRobot().getCurrentSpace().y();
 		stored.orientation = player.getRobot().getOrientation().name();
+		stored.startX = player.getRobot().getStartSpace().x();
+		stored.startY = player.getRobot().getStartSpace().y();
 		stored.energy = player.getEnergy();
 		stored.checkpointsReached = player.getCheckpointsReached();
 		stored.submitted = player.getPlayerMat().isSubmitted();
@@ -182,8 +184,12 @@ public final class GameStateCodec {
 			throw new IllegalStateException(
 					"Player user is not in the lobby: " + stored.userId);
 		}
-		Robot robot = new Robot(new Vector2D(stored.x, stored.y),
-				Direction.valueOf(stored.orientation));
+		Vector2D space = new Vector2D(stored.x, stored.y);
+		Vector2D start = stored.startX == null
+				? space
+				: new Vector2D(stored.startX, stored.startY);
+		Robot robot = new Robot(space, Direction.valueOf(stored.orientation),
+				start);
 		Player player = new Player(stored.id, user,
 				PlayerColor.valueOf(stored.color), robot);
 		player.restoreProgress(stored.energy, stored.checkpointsReached);
@@ -287,6 +293,8 @@ public final class GameStateCodec {
 		private int x;
 		private int y;
 		private String orientation;
+		private Integer startX;
+		private Integer startY;
 		private int energy;
 		private int checkpointsReached;
 		private boolean submitted;
