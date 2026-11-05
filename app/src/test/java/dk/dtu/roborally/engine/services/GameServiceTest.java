@@ -535,13 +535,14 @@ class GameServiceTest {
 		GameLobby lobby = startedLobby();
 		Game started = gameService.getGame(lobby.getGameId());
 		Player buyer = started.getCurrentBuyer().orElseThrow();
-		buyer.spendEnergy(3);
 		UpgradeType type = started.getUpgradeShop().getCards().get(0).getType();
+		// One short of the price, whatever card ended up first in the shop
+		buyer.spendEnergy(buyer.getEnergy() - type.getCost() + 1);
 
 		assertThrows(IllegalArgumentException.class, () -> gameService
 				.buyUpgrade(lobby, buyer.getUser().getUsername(), type));
 
-		assertEquals(2, buyer.getEnergy());
+		assertEquals(type.getCost() - 1, buyer.getEnergy());
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertTrue(buyer.getPlayerMat().getDiscardPile().isEmpty());
 		assertEquals(buyer, started.getCurrentBuyer().orElseThrow());
