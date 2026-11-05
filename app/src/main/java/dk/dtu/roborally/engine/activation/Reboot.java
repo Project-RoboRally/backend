@@ -2,6 +2,7 @@ package dk.dtu.roborally.engine.activation;
 
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.RebootPoint;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
@@ -24,15 +25,15 @@ public final class Reboot {
 
 	/**
 	 * Reboots the robot like the rulebook says: take 2 SPAM (unless it was the
-	 * Reboot upgrade), the rest of the program is cancelled, and the robot goes
-	 * on the reboot token covering the space it fell from. Off the start board
-	 * it goes back to its start space instead. A robot already standing there
-	 * gets pushed off in the token's direction. The player picks a facing
-	 * afterwards.
+	 * Reboot upgrade or the robot has a Firewall), the rest of the program is
+	 * cancelled, and the robot goes on the reboot token covering the space it
+	 * fell from. Off the start board it goes back to its start space instead. A
+	 * robot already standing there gets pushed off in the token's direction.
+	 * The player picks a facing afterwards.
 	 */
 	public static void reboot(Game game, Player player, boolean takeDamage,
 			Vector2D fellFrom) {
-		if (takeDamage) {
+		if (takeDamage && !player.getUpgrades().has(UpgradeType.FIREWALL)) {
 			Damage.take(game, player, DamageInstruction.SPAM, DAMAGE);
 		}
 		cancelProgram(game, player);

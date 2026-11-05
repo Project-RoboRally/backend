@@ -11,6 +11,7 @@ import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
@@ -142,6 +143,65 @@ class TurnUpgradesTest {
 		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
 		assertEquals(spam + 1,
 				game.getDamagePiles().size(DamageInstruction.SPAM));
+	}
+
+	@Test
+	void brakesTurnAMoveOneIntoAMoveZero() {
+		ada.getUpgrades().install(UpgradeType.BRAKES, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		activator.activate(game);
+		assertEquals(List.of("MOVE_1", "MOVE_0"), game.getCurrentRound()
+				.getPendingChoice().orElseThrow().options());
+		game.getCurrentRound().answer("ada", "MOVE_0");
+		activator.activate(game);
+
+		assertEquals(new Vector2D(2, 2), ada.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void crabLegsMoveSidewaysWithoutTurning() {
+		ada.getUpgrades().install(UpgradeType.CRAB_LEGS, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.MOVE_ONE, "LEFT");
+
+		assertEquals(new Vector2D(1, 2), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.NORTH, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void aHackedMoveOneOnlyAsksOnce() {
+		ada.getUpgrades().install(UpgradeType.CRAB_LEGS, null);
+		ada.getUpgrades().install(UpgradeType.HACK, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.TURN_UPGRADE, "HACK");
+		answer(ChoiceType.MOVE_ONE, "RIGHT");
+
+		assertEquals(new Vector2D(4, 2), ada.getRobot().getCurrentSpace());
+		assertFalse(game.getCurrentRound().isActivating());
+	}
+
+	@Test
+	void theTeleporterJumpsOverWallsAndSwapsWithARobot() {
+		ada.getUpgrades().install(UpgradeType.TELEPORTER, null);
+		game.getBoard().getSpace(2, 1)
+				.addBoardElement(new Wall(new Vector2D(2, 1), Direction.NORTH));
+		Player bob = new Player("bob", new User("bob"), PlayerColor.BLUE,
+				new Robot(new Vector2D(2, 0), Direction.EAST));
+		Game both = new Game("game", game.getBoard(), Set.of(ada, bob));
+		program(CommandInstruction.MOVE_2, CommandInstruction.POWER_UP);
+		int energy = ada.getEnergy();
+
+		activator.activate(both);
+		both.getCurrentRound().answer("ada", "YES");
+		activator.activate(both);
+
+		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(2, 2), bob.getRobot().getCurrentSpace());
+		// Paid 1, then four Power Ups
+		assertEquals(energy - 1 + 4, ada.getEnergy());
 	}
 
 	/** Runs activation to the given choice and answers it. */
