@@ -28,8 +28,10 @@ import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.RobotView;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Runs the activation phase of a round: the programmed registers, and the
@@ -493,8 +495,11 @@ public class RoundActivator {
 	private void moveSteps(Player player, Game game, Direction direction,
 			int stepCount, ActivationLog log) {
 		boolean hovering = player.getUpgrades().has(UpgradeType.HOVER_UNIT);
+		// One push event per robot, however far this card pushes it
+		Set<Player> pushed = new LinkedHashSet<>();
 		for (int step = 0; step < stepCount; step++) {
-			if (!Movement.step(game, player, direction, hovering)) {
+			if (!Movement.step(game, player, direction, hovering,
+					pushed::add)) {
 				break;
 			}
 			log.addStep(snapshot(game));
@@ -502,6 +507,7 @@ public class RoundActivator {
 		if (hovering) {
 			Movement.landOnPit(game, player);
 		}
+		pushed.forEach(target -> PushUpgrades.pushed(game, player, target));
 	}
 
 	private void moveBack(Player player, Game game, ActivationLog log) {
