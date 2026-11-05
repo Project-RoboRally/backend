@@ -86,9 +86,9 @@
         { "x": 16, "y": 14, "rotation_direction": "counterclockwise" }
     ],
     "push_panels": [
-        { "x": 0, "y": 10, "push_direction": "east" },
-        { "x": 19, "y": 8, "push_direction": "west" },
-        { "x": 11, "y": 1, "push_direction": "south" }
+        { "x": 0, "y": 10, "push_direction": "east", "registers": [1, 3, 5] },
+        { "x": 19, "y": 8, "push_direction": "west", "registers": [2, 4] },
+        { "x": 11, "y": 1, "push_direction": "south", "registers": [1, 3, 5] }
     ],
     "walls": [
         { "x1": 3, "y1": 11, "x2": 5, "y2": 11, "direction": "south" },

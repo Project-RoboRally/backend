@@ -19,10 +19,13 @@ import dk.dtu.roborally.models.board.elements.StartingPoint;
 import dk.dtu.roborally.models.board.elements.Wall;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Builds a board from a level file, placing every board element on the spaces
@@ -207,7 +210,13 @@ public class LevelLoader {
 			Map<Vector2D, Space> spaceMap) {
 		Direction dir = parse(Direction.class, pPanel.push_direction,
 				"push panel push direction");
-		PushPanel pp = new PushPanel(new Vector2D(pPanel.x, pPanel.y), dir);
+		// A panel without numbers pushes in every register
+		Set<Integer> registers = pPanel.registers == null
+				? Set.of(1, 2, 3, 4, 5)
+				: Arrays.stream(pPanel.registers).boxed()
+						.collect(Collectors.toSet());
+		PushPanel pp = new PushPanel(new Vector2D(pPanel.x, pPanel.y), dir,
+				registers);
 		getSpaceAt(spaceMap, pp.getPosition()).addBoardElement(pp);
 	}
 

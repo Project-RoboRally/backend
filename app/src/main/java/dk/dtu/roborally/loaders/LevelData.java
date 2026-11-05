@@ -80,6 +80,7 @@ public class LevelData {
 		public int x;
 		public int y;
 		public String push_direction;
+		public int[] registers;
 	}
 
 	public static class GearData {
