@@ -49,6 +49,13 @@ public class Round {
 	/** Players who are done picking upgrades at the start of this register. */
 	private final Set<String> startDone = new HashSet<>();
 
+	/** Whether the player whose turn it is has finished using upgrades. */
+	@Getter
+	@Setter
+	private boolean turnDone;
+	/** A turn upgrade that was picked and still needs its direction. */
+	private UpgradeType pickedUpgrade;
+
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
 
@@ -161,6 +168,16 @@ public class Round {
 
 	public void markActivated() {
 		activated++;
+		turnDone = false;
+		pickedUpgrade = null;
+	}
+
+	public Optional<UpgradeType> getPickedUpgrade() {
+		return Optional.ofNullable(pickedUpgrade);
+	}
+
+	public void setPickedUpgrade(UpgradeType type) {
+		pickedUpgrade = type;
 	}
 
 	public int getActivatedCount() {

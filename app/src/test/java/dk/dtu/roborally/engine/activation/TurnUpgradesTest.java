@@ -1,0 +1,120 @@
+package dk.dtu.roborally.engine.activation;
+
+import dk.dtu.roborally.engine.publishers.GameEventPublisher;
+import dk.dtu.roborally.enums.ChoiceType;
+import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.Direction;
+import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.UpgradeType;
+import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.board.Space;
+import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.cards.ProgrammingCard;
+import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.Robot;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.mockito.Mockito.mock;
+
+class TurnUpgradesTest {
+
+	private final RoundActivator activator = new RoundActivator(
+			mock(GameEventPublisher.class));
+	private Player ada;
+	private Game game;
+
+	@BeforeEach
+	void setUp() {
+		Map<Vector2D, Space> spaces = new HashMap<>();
+		for (int x = 0; x < 5; x++) {
+			for (int y = 0; y < 5; y++) {
+				spaces.put(new Vector2D(x, y), new Space(new Vector2D(x, y)));
+			}
+		}
+		ada = new Player("ada", new User("ada"), PlayerColor.RED,
+				new Robot(new Vector2D(2, 2), Direction.NORTH));
+		game = new Game("game", new Board(spaces), Set.of(ada));
+	}
+
+	@Test
+	void zoopTurnsTheRobotBeforeItsCard() {
+		ada.getUpgrades().install(UpgradeType.ZOOP, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.TURN_UPGRADE, "ZOOP");
+		answer(ChoiceType.ZOOP_FACING, "EAST");
+
+		assertEquals(Direction.EAST, ada.getRobot().getOrientation());
+		assertEquals(new Vector2D(3, 2), ada.getRobot().getCurrentSpace());
+		assertFalse(ada.getUpgrades().has(UpgradeType.ZOOP));
+	}
+
+	@Test
+	void boinkMovesToAnAdjacentSpaceWithoutTurning() {
+		ada.getUpgrades().install(UpgradeType.BOINK, null);
+		program(CommandInstruction.POWER_UP, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.TURN_UPGRADE, "BOINK");
+		answer(ChoiceType.BOINK_DIRECTION, "WEST");
+
+		assertEquals(new Vector2D(1, 2), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.NORTH, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void rechargeAndThenNothingElse() {
+		ada.getUpgrades().install(UpgradeType.RECHARGE, null);
+		program(CommandInstruction.POWER_UP, CommandInstruction.POWER_UP);
+		int energy = ada.getEnergy();
+
+		answer(ChoiceType.TURN_UPGRADE, "RECHARGE");
+
+		// 3 from Recharge and one per Power Up
+		assertEquals(energy + 3 + 5, ada.getEnergy());
+		assertFalse(game.getCurrentRound().isActivating());
+	}
+
+	@Test
+	void sayingNoneKeepsTheUpgradeForLater() {
+		ada.getUpgrades().install(UpgradeType.ZOOP, null);
+		program(CommandInstruction.POWER_UP, CommandInstruction.POWER_UP);
+
+		activator.activate(game);
+		assertEquals(List.of("NONE", "ZOOP"), game.getCurrentRound()
+				.getPendingChoice().orElseThrow().options());
+		game.getCurrentRound().answer("ada", "NONE");
+		activator.activate(game);
+
+		// Asked again on the next turn
+		assertEquals(ChoiceType.TURN_UPGRADE,
+				game.getCurrentRound().getPendingChoice().orElseThrow().type());
+	}
+
+	/** Runs activation to the given choice and answers it. */
+	private void answer(ChoiceType type, String answer) {
+		activator.activate(game);
+		assertEquals(type,
+				game.getCurrentRound().getPendingChoice().orElseThrow().type());
+		game.getCurrentRound().answer("ada", answer);
+		activator.activate(game);
+	}
+
+	private void program(CommandInstruction first, CommandInstruction rest) {
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(first));
+		for (int i = 1; i < 5; i++) {
+			ada.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(rest));
+		}
+	}
+}

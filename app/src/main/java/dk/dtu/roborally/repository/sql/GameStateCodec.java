@@ -70,6 +70,9 @@ public final class GameStateCodec {
 		round.getUsedAtRegisterStart().forEach((id,
 				types) -> stored.usedAtRegisterStart.put(id, names(types)));
 		stored.startDone = List.copyOf(round.getStartDone());
+		stored.turnDone = round.isTurnDone();
+		stored.pickedUpgrade = round.getPickedUpgrade().map(Enum::name)
+				.orElse(null);
 		stored.programmingEndsAt = round.getTimer().getEndsAt()
 				.map(Instant::toEpochMilli).orElse(null);
 		stored.energyCubes = new HashMap<>();
@@ -132,6 +135,11 @@ public final class GameStateCodec {
 					stored.startDone == null
 							? Set.of()
 							: Set.copyOf(stored.startDone));
+		}
+		game.getCurrentRound().setTurnDone(stored.turnDone);
+		if (stored.pickedUpgrade != null) {
+			game.getCurrentRound().setPickedUpgrade(
+					UpgradeType.valueOf(stored.pickedUpgrade));
 		}
 		if (stored.rebootsToFace != null) {
 			game.getCurrentRound().restoreRebootsToFace(stored.rebootsToFace);
@@ -325,6 +333,8 @@ public final class GameStateCodec {
 		private List<String> rebootsToFace;
 		private Map<String, List<String>> usedAtRegisterStart;
 		private List<String> startDone;
+		private boolean turnDone;
+		private String pickedUpgrade;
 		private Long programmingEndsAt;
 		private Map<String, Integer> damagePiles;
 		private Map<String, Integer> energyCubes;
