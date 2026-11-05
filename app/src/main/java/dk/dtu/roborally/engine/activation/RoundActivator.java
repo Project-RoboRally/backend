@@ -129,8 +129,9 @@ public class RoundActivator {
 				round.setStage(RegisterStage.LASERS);
 			}
 			case LASERS -> {
-				Lasers.fire(game);
-				round.setStage(RegisterStage.END_OF_REGISTER);
+				if (Lasers.fire(game)) {
+					round.setStage(RegisterStage.END_OF_REGISTER);
+				}
 			}
 			case END_OF_REGISTER -> {
 				BoardElements.collectEnergy(game, register);

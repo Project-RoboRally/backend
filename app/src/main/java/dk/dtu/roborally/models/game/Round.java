@@ -47,6 +47,14 @@ public class Round {
 	private PendingChoice choice;
 	private String answer;
 
+	/** Board lasers already fired this register. */
+	@Getter
+	@Setter
+	private boolean boardLasersFired;
+	/** How many robots have fired their weapons this register. */
+	@Getter
+	private int shotsFired;
+
 	/** Upgrades each player used at the start of this register. */
 	private final Map<String, List<UpgradeType>> usedAtRegisterStart = new HashMap<>();
 	/** Players who are done picking upgrades at the start of this register. */
@@ -97,6 +105,8 @@ public class Round {
 	 * robots moving during the register do not change who goes next.
 	 */
 	public void startRegister(int register, List<String> order) {
+		boardLasersFired = false;
+		shotsFired = 0;
 		currentRegisterIndex = register;
 		stage = RegisterStage.CARDS;
 		activationOrder.clear();
@@ -164,6 +174,16 @@ public class Round {
 				new ArrayList<>(types)));
 		startDone.clear();
 		startDone.addAll(done);
+	}
+
+	public void markShotFired() {
+		shotsFired++;
+	}
+
+	/** Puts back how far the lasers got, loaded from storage. */
+	public void restoreLasers(boolean boardLasersFired, int shotsFired) {
+		this.boardLasersFired = boardLasersFired;
+		this.shotsFired = shotsFired;
 	}
 
 	public List<String> getActivationOrder() {

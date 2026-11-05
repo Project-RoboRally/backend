@@ -2,6 +2,7 @@ package dk.dtu.roborally.engine.activation;
 
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
@@ -39,7 +40,7 @@ class LasersTest {
 		Player first = player("first", 2, Direction.NORTH);
 		Player behind = player("behind", 4, Direction.NORTH);
 
-		Lasers.fire(game(first, behind));
+		fire(game(first, behind));
 
 		assertEquals(2, spam(first));
 		assertEquals(0, spam(behind));
@@ -50,7 +51,7 @@ class LasersTest {
 		put(0, new LaserEmitter(new Vector2D(0, 0), Direction.EAST, 1));
 		Player ada = player("ada", 0, Direction.NORTH);
 
-		Lasers.fire(game(ada));
+		fire(game(ada));
 
 		assertEquals(1, spam(ada));
 	}
@@ -64,7 +65,7 @@ class LasersTest {
 		Player behindWall = player("wall", 2, Direction.NORTH);
 		Player behindAntenna = player("antenna", 5, Direction.NORTH);
 
-		Lasers.fire(game(behindWall, behindAntenna));
+		fire(game(behindWall, behindAntenna));
 
 		assertEquals(0, spam(behindWall));
 		assertEquals(0, spam(behindAntenna));
@@ -76,7 +77,7 @@ class LasersTest {
 		Player target = player("target", 2, Direction.NORTH);
 		Player behind = player("behind", 3, Direction.NORTH);
 
-		Lasers.fire(game(shooter, target, behind));
+		fire(game(shooter, target, behind));
 
 		assertEquals(1, spam(target));
 		assertEquals(0, spam(behind));
@@ -88,7 +89,7 @@ class LasersTest {
 		Player ada = player("ada", 1, Direction.EAST);
 		Player bob = player("bob", 4, Direction.WEST);
 
-		Lasers.fire(game(ada, bob));
+		fire(game(ada, bob));
 
 		assertEquals(1, spam(ada));
 		assertEquals(1, spam(bob));
@@ -100,7 +101,7 @@ class LasersTest {
 		Player shooter = player("shooter", 0, Direction.EAST);
 		Player target = player("target", 3, Direction.NORTH);
 
-		Lasers.fire(game(shooter, target));
+		fire(game(shooter, target));
 
 		assertEquals(0, spam(target));
 	}
@@ -111,9 +112,54 @@ class LasersTest {
 		Player target = player("target", 2, Direction.NORTH);
 		shooter.getRobot().reboot(new Vector2D(0, 0));
 
-		Lasers.fire(game(shooter, target));
+		fire(game(shooter, target));
 
 		assertEquals(0, spam(target));
+	}
+
+	@Test
+	void aDoubleBarrelLaserDealsTwoSpam() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.DOUBLE_BARREL_LASER, null);
+		Player target = player("target", 2, Direction.NORTH);
+
+		fire(game(shooter, target));
+
+		assertEquals(2, spam(target));
+	}
+
+	@Test
+	void aRailGunHitsEveryRobotInLineThroughWalls() {
+		put(1, new Wall(new Vector2D(1, 0), Direction.EAST));
+		Player shooter = player("shooter", 0, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.RAIL_GUN, null);
+		Player first = player("first", 2, Direction.NORTH);
+		Player second = player("second", 4, Direction.NORTH);
+
+		fire(game(shooter, first, second));
+
+		assertEquals(1, spam(first));
+		assertEquals(1, spam(second));
+	}
+
+	@Test
+	void aRearLaserShootsBackwardsToo() {
+		Player shooter = player("shooter", 2, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.REAR_LASER, null);
+		Player ahead = player("ahead", 4, Direction.NORTH);
+		Player behind = player("behind", 0, Direction.NORTH);
+
+		fire(game(shooter, ahead, behind));
+
+		assertEquals(1, spam(ahead));
+		assertEquals(1, spam(behind));
+	}
+
+	/** Fires the lasers with everyone in the register's order. */
+	private static void fire(Game game) {
+		game.getCurrentRound().setActivationOrder(game.getPlayersInGame()
+				.stream().map(Player::getId).sorted().toList());
+		Lasers.fire(game);
 	}
 
 	private void put(int x, BoardElement element) {
