@@ -75,6 +75,8 @@ public final class GameStateCodec {
 		stored.hacked = round.isHacked();
 		stored.boardLasersFired = round.isBoardLasersFired();
 		stored.shotsFired = round.getShotsFired();
+		stored.weaponPicks = names(round.getWeaponPicks());
+		stored.weaponsPicked = round.isWeaponsPicked();
 		stored.turnAnswers = new HashMap<>();
 		round.getTurnAnswers().forEach(
 				(type, answer) -> stored.turnAnswers.put(type.name(), answer));
@@ -149,6 +151,9 @@ public final class GameStateCodec {
 		game.getCurrentRound().setHacked(stored.hacked);
 		game.getCurrentRound().restoreLasers(stored.boardLasersFired,
 				stored.shotsFired);
+		types(stored.weaponPicks)
+				.forEach(game.getCurrentRound()::addWeaponPick);
+		game.getCurrentRound().setWeaponsPicked(stored.weaponsPicked);
 		if (stored.turnAnswers != null) {
 			stored.turnAnswers.forEach((type, answer) -> game.getCurrentRound()
 					.setTurnAnswer(ChoiceType.valueOf(type), answer));
@@ -357,6 +362,8 @@ public final class GameStateCodec {
 		private boolean hacked;
 		private boolean boardLasersFired;
 		private int shotsFired;
+		private List<String> weaponPicks;
+		private boolean weaponsPicked;
 		private Map<String, String> turnAnswers;
 		private String refreshedTo;
 		private String pickedUpgrade;

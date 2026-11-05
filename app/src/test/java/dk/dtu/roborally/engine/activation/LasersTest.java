@@ -155,6 +155,58 @@ class LasersTest {
 		assertEquals(1, spam(behind));
 	}
 
+	@Test
+	void aMiniHowitzerCostsEnergyForMoreSpamAndAPush() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.MINI_HOWITZER, null);
+		Player target = player("target", 2, Direction.NORTH);
+		Game game = game(shooter, target);
+		int energy = shooter.getEnergy();
+
+		pick(game, "shooter", "MINI_HOWITZER");
+
+		assertEquals(3, spam(target));
+		assertEquals(new Vector2D(3, 0), target.getRobot().getCurrentSpace());
+		assertEquals(energy - 1, shooter.getEnergy());
+	}
+
+	@Test
+	void pressorAndTractorBeamsMoveTheTarget() {
+		Player pusher = player("pusher", 0, Direction.EAST);
+		pusher.getUpgrades().install(UpgradeType.PRESSOR_BEAM, null);
+		Player pushed = player("pushed", 2, Direction.NORTH);
+		Game pushing = game(pusher, pushed);
+
+		pick(pushing, "pusher", "PRESSOR_BEAM");
+
+		assertEquals(new Vector2D(3, 0), pushed.getRobot().getCurrentSpace());
+
+		spaces.clear();
+		buildRow();
+		Player puller = player("puller", 0, Direction.EAST);
+		puller.getUpgrades().install(UpgradeType.TRACTOR_BEAM, null);
+		Player pulled = player("pulled", 3, Direction.NORTH);
+		Game pulling = game(puller, pulled);
+
+		pick(pulling, "puller", "TRACTOR_BEAM");
+
+		assertEquals(new Vector2D(2, 0), pulled.getRobot().getCurrentSpace());
+	}
+
+	/** Fires with the shooter picking one weapon upgrade. */
+	private static void pick(Game game, String shooter, String upgrade) {
+		game.getCurrentRound().setActivationOrder(game.getPlayersInGame()
+				.stream().map(Player::getId).sorted().toList());
+		Lasers.fire(game);
+		game.getCurrentRound().answer(shooter, upgrade);
+		Lasers.fire(game);
+		// Only asked again if there is anything left to pick
+		if (game.getCurrentRound().getPendingChoice().isPresent()) {
+			game.getCurrentRound().answer(shooter, "NONE");
+			Lasers.fire(game);
+		}
+	}
+
 	/** Fires the lasers with everyone in the register's order. */
 	private static void fire(Game game) {
 		game.getCurrentRound().setActivationOrder(game.getPlayersInGame()
