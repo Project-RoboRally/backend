@@ -6,6 +6,7 @@ import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -63,6 +64,20 @@ class MovementTest {
 		assertFalse(Movement.step(game, ada, Direction.EAST));
 
 		assertEquals(new Vector2D(0, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(1, 0), bob.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void nothingCanMoveOrBePushedOntoTheAntenna() {
+		row(3);
+		spaces.get(new Vector2D(2, 0)).addBoardElement(new PriorityAntenna());
+		Player ada = player("ada", 0, Direction.EAST);
+		Player bob = player("bob", 1, Direction.EAST);
+		Game game = game(ada, bob);
+
+		assertFalse(Movement.step(game, bob, Direction.EAST));
+		assertFalse(Movement.step(game, ada, Direction.EAST));
+
 		assertEquals(new Vector2D(1, 0), bob.getRobot().getCurrentSpace());
 	}
 
