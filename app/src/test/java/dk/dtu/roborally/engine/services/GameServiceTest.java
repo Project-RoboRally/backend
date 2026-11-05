@@ -92,6 +92,10 @@ class GameServiceTest {
 			}
 
 			@Override
+			public void publishUpgradeUsed(String lobbyId, Game game) {
+			}
+
+			@Override
 			public void publishTimerStarted(String lobbyId, Game game) {
 				timerLobbyIds.add(lobbyId);
 			}

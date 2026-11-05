@@ -36,6 +36,7 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 	public static final String PROGRAMMING_STARTED = "PROGRAMMING_STARTED";
 	public static final String CHOICE_REQUIRED = "CHOICE_REQUIRED";
 	public static final String TIMER_STARTED = "TIMER_STARTED";
+	public static final String UPGRADE_USED = "UPGRADE_USED";
 
 	/** The choice activation is waiting on, and who has to make it. */
 	public record ChoiceDTO(String username, ChoiceType type,

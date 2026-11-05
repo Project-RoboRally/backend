@@ -86,7 +86,12 @@ public class PlayerMat {
 	 * shuffling the discard pile into it.
 	 */
 	public void drawHand() {
-		while (hand.size() < HAND_SIZE) {
+		drawHand(HAND_SIZE);
+	}
+
+	/** Draws until the hand holds the given number of cards. */
+	public void drawHand(int size) {
+		while (hand.size() < size) {
 			if (drawPile.isEmpty()) {
 				shuffleDiscardPileIntoDrawPile();
 			}
@@ -128,6 +133,30 @@ public class PlayerMat {
 		for (ProgrammableCard card : discardPile) {
 			if (card.getName().equals(name)) {
 				discardPile.remove(card);
+				return Optional.of(card);
+			}
+		}
+		return Optional.empty();
+	}
+
+	/** Draws this many cards on top of what is already in the hand. */
+	public void drawCards(int amount) {
+		for (int i = 0; i < amount; i++) {
+			drawTop().ifPresent(hand::add);
+		}
+	}
+
+	/** Every card in the hand goes to the discard pile. */
+	public void discardHand() {
+		discardPile.addAll(hand);
+		hand.clear();
+	}
+
+	/** Takes a card with the given name out of the hand, if there is one. */
+	public Optional<ProgrammableCard> removeFromHand(String name) {
+		for (ProgrammableCard card : hand) {
+			if (card.getName().equals(name)) {
+				hand.remove(card);
 				return Optional.of(card);
 			}
 		}

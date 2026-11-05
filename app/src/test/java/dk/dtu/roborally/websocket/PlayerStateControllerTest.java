@@ -47,6 +47,10 @@ class PlayerStateControllerTest {
 			}
 
 			@Override
+			public void publishUpgradeUsed(String lobbyId, Game game) {
+			}
+
+			@Override
 			public void publishTimerStarted(String lobbyId, Game game) {
 			}
 

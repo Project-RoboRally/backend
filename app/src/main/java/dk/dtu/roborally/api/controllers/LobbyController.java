@@ -13,6 +13,7 @@ import dk.dtu.roborally.api.dto.SetColorDTO;
 import dk.dtu.roborally.api.dto.SetReadyDTO;
 import dk.dtu.roborally.api.dto.SkipUpgradeDTO;
 import dk.dtu.roborally.api.dto.StartGameDTO;
+import dk.dtu.roborally.api.dto.UseUpgradeDTO;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
@@ -137,6 +138,14 @@ public class LobbyController {
 	public ResponseEntity<Void> skipUpgrade(@PathVariable String id,
 			@RequestBody SkipUpgradeDTO payload) {
 		lobbyService.skipUpgrade(id, payload.username());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/upgrade/use")
+	public ResponseEntity<Void> useUpgrade(@PathVariable String id,
+			@RequestBody UseUpgradeDTO payload) {
+		lobbyService.useUpgrade(id, payload.username(), payload.upgrade(),
+				payload.cards());
 		return ResponseEntity.noContent().build();
 	}
 
