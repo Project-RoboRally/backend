@@ -4,9 +4,11 @@ import dk.dtu.roborally.engine.activation.Damage;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.RegisterStage;
+import dk.dtu.roborally.loaders.LevelLoader;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.EnergySpace;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
@@ -106,6 +108,23 @@ class GameStateCodecTest {
 
 		assertEquals(start, loaded.getRobot().getStartSpace());
 		assertEquals(new Vector2D(3, 3), loaded.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void keepsWhichEnergySpacesAreEmpty() {
+		EnergySpace battery = game.getBoard().getElements(EnergySpace.class)
+				.get(0);
+		battery.setCubeAmount(0);
+
+		Game loaded = codec.toGame(codec.toJson(game),
+				LevelLoader.load("levels/level_0.json"), lobby);
+
+		assertEquals(0,
+				loaded.getBoard().getSpace(battery.getPosition())
+						.getBoardElements().stream()
+						.filter(EnergySpace.class::isInstance)
+						.map(EnergySpace.class::cast).findFirst().orElseThrow()
+						.getCubeAmount());
 	}
 
 	private Game reload() {

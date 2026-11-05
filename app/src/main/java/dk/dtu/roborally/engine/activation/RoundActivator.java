@@ -117,6 +117,7 @@ public class RoundActivator {
 				round.setStage(RegisterStage.END_OF_REGISTER);
 			}
 			case END_OF_REGISTER -> {
+				BoardElements.collectEnergy(game, register);
 				evaluateCheckpoints(game, playersInOrder(game));
 				if (register + 1 < PlayerMat.REGISTER_COUNT) {
 					startRegister(game, register + 1);
