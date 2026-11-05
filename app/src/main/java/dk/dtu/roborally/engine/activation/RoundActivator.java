@@ -12,15 +12,18 @@ import dk.dtu.roborally.models.board.elements.Checkpoint;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
+import dk.dtu.roborally.enums.RegisterStage;
+import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.Round;
+import dk.dtu.roborally.models.player.PlayerMat;
 import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
-import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
 import dk.dtu.roborally.models.player.RobotView;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Runs the activation phase of a round: the programmed registers, and the
@@ -37,39 +40,84 @@ public class RoundActivator {
 	}
 
 	/**
-	 * Runs registers 1 through 5. Within a register, the robot closest to the
-	 * priority antenna moves first, with username breaking ties.
+	 * Runs the activation phase from wherever it got to and returns everything
+	 * that happened in it. Within a register, players go in priority order,
+	 * then the end of register effects happen.
 	 */
 	public RoundResult activate(Game game) {
-		List<List<RobotView>> steps = new ArrayList<>();
-		List<RegisterReveal> reveals = new ArrayList<>();
-		List<Player> players = new ArrayList<>(game.getPlayersInGame());
-		if (players.isEmpty()) {
+		Round round = game.getCurrentRound();
+		if (game.getPlayersInGame().isEmpty()) {
 			return RoundResult.NONE;
 		}
-		int registerCount = players.get(0).getPlayerMat().getRegisters().size();
-
-		for (int register = 0; register < registerCount; register++) {
-			List<Player> order = Priority.order(game);
-
-			List<PlayedCard> cards = new ArrayList<>();
-			for (Player player : order) {
-				int firstStep = steps.size();
-				execute(resolveInstruction(player, register), player, game,
-						steps);
-				cards.add(new PlayedCard(player.getUser().getUsername(),
-						player.getPlayerMat().getRegisters().get(register)
-								.getCard(),
-						firstStep, steps.size() - firstStep));
-			}
-			reveals.add(new RegisterReveal(register, cards));
-			evaluateCheckpoints(game, order);
-
+		if (!round.isActivating()) {
+			round.startActivation();
+			startRegister(game, 0);
+		}
+		while (round.isActivating()) {
 			if (game.getGameStatus() == GameStatus.FINISHED) {
+				round.finishActivation();
 				break;
 			}
+			step(game);
 		}
-		return new RoundResult(steps, reveals);
+		return round.getLog().toResult();
+	}
+
+	/** Does the next bit of the current register. */
+	private void step(Game game) {
+		Round round = game.getCurrentRound();
+		int register = round.getCurrentRegisterIndex().orElseThrow();
+		switch (round.getStage()) {
+			case CARDS -> {
+				Optional<String> next = round.getNextToActivate();
+				if (next.isEmpty()) {
+					round.setStage(RegisterStage.END_OF_REGISTER);
+					return;
+				}
+				activateCard(game, findPlayer(game, next.get()), register);
+				round.markActivated();
+			}
+			case END_OF_REGISTER -> {
+				evaluateCheckpoints(game, playersInOrder(game));
+				if (register + 1 < PlayerMat.REGISTER_COUNT) {
+					startRegister(game, register + 1);
+				} else {
+					round.finishActivation();
+				}
+			}
+		}
+	}
+
+	private void startRegister(Game game, int register) {
+		game.getCurrentRound().startRegister(register,
+				Priority.order(game).stream().map(Player::getId).toList());
+	}
+
+	private void activateCard(Game game, Player player, int register) {
+		ActivationLog log = game.getCurrentRound().getLog();
+		int firstStep = log.stepCount();
+		execute(resolveInstruction(player, register), player, game, log);
+		log.addCard(register,
+				new PlayedCard(player.getUser().getUsername(),
+						player.getPlayerMat().getRegisters().get(register)
+								.getCard(),
+						firstStep, log.stepCount() - firstStep));
+	}
+
+	/** Players in the order fixed at the start of this register. */
+	private List<Player> playersInOrder(Game game) {
+		return game.getCurrentRound().getActivationOrder().stream()
+				.map(id -> findPlayer(game, id)).toList();
+	}
+
+	private Player findPlayer(Game game, String playerId) {
+		for (Player player : game.getPlayersInGame()) {
+			if (player.getId().equals(playerId)) {
+				return player;
+			}
+		}
+		throw new IllegalStateException(
+				"Player is not in this game: " + playerId);
 	}
 
 	/**
@@ -97,23 +145,23 @@ public class RoundActivator {
 	}
 
 	private void execute(CommandInstruction instruction, Player player,
-			Game game, List<List<RobotView>> steps) {
+			Game game, ActivationLog log) {
 		switch (instruction) {
 			case LEFT_TURN -> {
 				player.getRobot().turnLeft();
-				steps.add(snapshot(game));
+				log.addStep(snapshot(game));
 			}
 			case RIGHT_TURN -> {
 				player.getRobot().turnRight();
-				steps.add(snapshot(game));
+				log.addStep(snapshot(game));
 			}
 			case U_TURN -> {
 				player.getRobot().uTurn();
-				steps.add(snapshot(game));
+				log.addStep(snapshot(game));
 			}
 			case MOVE_1, MOVE_2, MOVE_3, SPEED_ROUTINE ->
-				move(player, game, instruction.steps(), steps);
-			case MOVE_BACK -> moveBack(player, game, steps);
+				move(player, game, instruction.steps(), log);
+			case MOVE_BACK -> moveBack(player, game, log);
 			case POWER_UP, ENERGY_ROUTINE -> player.addEnergy(1);
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);
@@ -121,19 +169,18 @@ public class RoundActivator {
 	}
 
 	private void move(Player player, Game game, int stepCount,
-			List<List<RobotView>> steps) {
+			ActivationLog log) {
 		for (int step = 0; step < stepCount; step++) {
 			if (!step(player, game, player.getRobot().getOrientation())) {
 				return;
 			}
-			steps.add(snapshot(game));
+			log.addStep(snapshot(game));
 		}
 	}
 
-	private void moveBack(Player player, Game game,
-			List<List<RobotView>> steps) {
+	private void moveBack(Player player, Game game, ActivationLog log) {
 		if (step(player, game, player.getRobot().getOrientation().uTurn())) {
-			steps.add(snapshot(game));
+			log.addStep(snapshot(game));
 		}
 	}
 

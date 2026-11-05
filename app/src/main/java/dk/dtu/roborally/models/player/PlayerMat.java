@@ -21,7 +21,7 @@ import java.util.Set;
  */
 public class PlayerMat {
 
-	private static final int REGISTER_COUNT = 5;
+	public static final int REGISTER_COUNT = 5;
 	private static final int HAND_SIZE = 9;
 
 	/**
