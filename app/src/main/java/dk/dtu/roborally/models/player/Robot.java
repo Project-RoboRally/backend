@@ -51,4 +51,25 @@ public class Robot {
 	public void moveTo(Vector2D space) {
 		currentSpace = space;
 	}
+
+	/** Puts the robot back on the board after falling off or into a pit. */
+	public void reboot(Vector2D space) {
+		currentSpace = space;
+		rebootedThisRound = true;
+	}
+
+	/** A new activation phase starts, last round's reboot no longer counts. */
+	public void clearReboot() {
+		rebootedThisRound = false;
+	}
+
+	/** Used when a rebooted robot faces the way its player chose. */
+	public void face(Direction direction) {
+		orientation = direction;
+	}
+
+	/** Puts back the reboot flag loaded from storage. */
+	public void restoreReboot(boolean rebooted) {
+		rebootedThisRound = rebooted;
+	}
 }
