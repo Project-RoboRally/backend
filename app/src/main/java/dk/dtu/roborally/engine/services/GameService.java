@@ -103,12 +103,14 @@ public class GameService {
 			return false;
 		}
 
+		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
 		RoundResult result = activateRound(game);
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
 		}
 		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
 		if (game.getGameStatus() == GameStatus.FINISHED) {
+			game.getCurrentRound().setCurrentPhase(Phase.ENDED);
 			gameRepository.update(game);
 			return true;
 		}
