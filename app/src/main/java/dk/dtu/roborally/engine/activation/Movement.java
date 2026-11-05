@@ -55,7 +55,29 @@ public final class Movement {
 	 */
 	public static boolean step(Game game, Player player, Direction direction,
 			boolean hovering, Consumer<Player> onPush) {
+		return step(game, player, direction, hovering, direction, onPush);
+	}
+
+	/**
+	 * Same as {@link #step(Game, Player, Direction, boolean, Consumer)}, but a
+	 * robot right in front is pushed the given way instead, like with Side
+	 * Arms. If it can not go that way, the move stops.
+	 */
+	public static boolean step(Game game, Player player, Direction direction,
+			boolean hovering, Direction pushTo, Consumer<Player> onPush) {
 		Board board = game.getBoard();
+		Vector2D ahead = player.getRobot().getCurrentSpace()
+				.add(direction.step());
+		Optional<Player> inFront = board.isWithinBoard(ahead)
+				? robotAt(game, ahead)
+				: Optional.empty();
+		if (pushTo != direction && inFront.isPresent() && !blocked(board,
+				player.getRobot().getCurrentSpace(), ahead, direction)) {
+			if (!step(game, inFront.get(), pushTo)) {
+				return false;
+			}
+			onPush.accept(inFront.get());
+		}
 		List<Player> line = new ArrayList<>();
 		line.add(player);
 		Vector2D position = player.getRobot().getCurrentSpace();
