@@ -34,8 +34,9 @@ public class PlayerMat {
 			CommandInstruction.RIGHT_TURN, CommandInstruction.U_TURN,
 			CommandInstruction.MOVE_BACK, CommandInstruction.POWER_UP,
 			CommandInstruction.AGAIN, CommandInstruction.ENERGY_ROUTINE,
-			CommandInstruction.SPEED_ROUTINE,
-			CommandInstruction.REPEAT_ROUTINE);
+			CommandInstruction.SPEED_ROUTINE, CommandInstruction.REPEAT_ROUTINE,
+			CommandInstruction.SANDBOX_ROUTINE,
+			CommandInstruction.WEASEL_ROUTINE);
 
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
 	private final List<ProgrammableCard> hand = new ArrayList<>();
