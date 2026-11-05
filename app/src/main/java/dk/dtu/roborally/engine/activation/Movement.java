@@ -14,6 +14,7 @@ import dk.dtu.roborally.models.player.Robot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Moves robots around the board one space at a time. Moving robots push the
@@ -44,6 +45,16 @@ public final class Movement {
 	 */
 	public static boolean step(Game game, Player player, Direction direction,
 			boolean hovering) {
+		return step(game, player, direction, hovering, pushed -> {
+		});
+	}
+
+	/**
+	 * Same as {@link #step(Game, Player, Direction, boolean)}, and tells onPush
+	 * about the robot this one pushed directly, if any.
+	 */
+	public static boolean step(Game game, Player player, Direction direction,
+			boolean hovering, Consumer<Player> onPush) {
 		Board board = game.getBoard();
 		List<Player> line = new ArrayList<>();
 		line.add(player);
@@ -61,6 +72,9 @@ public final class Movement {
 			}
 			line.add(inTheWay.get());
 			position = next;
+		}
+		if (line.size() > 1) {
+			onPush.accept(line.get(1));
 		}
 		boolean moverFell = false;
 		for (Player moving : line) {

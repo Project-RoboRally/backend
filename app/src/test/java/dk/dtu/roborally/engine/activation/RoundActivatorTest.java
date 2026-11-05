@@ -219,6 +219,26 @@ class RoundActivatorTest {
 		assertTrue(bob.getRobot().isRebootedThisRound());
 	}
 
+	@Test
+	void pushingARobotTwoSpacesWithOneCardIsOnePush() {
+		Player ada = player("ada", 0, 0, Direction.SOUTH);
+		Player bob = player("bob", 0, 1, Direction.EAST);
+		Game game = game(ada, bob);
+		ada.getUpgrades().install(UpgradeType.VIRUS_MODULE, null);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_2));
+
+		activator.activate(game);
+
+		// Pushed one space, then off the board, by the same Move 2
+		assertEquals(1, count(bob, "VIRUS"));
+	}
+
+	private static long count(Player player, String card) {
+		return player.getPlayerMat().getDiscardPile().stream()
+				.filter(discarded -> discarded.getName().equals(card)).count();
+	}
+
 	/** Sets the draw pile, the last card is on top. */
 	private static void deck(Player player, CommandInstruction... cards) {
 		List<ProgrammableCard> draw = new ArrayList<>();
