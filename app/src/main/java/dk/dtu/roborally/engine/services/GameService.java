@@ -402,9 +402,7 @@ public class GameService {
 		if (antenna == null) {
 			return 0;
 		}
-		Vector2D position = player.getRobot().getCurrentSpace();
-		return Math.abs(position.x() - antenna.x())
-				+ Math.abs(position.y() - antenna.y());
+		return player.getRobot().getCurrentSpace().distanceTo(antenna);
 	}
 
 	/**
