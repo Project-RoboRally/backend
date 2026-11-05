@@ -4,6 +4,7 @@ import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,14 @@ class LevelLoaderTest {
 		assertEquals(List.of(new Vector2D(2, 18), new Vector2D(5, 18),
 				new Vector2D(8, 18), new Vector2D(11, 18), new Vector2D(14, 18),
 				new Vector2D(17, 18)), positions);
+	}
+
+	@Test
+	void loadsPriorityAntenna() {
+		Board board = LevelLoader.load("levels/level_0.json");
+
+		assertTrue(board.getSpace(10, 17).getBoardElements().stream()
+				.anyMatch(PriorityAntenna.class::isInstance));
 	}
 
 	@Test
