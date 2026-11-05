@@ -14,6 +14,7 @@ import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.enums.RegisterStage;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
@@ -349,20 +350,31 @@ public class RoundActivator {
 
 	private void move(Player player, Game game, int stepCount,
 			ActivationLog log) {
+		moveSteps(player, game, player.getRobot().getOrientation(), stepCount,
+				log);
+	}
+
+	/**
+	 * Moves the robot space by space. With a Hover Unit it passes over pits and
+	 * only falls in if the move ends on one.
+	 */
+	private void moveSteps(Player player, Game game, Direction direction,
+			int stepCount, ActivationLog log) {
+		boolean hovering = player.getUpgrades().has(UpgradeType.HOVER_UNIT);
 		for (int step = 0; step < stepCount; step++) {
-			if (!Movement.step(game, player,
-					player.getRobot().getOrientation())) {
-				return;
+			if (!Movement.step(game, player, direction, hovering)) {
+				break;
 			}
 			log.addStep(snapshot(game));
+		}
+		if (hovering) {
+			Movement.landOnPit(game, player);
 		}
 	}
 
 	private void moveBack(Player player, Game game, ActivationLog log) {
-		if (Movement.step(game, player,
-				player.getRobot().getOrientation().uTurn())) {
-			log.addStep(snapshot(game));
-		}
+		moveSteps(player, game, player.getRobot().getOrientation().uTurn(), 1,
+				log);
 	}
 
 	private List<RobotView> snapshot(Game game) {
