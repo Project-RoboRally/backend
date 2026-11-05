@@ -24,6 +24,7 @@ import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Register;
 import dk.dtu.roborally.models.player.Robot;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,6 +66,8 @@ public final class GameStateCodec {
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
 		stored.rebootsToFace = round.getRebootsToFace();
+		stored.programmingEndsAt = round.getTimer().getEndsAt()
+				.map(Instant::toEpochMilli).orElse(null);
 		stored.energyCubes = new HashMap<>();
 		for (EnergySpace space : game.getBoard()
 				.getElements(EnergySpace.class)) {
@@ -113,6 +116,10 @@ public final class GameStateCodec {
 						? List.of()
 						: stored.activationOrder,
 				stored.activated);
+		if (stored.programmingEndsAt != null) {
+			game.getCurrentRound().getTimer()
+					.restore(Instant.ofEpochMilli(stored.programmingEndsAt));
+		}
 		if (stored.rebootsToFace != null) {
 			game.getCurrentRound().restoreRebootsToFace(stored.rebootsToFace);
 		}
@@ -296,6 +303,7 @@ public final class GameStateCodec {
 		private int activated;
 		private StoredChoice choice;
 		private List<String> rebootsToFace;
+		private Long programmingEndsAt;
 		private Map<String, Integer> damagePiles;
 		private Map<String, Integer> energyCubes;
 		private StoredShop shop;
