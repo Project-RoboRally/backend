@@ -1,5 +1,6 @@
 package dk.dtu.roborally.engine.activation;
 
+import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -11,6 +12,7 @@ import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.LaserEmitter;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
+import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
@@ -18,10 +20,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class LasersTest {
 
@@ -191,6 +195,61 @@ class LasersTest {
 		pick(pulling, "puller", "TRACTOR_BEAM");
 
 		assertEquals(new Vector2D(2, 0), pulled.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void aTrojanNeedlerDealsATrojanHorseInstead() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.TROJAN_NEEDLER, null);
+		Player target = player("target", 2, Direction.NORTH);
+
+		fire(game(shooter, target));
+
+		assertEquals(List.of("TROJAN_HORSE"),
+				target.getPlayerMat().getDiscardPile().stream()
+						.map(card -> card.getName()).toList());
+	}
+
+	@Test
+	void blueScreenOfDeathGivesAnAdjacentRobotAWorm() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.BLUE_SCREEN_OF_DEATH, null);
+		Player target = player("target", 1, Direction.NORTH);
+
+		pick(game(shooter, target), "shooter", "BLUE_SCREEN_OF_DEATH");
+
+		assertEquals(List.of("WORM"), target.getPlayerMat().getDiscardPile()
+				.stream().map(card -> card.getName()).toList());
+	}
+
+	@Test
+	void corruptionWavePutsTheSpamOnTopOfTheirDeck() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.CORRUPTION_WAVE, null);
+		Player target = player("target", 2, Direction.NORTH);
+
+		pick(game(shooter, target), "shooter", "CORRUPTION_WAVE");
+
+		assertEquals(0, spam(target));
+		assertEquals("SPAM",
+				target.getPlayerMat().drawTop().orElseThrow().getName());
+	}
+
+	@Test
+	void aScramblerSwapsTheTargetsNextCard() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		shooter.getUpgrades().install(UpgradeType.SCRAMBLER, null);
+		Player target = player("target", 2, Direction.NORTH);
+		target.getPlayerMat().getRegisters().get(1)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_3));
+		Game game = game(shooter, target);
+		game.getCurrentRound().startRegister(0, List.of());
+
+		fire(game);
+
+		assertEquals(1, target.getPlayerMat().getDiscardPile().stream()
+				.filter(card -> card.getName().equals("MOVE_3")).count());
+		assertNotNull(target.getPlayerMat().getRegisters().get(1).getCard());
 	}
 
 	/** Fires with the shooter picking one weapon upgrade. */
