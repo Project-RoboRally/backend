@@ -13,6 +13,7 @@ import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.EnergySpace;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
@@ -64,6 +65,12 @@ public final class GameStateCodec {
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
 		stored.rebootsToFace = round.getRebootsToFace();
+		stored.energyCubes = new HashMap<>();
+		for (EnergySpace space : game.getBoard()
+				.getElements(EnergySpace.class)) {
+			stored.energyCubes.put(spaceKey(space.getPosition()),
+					space.getCubeAmount());
+		}
 		stored.damagePiles = new HashMap<>();
 		game.getDamagePiles().getSizes().forEach(
 				(type, size) -> stored.damagePiles.put(type.name(), size));
@@ -117,6 +124,15 @@ public final class GameStateCodec {
 									stored.choice.options),
 							stored.choice.answer);
 		}
+		if (stored.energyCubes != null) {
+			for (EnergySpace space : board.getElements(EnergySpace.class)) {
+				Integer cubes = stored.energyCubes
+						.get(spaceKey(space.getPosition()));
+				if (cubes != null) {
+					space.setCubeAmount(cubes);
+				}
+			}
+		}
 		if (stored.damagePiles != null) {
 			Map<DamageInstruction, Integer> sizes = new HashMap<>();
 			stored.damagePiles.forEach((type, size) -> sizes
@@ -134,6 +150,11 @@ public final class GameStateCodec {
 		}
 		game.setUpgradeOrder(order);
 		return game;
+	}
+
+	/** Json keys have to be strings, so a space is stored as "x,y". */
+	private static String spaceKey(Vector2D position) {
+		return position.x() + "," + position.y();
 	}
 
 	private static StoredChoice storeChoice(Round round) {
@@ -276,6 +297,7 @@ public final class GameStateCodec {
 		private StoredChoice choice;
 		private List<String> rebootsToFace;
 		private Map<String, Integer> damagePiles;
+		private Map<String, Integer> energyCubes;
 		private StoredShop shop;
 		private List<StoredPlayer> players;
 	}

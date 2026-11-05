@@ -10,6 +10,7 @@ import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.ConveyorBelt;
+import dk.dtu.roborally.models.board.elements.EnergySpace;
 import dk.dtu.roborally.models.board.elements.Gear;
 import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.Wall;
@@ -188,6 +189,32 @@ class BoardElementsTest {
 		BoardElements.activate(game(ada, bob), 0, log);
 
 		assertEquals(new Vector2D(3, 1), bob.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void energySpacesGiveTheirCubeOnce() {
+		EnergySpace battery = new EnergySpace(new Vector2D(1, 1), 1);
+		put(1, 1, battery);
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Game game = game(ada);
+		int energy = ada.getEnergy();
+
+		BoardElements.collectEnergy(game, 0);
+		BoardElements.collectEnergy(game, 1);
+
+		assertEquals(energy + 1, ada.getEnergy());
+		assertEquals(0, battery.getCubeAmount());
+	}
+
+	@Test
+	void endingTheFifthRegisterOnAnEmptyEnergySpaceTakesFromTheBank() {
+		put(1, 1, new EnergySpace(new Vector2D(1, 1), 0));
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		int energy = ada.getEnergy();
+
+		BoardElements.collectEnergy(game(ada), 4);
+
+		assertEquals(energy + 1, ada.getEnergy());
 	}
 
 	/** A belt running from x,y in the given direction. */

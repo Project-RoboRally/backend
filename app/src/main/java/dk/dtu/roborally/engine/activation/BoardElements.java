@@ -6,11 +6,13 @@ import dk.dtu.roborally.enums.RotationDirection;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.ConveyorBelt;
+import dk.dtu.roborally.models.board.elements.EnergySpace;
 import dk.dtu.roborally.models.board.elements.Gear;
 import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.PlayerMat;
 import dk.dtu.roborally.models.player.RobotView;
 import java.util.Collection;
 import java.util.HashMap;
@@ -168,6 +170,28 @@ public final class BoardElements {
 		}
 		if (turned) {
 			log.addStep(snapshot(game));
+		}
+	}
+
+	/**
+	 * Robots ending the register on an energy space take its cube, if it still
+	 * has one. Once taken the space stays empty, except that ending the fifth
+	 * register on it gives a cube from the bank anyway.
+	 */
+	public static void collectEnergy(Game game, int register) {
+		boolean lastRegister = register == PlayerMat.REGISTER_COUNT - 1;
+		for (Player player : Priority.order(game)) {
+			Optional<EnergySpace> space = element(game, player,
+					EnergySpace.class);
+			if (space.isEmpty()) {
+				continue;
+			}
+			if (space.get().getCubeAmount() > 0) {
+				space.get().setCubeAmount(space.get().getCubeAmount() - 1);
+				player.addEnergy(1);
+			} else if (lastRegister) {
+				player.addEnergy(1);
+			}
 		}
 	}
 
