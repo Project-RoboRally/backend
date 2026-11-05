@@ -1,5 +1,6 @@
 package dk.dtu.roborally.engine.activation;
 
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -7,6 +8,7 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.LaserEmitter;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.player.Player;
 import java.util.ArrayList;
@@ -21,6 +23,8 @@ import java.util.Optional;
  * @author Sebastian
  */
 public final class Lasers {
+
+	public static final String NONE = "NONE";
 
 	private Lasers() {
 	}
@@ -83,14 +87,97 @@ public final class Lasers {
 		List<Player> targets = shooter.getUpgrades().has(UpgradeType.RAIL_GUN)
 				? everyRobotInLine(game, from, facing)
 				: firstRobotHit(game, from, facing).stream().toList();
+		Optional<Player> first = targets.stream().filter(
+				target -> !game.getCurrentRound().isShielded(target.getId()))
+				.findFirst();
+		if (first.isPresent() && !pickWeapons(game, shooter, first.get())) {
+			return false;
+		}
+		List<UpgradeType> picks = game.getCurrentRound().getWeaponPicks();
 		for (Player target : targets) {
 			hit(game, target, damage);
+		}
+		if (first.isPresent()) {
+			weaponEffects(game, shooter, first.get(), picks);
 		}
 		if (shooter.getUpgrades().has(UpgradeType.REAR_LASER)) {
 			firstRobotHit(game, from, facing.uTurn())
 					.ifPresent(target -> hit(game, target, damage));
 		}
 		return true;
+	}
+
+	/**
+	 * Asks the shooter which of their optional weapon upgrades to use on this
+	 * shot, one at a time until they answer NONE. Returns false while waiting.
+	 */
+	private static boolean pickWeapons(Game game, Player shooter,
+			Player target) {
+		Round round = game.getCurrentRound();
+		while (!round.isWeaponsPicked()) {
+			List<UpgradeType> usable = usableWeapons(game, shooter, target)
+					.stream()
+					.filter(type -> !round.getWeaponPicks().contains(type))
+					.toList();
+			if (usable.isEmpty()) {
+				round.setWeaponsPicked(true);
+				break;
+			}
+			List<String> options = new ArrayList<>();
+			options.add(NONE);
+			usable.forEach(type -> options.add(type.name()));
+			Optional<String> answer = round.ask(new PendingChoice(
+					shooter.getId(), ChoiceType.WEAPON_UPGRADE, options));
+			if (answer.isEmpty()) {
+				return false;
+			}
+			if (answer.get().equals(NONE)) {
+				round.setWeaponsPicked(true);
+			} else {
+				round.addWeaponPick(UpgradeType.valueOf(answer.get()));
+			}
+		}
+		return true;
+	}
+
+	private static List<UpgradeType> usableWeapons(Game game, Player shooter,
+			Player target) {
+		boolean adjacent = shooter.getRobot().getCurrentSpace()
+				.distanceTo(target.getRobot().getCurrentSpace()) == 1;
+		List<UpgradeType> usable = new ArrayList<>();
+		if (shooter.getUpgrades().has(UpgradeType.MINI_HOWITZER)
+				&& shooter.getEnergy() >= 1) {
+			usable.add(UpgradeType.MINI_HOWITZER);
+		}
+		if (shooter.getUpgrades().has(UpgradeType.PRESSOR_BEAM)) {
+			usable.add(UpgradeType.PRESSOR_BEAM);
+		}
+		if (shooter.getUpgrades().has(UpgradeType.TRACTOR_BEAM) && !adjacent) {
+			usable.add(UpgradeType.TRACTOR_BEAM);
+		}
+		return usable;
+	}
+
+	/**
+	 * What the picked upgrades do to the robot hit by the main laser. Mini
+	 * Howitzer costs 1 energy for 2 more SPAM and a push away, Pressor Beam
+	 * pushes it away and Tractor Beam pulls it closer.
+	 */
+	private static void weaponEffects(Game game, Player shooter, Player target,
+			List<UpgradeType> picks) {
+		Direction away = shooter.getRobot().getOrientation();
+		if (picks.contains(UpgradeType.MINI_HOWITZER)
+				&& shooter.getEnergy() >= 1) {
+			shooter.spendEnergy(1);
+			Damage.take(game, target, DamageInstruction.SPAM, 2);
+			Movement.step(game, target, away);
+		}
+		if (picks.contains(UpgradeType.PRESSOR_BEAM)) {
+			Movement.step(game, target, away);
+		}
+		if (picks.contains(UpgradeType.TRACTOR_BEAM)) {
+			Movement.step(game, target, away.uTurn());
+		}
 	}
 
 	/** A Deflector Shield stops robot lasers. */

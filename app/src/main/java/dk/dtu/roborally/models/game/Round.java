@@ -54,6 +54,11 @@ public class Round {
 	/** How many robots have fired their weapons this register. */
 	@Getter
 	private int shotsFired;
+	/** Weapon upgrades the robot about to fire picked for its shot. */
+	private final List<UpgradeType> weaponPicks = new ArrayList<>();
+	@Getter
+	@Setter
+	private boolean weaponsPicked;
 
 	/** Upgrades each player used at the start of this register. */
 	private final Map<String, List<UpgradeType>> usedAtRegisterStart = new HashMap<>();
@@ -107,6 +112,8 @@ public class Round {
 	public void startRegister(int register, List<String> order) {
 		boardLasersFired = false;
 		shotsFired = 0;
+		weaponPicks.clear();
+		weaponsPicked = false;
 		currentRegisterIndex = register;
 		stage = RegisterStage.CARDS;
 		activationOrder.clear();
@@ -178,6 +185,16 @@ public class Round {
 
 	public void markShotFired() {
 		shotsFired++;
+		weaponPicks.clear();
+		weaponsPicked = false;
+	}
+
+	public List<UpgradeType> getWeaponPicks() {
+		return List.copyOf(weaponPicks);
+	}
+
+	public void addWeaponPick(UpgradeType type) {
+		weaponPicks.add(type);
 	}
 
 	/** Puts back how far the lasers got, loaded from storage. */
