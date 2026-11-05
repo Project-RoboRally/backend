@@ -50,8 +50,10 @@ class LevelLoaderTest {
 	void loadsPriorityAntenna() {
 		Board board = LevelLoader.load("levels/level_0.json");
 
-		assertTrue(board.getSpace(10, 17).getBoardElements().stream()
-				.anyMatch(PriorityAntenna.class::isInstance));
+		PriorityAntenna antenna = board.getSpace(10, 17).getBoardElements()
+				.stream().filter(PriorityAntenna.class::isInstance)
+				.map(PriorityAntenna.class::cast).findFirst().orElseThrow();
+		assertEquals(Direction.NORTH, antenna.getFacing());
 	}
 
 	@Test

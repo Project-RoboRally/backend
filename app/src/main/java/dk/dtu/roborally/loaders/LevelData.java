@@ -90,6 +90,7 @@ public class LevelData {
 	public static class AntennaData {
 		public int x;
 		public int y;
+		public String direction;
 	}
 
 }

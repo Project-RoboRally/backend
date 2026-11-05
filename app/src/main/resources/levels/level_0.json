@@ -75,7 +75,7 @@
         { "x": 15, "y": 4, "number": 2 },
         { "x": 5, "y": 3, "number": 3 }
     ],
-    "antenna": { "x": 10, "y": 17 },
+    "antenna": { "x": 10, "y": 17, "direction": "north" },
     "gears": [
         { "x": 9, "y": 10, "rotation_direction": "clockwise" },
         { "x": 10, "y": 9, "rotation_direction": "counterclockwise" },
