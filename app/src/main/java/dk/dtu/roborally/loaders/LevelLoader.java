@@ -134,45 +134,29 @@ public class LevelLoader {
 						+ position.toString());
 	}
 
+	/**
+	 * Reads an enum value written in lowercase in the level file, like "north"
+	 * or "clockwise".
+	 */
+	private static <E extends Enum<E>> E parse(Class<E> type, String value,
+			String field) {
+		if (value != null) {
+			for (E constant : type.getEnumConstants()) {
+				if (constant.name().equalsIgnoreCase(value)) {
+					return constant;
+				}
+			}
+		}
+		throw new IllegalArgumentException("Invalid " + field + ": " + value);
+	}
+
 	private static ConveyorBelt createConveyorBelt(LevelData.BeltData belt,
 			Map<Vector2D, Space> spaceMap) {
-		ConveyorBeltType cbt;
+		ConveyorBeltType cbt = parse(ConveyorBeltType.class, belt.type,
+				"conveyor belt type");
 
-		switch (belt.type) {
-			case ("blue") :
-				cbt = ConveyorBeltType.BLUE;
-				break;
-			case ("green") :
-				cbt = ConveyorBeltType.GREEN;
-				break;
-			default :
-				throw new IllegalArgumentException(
-						"Invalid conveyor belt type: " + belt.type);
-		}
-
-		Direction dir;
-
-		switch (belt.direction) {
-			case "east" :
-				dir = Direction.EAST;
-				break;
-
-			case "north" :
-				dir = Direction.NORTH;
-				break;
-
-			case "west" :
-				dir = Direction.WEST;
-				break;
-
-			case "south" :
-				dir = Direction.SOUTH;
-				break;
-
-			default :
-				throw new IllegalArgumentException(
-						"Invalid conveyor belt direction: " + belt.direction);
-		}
+		Direction dir = parse(Direction.class, belt.direction,
+				"conveyor belt direction");
 		ConveyorBelt cb = new ConveyorBelt(new Vector2D(belt.x, belt.y),
 				belt.length, dir, cbt);
 		switch (dir) {
@@ -227,29 +211,8 @@ public class LevelLoader {
 
 	private static void createWalls(LevelData.WallData wall,
 			ArrayList<Wall> wallList, Map<Vector2D, Space> spaceMap) {
-		Direction dir;
-		// Get the direction for wall
-		switch (wall.direction) {
-			case "east" :
-				dir = Direction.EAST;
-				break;
-
-			case "north" :
-				dir = Direction.NORTH;
-				break;
-
-			case "south" :
-				dir = Direction.SOUTH;
-				break;
-
-			case "west" :
-				dir = Direction.WEST;
-				break;
-
-			default :
-				throw new IllegalArgumentException(
-						"Invalid wall direction: " + wall.direction);
-		}
+		Direction dir = parse(Direction.class, wall.direction,
+				"wall direction");
 		// Make connected walls
 		int minX = Math.min(wall.x1, wall.x2);
 		int maxX = Math.max(wall.x1, wall.x2);
@@ -268,28 +231,8 @@ public class LevelLoader {
 
 	private static LaserEmitter createLaserEmitter(LevelData.LaserData laser,
 			Map<Vector2D, Space> spaceMap) {
-		Direction dir;
-		switch (laser.direction) {
-			case "east" :
-				dir = Direction.EAST;
-				break;
-
-			case "north" :
-				dir = Direction.NORTH;
-				break;
-
-			case "west" :
-				dir = Direction.WEST;
-				break;
-
-			case "south" :
-				dir = Direction.SOUTH;
-				break;
-
-			default :
-				throw new IllegalArgumentException(
-						"Invalid laser direction: " + laser.direction);
-		}
+		Direction dir = parse(Direction.class, laser.direction,
+				"laser direction");
 		LaserEmitter le = new LaserEmitter(new Vector2D(laser.x, laser.y), dir,
 				laser.amount);
 		getSpaceAt(spaceMap, le.getPosition()).addBoardElement(le);
@@ -299,19 +242,8 @@ public class LevelLoader {
 	private static StartingPoint createStartingPoint(
 			LevelData.StartingPointData stp, Map<Vector2D, Space> spaceMap) {
 
-		if (stp.orientation == null) {
-			throw new IllegalArgumentException(
-					"Starting point is missing an orientation.");
-		}
-
-		Direction orientation = switch (stp.orientation) {
-			case "north" -> Direction.NORTH;
-			case "east" -> Direction.EAST;
-			case "south" -> Direction.SOUTH;
-			case "west" -> Direction.WEST;
-			default -> throw new IllegalArgumentException(
-					"Invalid starting orientation: " + stp.orientation);
-		};
+		Direction orientation = parse(Direction.class, stp.orientation,
+				"starting orientation");
 
 		StartingPoint startPoint = new StartingPoint(new Vector2D(stp.x, stp.y),
 				orientation);
@@ -339,21 +271,8 @@ public class LevelLoader {
 
 	private static Gear createGear(LevelData.GearData gear,
 			Map<Vector2D, Space> spaceMap) {
-		RotationDirection rd;
-		switch (gear.rotation_direction) {
-			case "clockwise" :
-				rd = RotationDirection.CLOCKWISE;
-				break;
-
-			case "counterclockwise" :
-				rd = RotationDirection.COUNTERCLOCKWISE;
-				break;
-
-			default :
-				throw new IllegalArgumentException(
-						"Invalid gear rotation direction: "
-								+ gear.rotation_direction);
-		}
+		RotationDirection rd = parse(RotationDirection.class,
+				gear.rotation_direction, "gear rotation direction");
 		Gear g = new Gear(new Vector2D(gear.x, gear.y), rd);
 		getSpaceAt(spaceMap, g.getPosition()).addBoardElement(g);
 		return g;
@@ -361,29 +280,8 @@ public class LevelLoader {
 
 	private static PushPanel createPushPanel(LevelData.PushPanelData pPanel,
 			Map<Vector2D, Space> spaceMap) {
-		Direction dir;
-		switch (pPanel.push_direction) {
-			case "east" :
-				dir = Direction.EAST;
-				break;
-
-			case "north" :
-				dir = Direction.NORTH;
-				break;
-
-			case "west" :
-				dir = Direction.WEST;
-				break;
-
-			case "south" :
-				dir = Direction.SOUTH;
-				break;
-
-			default :
-				throw new IllegalArgumentException(
-						"Invalid push panel push direction: "
-								+ pPanel.push_direction);
-		}
+		Direction dir = parse(Direction.class, pPanel.push_direction,
+				"push panel push direction");
 		PushPanel pp = new PushPanel(new Vector2D(pPanel.x, pPanel.y), dir);
 		getSpaceAt(spaceMap, pp.getPosition()).addBoardElement(pp);
 		return pp;

@@ -1,0 +1,12 @@
+{
+    "squares": [{ "x1": 0, "y1": 0, "x2": 2, "y2": 2 }],
+    "belts": [],
+    "walls": [{ "x1": 0, "y1": 0, "x2": 0, "y2": 0, "direction": "up" }],
+    "laser_emitters": [],
+    "start_points": [],
+    "checkpoints": [],
+    "gears": [],
+    "push_panels": [],
+    "pits": [],
+    "energy_spaces": []
+}
