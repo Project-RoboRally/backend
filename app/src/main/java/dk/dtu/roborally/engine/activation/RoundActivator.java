@@ -145,6 +145,9 @@ public class RoundActivator {
 	 * waits on the player choosing an action, nothing has happened yet then.
 	 */
 	private boolean activateCard(Game game, Player player, int register) {
+		if (!TurnUpgrades.ask(game, player)) {
+			return false;
+		}
 		Register slot = player.getPlayerMat().getRegisters().get(register);
 		while (mustBeReplaced(player, register)) {
 			replaceCard(game, player, slot);
