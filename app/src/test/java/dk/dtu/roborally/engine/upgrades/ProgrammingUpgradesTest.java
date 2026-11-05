@@ -113,6 +113,35 @@ class ProgrammingUpgradesTest {
 	}
 
 	@Test
+	void defragGizmoGetsRidOfOneDamageCardARound() {
+		ada.getUpgrades().install(UpgradeType.DEFRAG_GIZMO, null);
+		mat(List.of("VIRUS", "VIRUS", "MOVE_1"), "U_TURN", "U_TURN");
+
+		ProgrammingUpgrades.use(game, ada, UpgradeType.DEFRAG_GIZMO,
+				List.of("VIRUS"));
+
+		assertEquals(List.of("VIRUS", "MOVE_1", "U_TURN"),
+				names(ada.getPlayerMat().getHand()));
+		assertEquals(19, game.getDamagePiles().size(DamageInstruction.VIRUS));
+		assertThrows(IllegalStateException.class, () -> ProgrammingUpgrades
+				.use(game, ada, UpgradeType.DEFRAG_GIZMO, List.of("VIRUS")));
+
+		ada.getUpgrades().newRound();
+		ProgrammingUpgrades.use(game, ada, UpgradeType.DEFRAG_GIZMO,
+				List.of("VIRUS"));
+		assertEquals(20, game.getDamagePiles().size(DamageInstruction.VIRUS));
+	}
+
+	@Test
+	void defragGizmoOnlyTakesDamageCards() {
+		ada.getUpgrades().install(UpgradeType.DEFRAG_GIZMO, null);
+		mat(List.of("MOVE_1"), "U_TURN");
+
+		assertThrows(IllegalArgumentException.class, () -> ProgrammingUpgrades
+				.use(game, ada, UpgradeType.DEFRAG_GIZMO, List.of("MOVE_1")));
+	}
+
+	@Test
 	void onlyInstalledUpgradesCanBeUsed() {
 		assertThrows(IllegalArgumentException.class, () -> ProgrammingUpgrades
 				.use(game, ada, UpgradeType.RECHARGE, List.of()));

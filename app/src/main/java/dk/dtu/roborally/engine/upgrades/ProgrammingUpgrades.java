@@ -7,6 +7,7 @@ import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.PlayerMat;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -28,6 +29,28 @@ public final class ProgrammingUpgrades {
 		return player.getUpgrades().has(UpgradeType.MEMORY_STICK)
 				? HAND_SIZE + 1
 				: HAND_SIZE;
+	}
+
+	/**
+	 * Once a round, one damage card from the hand goes back to its pile for
+	 * good and a new card is drawn for it.
+	 */
+	private static void defrag(Game game, Player player, List<String> cards) {
+		if (player.getUpgrades().usedThisRound(UpgradeType.DEFRAG_GIZMO)) {
+			throw new IllegalStateException(
+					"Defrag Gizmo was already used this round");
+		}
+		if (cards.size() != 1 || Arrays.stream(DamageInstruction.values())
+				.noneMatch(damage -> damage.name().equals(cards.get(0)))) {
+			throw new IllegalArgumentException("Pick one damage card");
+		}
+		DamageCard damage = (DamageCard) player.getPlayerMat()
+				.removeFromHand(cards.get(0))
+				.orElseThrow(() -> new IllegalArgumentException(
+						"Not in your hand: " + cards.get(0)));
+		game.getDamagePiles().giveBack(damage);
+		player.getPlayerMat().drawCards(1);
+		player.getUpgrades().markUsed(UpgradeType.DEFRAG_GIZMO);
 	}
 
 	public static void use(Game game, Player player, UpgradeType type,
@@ -56,6 +79,7 @@ public final class ProgrammingUpgrades {
 			}
 			case MEMORY_SWAP -> mat.swapCards(SWAPPED_CARDS);
 			case CACHE_MEMORY -> mat.putOnTopOfDeck(cards);
+			case DEFRAG_GIZMO -> defrag(game, player, cards);
 			default -> throw new IllegalArgumentException(
 					type + " can not be used while programming");
 		}
