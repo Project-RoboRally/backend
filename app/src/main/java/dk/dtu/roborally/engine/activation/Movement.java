@@ -35,6 +35,15 @@ public final class Movement {
 	 * moving robot its move is over, so this returns false too.
 	 */
 	public static boolean step(Game game, Player player, Direction direction) {
+		return step(game, player, direction, false);
+	}
+
+	/**
+	 * Same as {@link #step(Game, Player, Direction)}, but a hovering robot
+	 * passes over pits instead of falling in. Robots it pushes still fall.
+	 */
+	public static boolean step(Game game, Player player, Direction direction,
+			boolean hovering) {
 		Board board = game.getBoard();
 		List<Player> line = new ArrayList<>();
 		line.add(player);
@@ -58,7 +67,12 @@ public final class Movement {
 			Robot robot = moving.getRobot();
 			Vector2D from = robot.getCurrentSpace();
 			robot.moveTo(from.add(direction.step()));
-			moverFell |= fallIfNeeded(game, moving, from) && moving == player;
+			if (hovering && moving == player) {
+				moverFell |= fallOffTheBoard(game, moving, from);
+			} else {
+				moverFell |= fallIfNeeded(game, moving, from)
+						&& moving == player;
+			}
 		}
 		return !moverFell;
 	}
@@ -68,6 +82,25 @@ public final class Movement {
 	 * the board. Off the board it counts as falling from the last space it was
 	 * on, a pit is on the board itself. Returns whether it fell.
 	 */
+	private static boolean fallOffTheBoard(Game game, Player player,
+			Vector2D from) {
+		if (game.getBoard()
+				.isWithinBoard(player.getRobot().getCurrentSpace())) {
+			return false;
+		}
+		Reboot.reboot(game, player, true, from);
+		return true;
+	}
+
+	/** A hovering robot that ended its move over a pit falls in now. */
+	public static void landOnPit(Game game, Player player) {
+		Vector2D position = player.getRobot().getCurrentSpace();
+		if (!player.getRobot().isRebootedThisRound()
+				&& hasPit(game.getBoard().getSpace(position))) {
+			Reboot.reboot(game, player, true, position);
+		}
+	}
+
 	static boolean fallIfNeeded(Game game, Player player, Vector2D from) {
 		Board board = game.getBoard();
 		Vector2D to = player.getRobot().getCurrentSpace();

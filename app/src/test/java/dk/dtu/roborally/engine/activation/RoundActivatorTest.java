@@ -6,10 +6,12 @@ import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
@@ -189,6 +191,32 @@ class RoundActivatorTest {
 
 		assertEquals(1, ada.getPlayerMat().getDiscardPile().size());
 		assertEquals(37, game.getDamagePiles().size(DamageInstruction.SPAM));
+	}
+
+	@Test
+	void aHoverUnitPassesOverPitsButFallsInWhenItStopsOnOne() {
+		Player ada = player("ada", 0, 2, Direction.NORTH);
+		Game game = game(ada);
+		game.getBoard().getSpace(0, 1)
+				.addBoardElement(new Pit(new Vector2D(0, 1)));
+		ada.getUpgrades().install(UpgradeType.HOVER_UNIT, null);
+		program(ada, CommandInstruction.MOVE_2, CommandInstruction.POWER_UP);
+
+		activator.activate(game);
+
+		assertEquals(new Vector2D(0, 0), ada.getRobot().getCurrentSpace());
+		assertFalse(ada.getRobot().isRebootedThisRound());
+
+		Player bob = player("bob", 2, 2, Direction.NORTH);
+		Game other = game(bob);
+		other.getBoard().getSpace(2, 1)
+				.addBoardElement(new Pit(new Vector2D(2, 1)));
+		bob.getUpgrades().install(UpgradeType.HOVER_UNIT, null);
+		program(bob, CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		activator.activate(other);
+
+		assertTrue(bob.getRobot().isRebootedThisRound());
 	}
 
 	/** Sets the draw pile, the last card is on top. */
