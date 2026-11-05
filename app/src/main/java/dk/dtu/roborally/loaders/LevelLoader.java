@@ -24,7 +24,7 @@ import java.util.Map;
  * This class loads the data from Level.java into the correct classes from the
  * objects folder
  *
- * @author Victor
+ * @author Victor, Sebastian
  */
 
 public class LevelLoader {
@@ -32,6 +32,15 @@ public class LevelLoader {
 		// We need to load all the data into a board here.
 		// We just need to use the methods below to load everything correctly.
 		LevelData level = JsonLoader.loadLevel(levelPath);
+		if (level == null) {
+			throw new IllegalArgumentException(
+					"Level data is null for: " + levelPath);
+		}
+		if (level.squares == null || level.squares.length == 0) {
+			throw new IllegalArgumentException(
+					"Level must contain at least one square: " + levelPath);
+		}
+
 		Map<Vector2D, Space> spaceMap = new HashMap<>();
 		ArrayList<ConveyorBelt> cBelts = new ArrayList<>();
 		ArrayList<Wall> walls = new ArrayList<>();
@@ -49,43 +58,62 @@ public class LevelLoader {
 		// Make board from the tiles
 		Board board = new Board(spaceMap);
 		// Load belts
-		for (int i = 0; i < level.belts.length; i++) {
-			cBelts.add(createConveyorBelt(level.belts[i], spaceMap));
+		if (level.belts != null) {
+			for (int i = 0; i < level.belts.length; i++) {
+				cBelts.add(createConveyorBelt(level.belts[i], spaceMap));
+			}
 		}
 		// Load Walls
-		for (int i = 0; i < level.walls.length; i++) {
-			createWalls(level.walls[i], walls, spaceMap);
+		if (level.walls != null) {
+			for (int i = 0; i < level.walls.length; i++) {
+				createWalls(level.walls[i], walls, spaceMap);
+			}
 		}
 		// Load LaserEmitters
-		for (int i = 0; i < level.laser_emitters.length; i++) {
-			laserEmitters
-					.add(createLaserEmitter(level.laser_emitters[i], spaceMap));
+		if (level.laser_emitters != null) {
+			for (int i = 0; i < level.laser_emitters.length; i++) {
+				laserEmitters.add(
+						createLaserEmitter(level.laser_emitters[i], spaceMap));
+			}
 		}
 		// Load StartingPoints
-		for (int i = 0; i < level.start_points.length; i++) {
-			startingPoints
-					.add(createStartingPoint(level.start_points[i], spaceMap));
+		if (level.start_points != null) {
+			for (int i = 0; i < level.start_points.length; i++) {
+				startingPoints.add(
+						createStartingPoint(level.start_points[i], spaceMap));
+			}
 		}
 		// Load Checkpoints
-		for (int i = 0; i < level.checkpoints.length; i++) {
-			checkpoints.add(createCheckpoint(level.checkpoints[i], spaceMap));
+		if (level.checkpoints != null) {
+			for (int i = 0; i < level.checkpoints.length; i++) {
+				checkpoints
+						.add(createCheckpoint(level.checkpoints[i], spaceMap));
+			}
 		}
 		// Load Gears
-		for (int i = 0; i < level.gears.length; i++) {
-			gears.add(createGear(level.gears[i], spaceMap));
+		if (level.gears != null) {
+			for (int i = 0; i < level.gears.length; i++) {
+				gears.add(createGear(level.gears[i], spaceMap));
+			}
 		}
 		// Load Push Panels
-		for (int i = 0; i < level.push_panels.length; i++) {
-			pushPanels.add(createPushPanel(level.push_panels[i], spaceMap));
+		if (level.push_panels != null) {
+			for (int i = 0; i < level.push_panels.length; i++) {
+				pushPanels.add(createPushPanel(level.push_panels[i], spaceMap));
+			}
 		}
 		// Load Pits
-		for (int i = 0; i < level.pits.length; i++) {
-			createPits(level.pits[i], pits, spaceMap);
+		if (level.pits != null) {
+			for (int i = 0; i < level.pits.length; i++) {
+				createPits(level.pits[i], pits, spaceMap);
+			}
 		}
 		// Load EnergySpaces
-		for (int i = 0; i < level.energy_spaces.length; i++) {
-			energySpaces
-					.add(createEnergySpace(level.energy_spaces[i], spaceMap));
+		if (level.energy_spaces != null) {
+			for (int i = 0; i < level.energy_spaces.length; i++) {
+				energySpaces.add(
+						createEnergySpace(level.energy_spaces[i], spaceMap));
+			}
 		}
 		return board;
 	}
