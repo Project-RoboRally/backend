@@ -58,6 +58,7 @@ class GameServiceTest {
 	private final List<String> upgradeTurns = new ArrayList<>();
 	private final List<String> programmingStartedLobbyIds = new ArrayList<>();
 	private final List<String> choiceLobbyIds = new ArrayList<>();
+	private final List<String> timerLobbyIds = new ArrayList<>();
 	private GameService gameService;
 	private Game game;
 
@@ -88,6 +89,11 @@ class GameServiceTest {
 			@Override
 			public void publishProgrammingStarted(String lobbyId, Game game) {
 				programmingStartedLobbyIds.add(lobbyId);
+			}
+
+			@Override
+			public void publishTimerStarted(String lobbyId, Game game) {
+				timerLobbyIds.add(lobbyId);
 			}
 
 			@Override

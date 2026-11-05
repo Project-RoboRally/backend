@@ -184,6 +184,19 @@ public class PlayerMat {
 		submitted = true;
 	}
 
+	/**
+	 * Used when programming time runs out: the hand is discarded and every
+	 * register gets the next card off the deck, whatever it is.
+	 */
+	public void fillRegistersFromDeck() {
+		discardPile.addAll(hand);
+		hand.clear();
+		for (Register register : registers) {
+			register.setCard(drawTop().orElse(null));
+		}
+		submitted = true;
+	}
+
 	private static boolean isAllowed(String card) {
 		for (CommandInstruction instruction : ALLOWED) {
 			if (instruction.name().equals(card)) {

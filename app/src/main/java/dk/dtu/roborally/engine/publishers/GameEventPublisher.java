@@ -35,6 +35,12 @@ public interface GameEventPublisher {
 	void publishProgrammingStarted(String lobbyId, Game game);
 
 	/**
+	 * Sends every player the full game state when the first program is in and
+	 * the programming timer starts. The state says when it runs out.
+	 */
+	void publishTimerStarted(String lobbyId, Game game);
+
+	/**
 	 * Sends every player the full game state when activation stops to wait for
 	 * a player's choice. The state says who has to choose and between what.
 	 */

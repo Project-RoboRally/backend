@@ -1,5 +1,7 @@
 package dk.dtu.roborally.engine.services;
 
+import dk.dtu.roborally.engine.GameClock;
+import dk.dtu.roborally.engine.SystemGameClock;
 import dk.dtu.roborally.engine.activation.Priority;
 import dk.dtu.roborally.engine.activation.RoundActivator;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
@@ -9,12 +11,16 @@ import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.ProgrammingTimer;
+import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.repository.GameRepository;
 
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service for logic about a game. Everything that changes a game is
@@ -28,12 +34,19 @@ public class GameService {
 	private final GameRepository gameRepository;
 	private final GameEventPublisher gameEventPublisher;
 	private final RoundActivator roundActivator;
+	private final GameClock clock;
 
 	public GameService(GameRepository gameRepository,
 			GameEventPublisher gameEventPublisher) {
+		this(gameRepository, gameEventPublisher, new SystemGameClock());
+	}
+
+	public GameService(GameRepository gameRepository,
+			GameEventPublisher gameEventPublisher, GameClock clock) {
 		this.gameRepository = gameRepository;
 		this.gameEventPublisher = gameEventPublisher;
 		this.roundActivator = new RoundActivator(gameEventPublisher);
+		this.clock = clock;
 	}
 
 	public Game getGame(String gameId) {
@@ -100,13 +113,55 @@ public class GameService {
 		boolean everyoneSubmitted = game.getPlayersInGame().stream()
 				.allMatch(player -> player.getPlayerMat().isSubmitted());
 		if (!everyoneSubmitted) {
+			startTimer(lobby, game);
 			gameRepository.update(game);
 			return false;
 		}
 
+		startActivation(lobby, game);
+		return true;
+	}
+
+	/**
+	 * The first program in starts the 30 second timer for everyone else. When
+	 * it runs out, see {@link #programmingTimeUp}.
+	 */
+	private void startTimer(GameLobby lobby, Game game) {
+		ProgrammingTimer timer = game.getCurrentRound().getTimer();
+		if (!timer.start(clock.now())) {
+			return;
+		}
+		Instant endsAt = timer.getEndsAt().orElseThrow();
+		clock.schedule(endsAt, () -> programmingTimeUp(lobby, endsAt));
+		gameEventPublisher.publishTimerStarted(lobby.getLobbyId(), game);
+	}
+
+	/**
+	 * Programming time is up. Anyone still programming has their hand discarded
+	 * and their registers filled from the top of their deck, then the round
+	 * runs. Does nothing if this timer is not the running one anymore, like
+	 * when everyone submitted in time.
+	 */
+	public synchronized void programmingTimeUp(GameLobby lobby,
+			Instant endsAt) {
+		Game game = getGame(lobby.getGameId());
+		Round round = game.getCurrentRound();
+		if (round.getCurrentPhase() != Phase.PROGRAMMING
+				|| !round.getTimer().getEndsAt().equals(Optional.of(endsAt))) {
+			return;
+		}
+		for (Player player : game.getPlayersInGame()) {
+			if (!player.getPlayerMat().isSubmitted()) {
+				player.getPlayerMat().fillRegistersFromDeck();
+			}
+		}
+		startActivation(lobby, game);
+	}
+
+	private void startActivation(GameLobby lobby, Game game) {
+		game.getCurrentRound().getTimer().stop();
 		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
 		continueActivation(lobby, game);
-		return true;
 	}
 
 	/**

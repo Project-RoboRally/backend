@@ -83,6 +83,11 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 	}
 
 	@Override
+	public void publishTimerStarted(String lobbyId, Game game) {
+		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.TIMER_STARTED);
+	}
+
+	@Override
 	public void publishChoiceRequired(String lobbyId, Game game) {
 		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.CHOICE_REQUIRED);
 	}
