@@ -109,7 +109,7 @@ public final class Movement {
 				.findFirst();
 	}
 
-	private static boolean wallBlocks(Board board, Vector2D from, Vector2D to,
+	static boolean wallBlocks(Board board, Vector2D from, Vector2D to,
 			Direction direction) {
 		if (hasWall(board.getSpace(from), direction)) {
 			return true;

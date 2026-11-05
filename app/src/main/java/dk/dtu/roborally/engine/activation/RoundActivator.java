@@ -114,6 +114,10 @@ public class RoundActivator {
 			}
 			case BOARD_ELEMENTS -> {
 				BoardElements.activate(game, register, round.getLog());
+				round.setStage(RegisterStage.LASERS);
+			}
+			case LASERS -> {
+				Lasers.fire(game);
 				round.setStage(RegisterStage.END_OF_REGISTER);
 			}
 			case END_OF_REGISTER -> {
