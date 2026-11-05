@@ -35,6 +35,12 @@ public interface GameEventPublisher {
 	void publishProgrammingStarted(String lobbyId, Game game);
 
 	/**
+	 * Sends every player the full game state after someone used an upgrade
+	 * while programming, so the player sees their changed hand.
+	 */
+	void publishUpgradeUsed(String lobbyId, Game game);
+
+	/**
 	 * Sends every player the full game state when the first program is in and
 	 * the programming timer starts. The state says when it runs out.
 	 */
