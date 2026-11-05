@@ -2,6 +2,7 @@ package dk.dtu.roborally.models.game;
 
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -77,6 +78,8 @@ public class Round {
 	private boolean hacked;
 	/** Refresh changed this turn's card to this. */
 	private CommandInstruction refreshedTo;
+	/** Side Arms pushes robots this way this turn, instead of straight. */
+	private Direction sidePush;
 	/** Answers about this turn's card, kept for when Hack plays it again. */
 	private final Map<ChoiceType, String> turnAnswers = new EnumMap<>(
 			ChoiceType.class);
@@ -221,6 +224,7 @@ public class Round {
 		pickedUpgrade = null;
 		hacked = false;
 		refreshedTo = null;
+		sidePush = null;
 		turnAnswers.clear();
 	}
 
@@ -234,6 +238,14 @@ public class Round {
 
 	public Map<ChoiceType, String> getTurnAnswers() {
 		return Map.copyOf(turnAnswers);
+	}
+
+	public Optional<Direction> getSidePush() {
+		return Optional.ofNullable(sidePush);
+	}
+
+	public void setSidePush(Direction direction) {
+		sidePush = direction;
 	}
 
 	public Optional<CommandInstruction> getRefreshedTo() {
