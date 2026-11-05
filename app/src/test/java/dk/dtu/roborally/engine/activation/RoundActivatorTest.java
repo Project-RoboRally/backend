@@ -3,19 +3,24 @@ package dk.dtu.roborally.engine.activation;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.cards.DamageCard;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
+import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +106,89 @@ class RoundActivatorTest {
 		assertEquals(ChoiceType.SANDBOX_ACTION,
 				game.getCurrentRound().getPendingChoice().orElseThrow().type());
 		assertEquals(Direction.WEST, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void spamGoesBackToItsPileAndTheTopCardIsPlayedInstead() {
+		Player ada = player("ada", 1, 2, Direction.NORTH);
+		Game game = game(ada);
+		deck(ada, CommandInstruction.MOVE_1);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new DamageCard(DamageInstruction.SPAM));
+		int spam = game.getDamagePiles().size(DamageInstruction.SPAM);
+
+		RoundResult result = activator.activate(game);
+
+		assertEquals(new Vector2D(1, 1), ada.getRobot().getCurrentSpace());
+		assertEquals(spam + 1,
+				game.getDamagePiles().size(DamageInstruction.SPAM));
+		assertEquals(List.of("SPAM", "MOVE_1"),
+				result.registers().get(0).cards().stream()
+						.map(played -> played.card().getName()).toList());
+	}
+
+	@Test
+	void trojanHorseHandsOutTwoSpam() {
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Game game = game(ada);
+		deck(ada, CommandInstruction.POWER_UP);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new DamageCard(DamageInstruction.TROJAN_HORSE));
+
+		activator.activate(game);
+
+		assertEquals(2, ada.getPlayerMat().getDiscardPile().stream()
+				.filter(card -> card.getName().equals("SPAM")).count());
+	}
+
+	@Test
+	void virusSpreadsToRobotsWithinSixSpaces() {
+		Player ada = player("ada", 0, 0, Direction.NORTH);
+		Player near = player("near", 2, 2, Direction.NORTH);
+		Player far = player("far", 6, 1, Direction.NORTH);
+		Game game = game(ada, near, far);
+		deck(ada, CommandInstruction.POWER_UP);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new DamageCard(DamageInstruction.VIRUS));
+
+		activator.activate(game);
+
+		assertEquals(List.of("VIRUS"), near.getPlayerMat().getDiscardPile()
+				.stream().map(card -> card.getName()).toList());
+		assertTrue(far.getPlayerMat().getDiscardPile().isEmpty());
+		assertTrue(ada.getPlayerMat().getDiscardPile().stream()
+				.noneMatch(card -> card.getName().equals("VIRUS")));
+	}
+
+	@Test
+	void againRightAfterADamageCardPlaysTheTopCardInstead() {
+		Player ada = player("ada", 1, 2, Direction.NORTH);
+		Game game = game(ada);
+		deck(ada, CommandInstruction.LEFT_TURN, CommandInstruction.MOVE_1);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new DamageCard(DamageInstruction.SPAM));
+		ada.getPlayerMat().getRegisters().get(1)
+				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
+
+		activator.activate(game);
+
+		// Spam became Move 1, then Again became Left Turn instead of a move
+		assertEquals(new Vector2D(1, 1), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.WEST, ada.getRobot().getOrientation());
+	}
+
+	/** Sets the draw pile, the last card is on top. */
+	private static void deck(Player player, CommandInstruction... cards) {
+		List<ProgrammableCard> draw = new ArrayList<>();
+		for (CommandInstruction card : cards) {
+			draw.add(new ProgrammingCard(card));
+		}
+		List<ProgrammableCard> registers = new ArrayList<>();
+		for (int i = 0; i < 5; i++) {
+			registers.add(null);
+		}
+		player.getPlayerMat().restore(draw, List.of(), List.of(), registers,
+				false);
 	}
 
 	/** First register gets the given card, the rest get the filler. */

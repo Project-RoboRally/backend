@@ -165,8 +165,12 @@ public final class GameStateCodec {
 		stored.hand = instructions(player.getPlayerMat().getHand());
 		stored.discard = instructions(player.getPlayerMat().getDiscardPile());
 		stored.registers = new ArrayList<>();
+		stored.damagedRegisters = new ArrayList<>();
 		for (Register register : player.getPlayerMat().getRegisters()) {
 			stored.registers.add(instructionOrNull(register.getCard()));
+			if (register.isDamaged()) {
+				stored.damagedRegisters.add(register.getIndex());
+			}
 		}
 		return stored;
 	}
@@ -186,6 +190,12 @@ public final class GameStateCodec {
 		player.getPlayerMat().restore(cards(stored.drawPile),
 				cards(stored.hand), cards(stored.discard),
 				cards(stored.registers), stored.submitted);
+		if (stored.damagedRegisters != null) {
+			for (int index : stored.damagedRegisters) {
+				player.getPlayerMat().getRegisters().get(index)
+						.setDamaged(true);
+			}
+		}
 		return player;
 	}
 
@@ -284,5 +294,6 @@ public final class GameStateCodec {
 		private List<String> hand;
 		private List<String> discard;
 		private List<String> registers;
+		private List<Integer> damagedRegisters;
 	}
 }
