@@ -144,6 +144,44 @@ class TurnUpgradesTest {
 				game.getDamagePiles().size(DamageInstruction.SPAM));
 	}
 
+	@Test
+	void brakesTurnAMoveOneIntoAMoveZero() {
+		ada.getUpgrades().install(UpgradeType.BRAKES, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		activator.activate(game);
+		assertEquals(List.of("MOVE_1", "MOVE_0"), game.getCurrentRound()
+				.getPendingChoice().orElseThrow().options());
+		game.getCurrentRound().answer("ada", "MOVE_0");
+		activator.activate(game);
+
+		assertEquals(new Vector2D(2, 2), ada.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void crabLegsMoveSidewaysWithoutTurning() {
+		ada.getUpgrades().install(UpgradeType.CRAB_LEGS, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.MOVE_ONE, "LEFT");
+
+		assertEquals(new Vector2D(1, 2), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.NORTH, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void aHackedMoveOneOnlyAsksOnce() {
+		ada.getUpgrades().install(UpgradeType.CRAB_LEGS, null);
+		ada.getUpgrades().install(UpgradeType.HACK, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.TURN_UPGRADE, "HACK");
+		answer(ChoiceType.MOVE_ONE, "RIGHT");
+
+		assertEquals(new Vector2D(4, 2), ada.getRobot().getCurrentSpace());
+		assertFalse(game.getCurrentRound().isActivating());
+	}
+
 	/** Runs activation to the given choice and answers it. */
 	private void answer(ChoiceType type, String answer) {
 		activator.activate(game);

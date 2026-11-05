@@ -1,5 +1,6 @@
 package dk.dtu.roborally.models.game;
 
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.RegisterStage;
@@ -8,6 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +64,9 @@ public class Round {
 	private boolean hacked;
 	/** Refresh changed this turn's card to this. */
 	private CommandInstruction refreshedTo;
+	/** Answers about this turn's card, kept for when Hack plays it again. */
+	private final Map<ChoiceType, String> turnAnswers = new EnumMap<>(
+			ChoiceType.class);
 
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
@@ -179,6 +184,19 @@ public class Round {
 		pickedUpgrade = null;
 		hacked = false;
 		refreshedTo = null;
+		turnAnswers.clear();
+	}
+
+	public Optional<String> getTurnAnswer(ChoiceType type) {
+		return Optional.ofNullable(turnAnswers.get(type));
+	}
+
+	public void setTurnAnswer(ChoiceType type, String answer) {
+		turnAnswers.put(type, answer);
+	}
+
+	public Map<ChoiceType, String> getTurnAnswers() {
+		return Map.copyOf(turnAnswers);
 	}
 
 	public Optional<CommandInstruction> getRefreshedTo() {

@@ -25,6 +25,7 @@ import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.RobotView;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,11 @@ import java.util.Optional;
  * @author Elias, Nicoleta, Matthias, Sebastian
  */
 public class RoundActivator {
+
+	static final String MOVE_FORWARD = "MOVE_1";
+	static final String MOVE_ZERO = "MOVE_0";
+	static final String MOVE_LEFT = "LEFT";
+	static final String MOVE_RIGHT = "RIGHT";
 
 	/** Virus spreads to every robot this many spaces away or closer. */
 	private static final int VIRUS_RANGE = 6;
@@ -183,15 +189,81 @@ public class RoundActivator {
 			}
 			instruction = chosen.get();
 		}
+		String moveOne = null;
+		if (instruction == CommandInstruction.MOVE_1) {
+			List<String> options = moveOneOptions(player);
+			if (options.size() > 1) {
+				Optional<String> how = askThisTurn(round, new PendingChoice(
+						player.getId(), ChoiceType.MOVE_ONE, options));
+				if (how.isEmpty()) {
+					return false;
+				}
+				moveOne = how.get();
+			}
+		}
 		ActivationLog log = round.getLog();
 		int firstStep = log.stepCount();
-		execute(instruction, player, game, log);
-		if (round.isHacked() && !player.getRobot().isRebootedThisRound()) {
-			execute(instruction, player, game, log);
+		int times = round.isHacked() ? 2 : 1;
+		for (int i = 0; i < times; i++) {
+			if (i > 0 && player.getRobot().isRebootedThisRound()) {
+				// Fell off the first time, the second one does not happen
+				break;
+			}
+			if (moveOne == null) {
+				execute(instruction, player, game, log);
+			} else {
+				moveOne(player, game, moveOne, log);
+			}
 		}
 		log.addCard(register, new PlayedCard(player.getUser().getUsername(),
 				card, firstStep, log.stepCount() - firstStep));
 		return true;
+	}
+
+	/**
+	 * How a Move 1 can be played. Brakes make it a Move 0, Crab Legs move one
+	 * space left or right without turning.
+	 */
+	private List<String> moveOneOptions(Player player) {
+		List<String> options = new ArrayList<>();
+		options.add(MOVE_FORWARD);
+		if (player.getUpgrades().has(UpgradeType.BRAKES)) {
+			options.add(MOVE_ZERO);
+		}
+		if (player.getUpgrades().has(UpgradeType.CRAB_LEGS)) {
+			options.add(MOVE_LEFT);
+			options.add(MOVE_RIGHT);
+		}
+		return options;
+	}
+
+	private void moveOne(Player player, Game game, String how,
+			ActivationLog log) {
+		Direction facing = player.getRobot().getOrientation();
+		switch (how) {
+			case MOVE_ZERO -> {
+				// Brakes on, the robot stays put
+			}
+			case MOVE_LEFT ->
+				moveSteps(player, game, facing.turnLeft(), 1, log);
+			case MOVE_RIGHT ->
+				moveSteps(player, game, facing.turnRight(), 1, log);
+			default -> moveSteps(player, game, facing, 1, log);
+		}
+	}
+
+	/**
+	 * Asks once per turn. The answer is kept for the rest of the turn, so a
+	 * card played twice by Hack does not ask again.
+	 */
+	private Optional<String> askThisTurn(Round round, PendingChoice question) {
+		Optional<String> kept = round.getTurnAnswer(question.type());
+		if (kept.isPresent()) {
+			return kept;
+		}
+		Optional<String> answer = round.ask(question);
+		answer.ifPresent(given -> round.setTurnAnswer(question.type(), given));
+		return answer;
 	}
 
 	/** What an Again from Refresh repeats, null in register 1. */
