@@ -35,5 +35,6 @@ public class GameEngine {
 		this.gameService = new GameService(gameRepository, gameEventPublisher);
 		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
 				gameService);
+		gameService.resumeTimers(lobbyRepository.getAll());
 	}
 }

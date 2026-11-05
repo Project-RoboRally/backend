@@ -116,6 +116,19 @@ class ProgrammingTimerFlowTest {
 		assertTrue(game.getCurrentRound().getTimer().getEndsAt().isEmpty());
 	}
 
+	@Test
+	void aRunningTimerIsScheduledAgainAfterARestart() {
+		gameService.submitProgram(lobby, "August", rightTurns());
+		scheduled.clear();
+		scheduledAt.clear();
+
+		gameService.resumeTimers(List.of(lobby));
+
+		assertEquals(List.of(NOW.plusSeconds(30)), scheduledAt);
+		scheduled.get(0).run();
+		assertEquals(Phase.UPGRADE, game.getCurrentRound().getCurrentPhase());
+	}
+
 	private Player named(String username) {
 		return game.getPlayersInGame().stream().filter(
 				player -> player.getUser().getUsername().equals(username))

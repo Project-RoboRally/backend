@@ -158,6 +158,23 @@ public class GameService {
 		startActivation(lobby, game);
 	}
 
+	/**
+	 * After a restart the saved deadlines are still there but nothing is
+	 * waiting for them, so this schedules them again. A deadline that already
+	 * passed runs right away.
+	 */
+	public void resumeTimers(List<GameLobby> lobbies) {
+		for (GameLobby lobby : lobbies) {
+			if (!lobby.isGameStarted()) {
+				continue;
+			}
+			gameRepository.getById(lobby.getGameId()).flatMap(
+					game -> game.getCurrentRound().getTimer().getEndsAt())
+					.ifPresent(endsAt -> clock.schedule(endsAt,
+							() -> programmingTimeUp(lobby, endsAt)));
+		}
+	}
+
 	private void startActivation(GameLobby lobby, Game game) {
 		game.getCurrentRound().getTimer().stop();
 		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
