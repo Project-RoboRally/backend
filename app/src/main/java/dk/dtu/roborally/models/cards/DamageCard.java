@@ -20,4 +20,9 @@ public class DamageCard extends ProgrammableCard {
 	public DamageCard(DamageInstruction instruction) {
 		this.instruction = Objects.requireNonNull(instruction);
 	}
+
+	@Override
+	public String getName() {
+		return instruction.name();
+	}
 }

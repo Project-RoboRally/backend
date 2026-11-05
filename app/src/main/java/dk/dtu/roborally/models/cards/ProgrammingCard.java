@@ -19,4 +19,9 @@ public class ProgrammingCard extends ProgrammableCard {
 	public ProgrammingCard(CommandInstruction instruction) {
 		this.instruction = Objects.requireNonNull(instruction);
 	}
+
+	@Override
+	public String getName() {
+		return instruction.name();
+	}
 }

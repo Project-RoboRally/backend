@@ -3,7 +3,7 @@ package dk.dtu.roborally.repository.sql;
 import com.google.gson.Gson;
 
 import dk.dtu.roborally.enums.ChoiceType;
-import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
@@ -14,7 +14,6 @@ import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
-import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
@@ -64,6 +63,9 @@ public final class GameStateCodec {
 		stored.activationOrder = round.getActivationOrder();
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
+		stored.damagePiles = new HashMap<>();
+		game.getDamagePiles().getSizes().forEach(
+				(type, size) -> stored.damagePiles.put(type.name(), size));
 		stored.players = new ArrayList<>();
 		for (Player player : game.getPlayersInGame()) {
 			stored.players.add(storePlayer(player));
@@ -110,6 +112,12 @@ public final class GameStateCodec {
 									ChoiceType.valueOf(stored.choice.type),
 									stored.choice.options),
 							stored.choice.answer);
+		}
+		if (stored.damagePiles != null) {
+			Map<DamageInstruction, Integer> sizes = new HashMap<>();
+			stored.damagePiles.forEach((type, size) -> sizes
+					.put(DamageInstruction.valueOf(type), size));
+			game.getDamagePiles().restore(sizes);
 		}
 		game.getUpgradeShop().restore(types(stored.shop.deck),
 				types(stored.shop.discard), types(stored.shop.forSale));
@@ -175,9 +183,9 @@ public final class GameStateCodec {
 		Player player = new Player(stored.id, user,
 				PlayerColor.valueOf(stored.color), robot);
 		player.restoreProgress(stored.energy, stored.checkpointsReached);
-		player.getPlayerMat().restore(commands(stored.drawPile),
-				commands(stored.hand), commands(stored.discard),
-				commandsAllowingNull(stored.registers), stored.submitted);
+		player.getPlayerMat().restore(cards(stored.drawPile),
+				cards(stored.hand), cards(stored.discard),
+				cards(stored.registers), stored.submitted);
 		return player;
 	}
 
@@ -194,23 +202,13 @@ public final class GameStateCodec {
 	private static List<String> instructions(List<ProgrammableCard> cards) {
 		List<String> names = new ArrayList<>();
 		for (ProgrammableCard card : cards) {
-			names.add(instruction(card));
+			names.add(card.getName());
 		}
 		return names;
 	}
 
 	private static String instructionOrNull(ProgrammableCard card) {
-		if (card == null) {
-			return null;
-		}
-		return instruction(card);
-	}
-
-	private static String instruction(ProgrammableCard card) {
-		if (card instanceof ProgrammingCard programmingCard) {
-			return programmingCard.getInstruction().name();
-		}
-		throw new IllegalStateException("Only programming cards can be stored");
+		return card == null ? null : card.getName();
 	}
 
 	private static List<String> names(List<UpgradeType> types) {
@@ -232,28 +230,16 @@ public final class GameStateCodec {
 		return types;
 	}
 
-	private static List<CommandInstruction> commands(List<String> names) {
-		List<CommandInstruction> commands = new ArrayList<>();
+	/** Cards by name, a null name is an empty register. */
+	private static List<ProgrammableCard> cards(List<String> names) {
+		List<ProgrammableCard> cards = new ArrayList<>();
 		if (names == null) {
-			return commands;
+			return cards;
 		}
 		for (String name : names) {
-			commands.add(CommandInstruction.valueOf(name));
+			cards.add(name == null ? null : ProgrammableCard.named(name));
 		}
-		return commands;
-	}
-
-	private static List<CommandInstruction> commandsAllowingNull(
-			List<String> names) {
-		List<CommandInstruction> commands = new ArrayList<>();
-		if (names == null) {
-			return commands;
-		}
-		for (String name : names) {
-			commands.add(
-					name == null ? null : CommandInstruction.valueOf(name));
-		}
-		return commands;
+		return cards;
 	}
 
 	private static final class StoredGame {
@@ -266,6 +252,7 @@ public final class GameStateCodec {
 		private List<String> activationOrder;
 		private int activated;
 		private StoredChoice choice;
+		private Map<String, Integer> damagePiles;
 		private StoredShop shop;
 		private List<StoredPlayer> players;
 	}

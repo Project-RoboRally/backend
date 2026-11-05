@@ -182,12 +182,13 @@ public class PlayerMat {
 
 	/**
 	 * Replaces every pile and register. Used when a saved game is loaded. Draw
-	 * pile order is bottom to top, and the last card is drawn next.
+	 * pile order is bottom to top, and the last card is drawn next. Empty
+	 * registers are null.
 	 */
-	public void restore(List<CommandInstruction> draw,
-			List<CommandInstruction> handCards,
-			List<CommandInstruction> discardCards,
-			List<CommandInstruction> registerCards, boolean submitted) {
+	public void restore(List<ProgrammableCard> draw,
+			List<ProgrammableCard> handCards,
+			List<ProgrammableCard> discardCards,
+			List<ProgrammableCard> registerCards, boolean submitted) {
 		Objects.requireNonNull(draw);
 		Objects.requireNonNull(handCards);
 		Objects.requireNonNull(discardCards);
@@ -196,24 +197,14 @@ public class PlayerMat {
 			throw new IllegalArgumentException(
 					"A player mat has " + REGISTER_COUNT + " registers");
 		}
-
 		drawPile.clear();
-		for (CommandInstruction instruction : draw) {
-			drawPile.addCard(new ProgrammingCard(instruction));
-		}
+		draw.forEach(drawPile::addCard);
 		hand.clear();
-		for (CommandInstruction instruction : handCards) {
-			hand.add(new ProgrammingCard(instruction));
-		}
+		hand.addAll(handCards);
 		discardPile.clear();
-		for (CommandInstruction instruction : discardCards) {
-			discardPile.add(new ProgrammingCard(instruction));
-		}
+		discardPile.addAll(discardCards);
 		for (int i = 0; i < REGISTER_COUNT; i++) {
-			CommandInstruction instruction = registerCards.get(i);
-			registers[i].setCard(instruction == null
-					? null
-					: new ProgrammingCard(instruction));
+			registers[i].setCard(registerCards.get(i));
 		}
 		this.submitted = submitted;
 	}
