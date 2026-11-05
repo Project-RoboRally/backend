@@ -4,6 +4,7 @@ import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
+import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
@@ -23,6 +24,7 @@ import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.RobotView;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,9 +58,14 @@ public class RoundActivator {
 		}
 		if (!round.isActivating()) {
 			round.startActivation();
+			game.getPlayersInGame()
+					.forEach(player -> player.getRobot().clearReboot());
 			startRegister(game, 0);
 		}
 		while (round.isActivating() && round.getPendingChoice().isEmpty()) {
+			if (!faceRebootedRobots(game)) {
+				break;
+			}
 			if (game.getGameStatus() == GameStatus.FINISHED) {
 				round.finishActivation();
 				break;
@@ -66,6 +73,27 @@ public class RoundActivator {
 			step(game);
 		}
 		return round.takeLog().toResult();
+	}
+
+	/**
+	 * Asks every rebooted robot's player which way to face. Returns false while
+	 * one of them still has to answer.
+	 */
+	private boolean faceRebootedRobots(Game game) {
+		Round round = game.getCurrentRound();
+		List<String> options = Arrays.stream(Direction.values())
+				.map(Direction::name).toList();
+		for (String playerId : round.getRebootsToFace()) {
+			Optional<String> facing = round.ask(new PendingChoice(playerId,
+					ChoiceType.REBOOT_FACING, options));
+			if (facing.isEmpty()) {
+				return false;
+			}
+			findPlayer(game, playerId).getRobot()
+					.face(Direction.valueOf(facing.get()));
+			round.removeRebootToFace(playerId);
+		}
+		return true;
 	}
 
 	/** Does the next bit of the current register. */
@@ -124,12 +152,11 @@ public class RoundActivator {
 		}
 		ActivationLog log = game.getCurrentRound().getLog();
 		int firstStep = log.stepCount();
+		// Taken first, a reboot during the move empties the register
+		ProgrammableCard card = slot.getCard();
 		execute(instruction, player, game, log);
-		log.addCard(register,
-				new PlayedCard(player.getUser().getUsername(),
-						player.getPlayerMat().getRegisters().get(register)
-								.getCard(),
-						firstStep, log.stepCount() - firstStep));
+		log.addCard(register, new PlayedCard(player.getUser().getUsername(),
+				card, firstStep, log.stepCount() - firstStep));
 		return true;
 	}
 
@@ -158,17 +185,23 @@ public class RoundActivator {
 	private void replaceCard(Game game, Player player, Register slot) {
 		ActivationLog log = game.getCurrentRound().getLog();
 		ProgrammableCard card = slot.getCard();
+		slot.setCard(null);
 		int firstStep = log.stepCount();
+		boolean rebootedBefore = player.getRobot().isRebootedThisRound();
 		if (card instanceof DamageCard damage) {
-			damageEffect(game, player, damage.getInstruction());
 			game.getDamagePiles().giveBack(damage);
 			slot.setDamaged(true);
+			damageEffect(game, player, damage.getInstruction());
 		} else {
 			player.getPlayerMat().addToDiscardPile(card);
 		}
 		log.addCard(slot.getIndex(),
 				new PlayedCard(player.getUser().getUsername(), card, firstStep,
 						log.stepCount() - firstStep));
+		if (player.getRobot().isRebootedThisRound() && !rebootedBefore) {
+			// A worm rebooted the robot, its program is cancelled
+			return;
+		}
 		slot.setCard(player.getPlayerMat().drawTop().orElse(null));
 	}
 
@@ -186,8 +219,10 @@ public class RoundActivator {
 					}
 				}
 			}
-			case SPAM, WORM -> {
-				// SPAM only clogs the deck. Worm reboots, which comes later
+			case WORM -> Reboot.reboot(game, player,
+					player.getRobot().getCurrentSpace());
+			case SPAM -> {
+				// SPAM only clogs up the deck
 			}
 		}
 	}

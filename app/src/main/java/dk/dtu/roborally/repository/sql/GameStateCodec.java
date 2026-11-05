@@ -63,6 +63,7 @@ public final class GameStateCodec {
 		stored.activationOrder = round.getActivationOrder();
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
+		stored.rebootsToFace = round.getRebootsToFace();
 		stored.damagePiles = new HashMap<>();
 		game.getDamagePiles().getSizes().forEach(
 				(type, size) -> stored.damagePiles.put(type.name(), size));
@@ -105,6 +106,9 @@ public final class GameStateCodec {
 						? List.of()
 						: stored.activationOrder,
 				stored.activated);
+		if (stored.rebootsToFace != null) {
+			game.getCurrentRound().restoreRebootsToFace(stored.rebootsToFace);
+		}
 		if (stored.choice != null) {
 			game.getCurrentRound()
 					.restoreChoice(
@@ -158,6 +162,7 @@ public final class GameStateCodec {
 		stored.x = player.getRobot().getCurrentSpace().x();
 		stored.y = player.getRobot().getCurrentSpace().y();
 		stored.orientation = player.getRobot().getOrientation().name();
+		stored.rebooted = player.getRobot().isRebootedThisRound();
 		stored.startX = player.getRobot().getStartSpace().x();
 		stored.startY = player.getRobot().getStartSpace().y();
 		stored.energy = player.getEnergy();
@@ -190,6 +195,7 @@ public final class GameStateCodec {
 				: new Vector2D(stored.startX, stored.startY);
 		Robot robot = new Robot(space, Direction.valueOf(stored.orientation),
 				start);
+		robot.restoreReboot(stored.rebooted);
 		Player player = new Player(stored.id, user,
 				PlayerColor.valueOf(stored.color), robot);
 		player.restoreProgress(stored.energy, stored.checkpointsReached);
@@ -268,6 +274,7 @@ public final class GameStateCodec {
 		private List<String> activationOrder;
 		private int activated;
 		private StoredChoice choice;
+		private List<String> rebootsToFace;
 		private Map<String, Integer> damagePiles;
 		private StoredShop shop;
 		private List<StoredPlayer> players;
@@ -293,6 +300,7 @@ public final class GameStateCodec {
 		private int x;
 		private int y;
 		private String orientation;
+		private boolean rebooted;
 		private Integer startX;
 		private Integer startY;
 		private int energy;
