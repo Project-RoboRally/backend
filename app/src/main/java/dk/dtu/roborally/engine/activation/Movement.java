@@ -72,11 +72,11 @@ public final class Movement {
 		Board board = game.getBoard();
 		Vector2D to = player.getRobot().getCurrentSpace();
 		if (!board.isWithinBoard(to)) {
-			Reboot.reboot(game, player, from);
+			Reboot.reboot(game, player, true, from);
 			return true;
 		}
 		if (hasPit(board.getSpace(to))) {
-			Reboot.reboot(game, player, to);
+			Reboot.reboot(game, player, true, to);
 			return true;
 		}
 		return false;

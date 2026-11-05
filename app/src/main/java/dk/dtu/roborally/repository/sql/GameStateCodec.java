@@ -3,6 +3,7 @@ package dk.dtu.roborally.repository.sql;
 import com.google.gson.Gson;
 
 import dk.dtu.roborally.enums.ChoiceType;
+import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
@@ -71,6 +72,9 @@ public final class GameStateCodec {
 				types) -> stored.usedAtRegisterStart.put(id, names(types)));
 		stored.startDone = List.copyOf(round.getStartDone());
 		stored.turnDone = round.isTurnDone();
+		stored.hacked = round.isHacked();
+		stored.refreshedTo = round.getRefreshedTo().map(Enum::name)
+				.orElse(null);
 		stored.pickedUpgrade = round.getPickedUpgrade().map(Enum::name)
 				.orElse(null);
 		stored.programmingEndsAt = round.getTimer().getEndsAt()
@@ -137,6 +141,11 @@ public final class GameStateCodec {
 							: Set.copyOf(stored.startDone));
 		}
 		game.getCurrentRound().setTurnDone(stored.turnDone);
+		game.getCurrentRound().setHacked(stored.hacked);
+		if (stored.refreshedTo != null) {
+			game.getCurrentRound().setRefreshedTo(
+					CommandInstruction.valueOf(stored.refreshedTo));
+		}
 		if (stored.pickedUpgrade != null) {
 			game.getCurrentRound().setPickedUpgrade(
 					UpgradeType.valueOf(stored.pickedUpgrade));
@@ -334,6 +343,8 @@ public final class GameStateCodec {
 		private Map<String, List<String>> usedAtRegisterStart;
 		private List<String> startDone;
 		private boolean turnDone;
+		private boolean hacked;
+		private String refreshedTo;
 		private String pickedUpgrade;
 		private Long programmingEndsAt;
 		private Map<String, Integer> damagePiles;

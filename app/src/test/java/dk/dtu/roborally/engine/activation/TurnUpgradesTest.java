@@ -3,6 +3,7 @@ package dk.dtu.roborally.engine.activation;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -10,6 +11,7 @@ import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -98,6 +100,48 @@ class TurnUpgradesTest {
 		// Asked again on the next turn
 		assertEquals(ChoiceType.TURN_UPGRADE,
 				game.getCurrentRound().getPendingChoice().orElseThrow().type());
+	}
+
+	@Test
+	void hackPlaysTheCardTwice() {
+		ada.getUpgrades().install(UpgradeType.HACK, null);
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.TURN_UPGRADE, "HACK");
+
+		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void rebootUpgradeRebootsWithoutDamage() {
+		ada.getUpgrades().install(UpgradeType.REBOOT, null);
+		ada.getRobot().moveTo(new Vector2D(4, 4));
+		program(CommandInstruction.MOVE_1, CommandInstruction.MOVE_1);
+
+		answer(ChoiceType.TURN_UPGRADE, "REBOOT");
+		answer(ChoiceType.REBOOT_FACING, "SOUTH");
+
+		// Back on its start space, no SPAM, and the program was cancelled
+		assertEquals(new Vector2D(2, 2), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.SOUTH, ada.getRobot().getOrientation());
+		assertEquals(0, ada.getPlayerMat().getDiscardPile().stream()
+				.filter(card -> card.getName().equals("SPAM")).count());
+	}
+
+	@Test
+	void refreshPlaysAnotherCardAndThrowsOutADamageCard() {
+		ada.getUpgrades().install(UpgradeType.REFRESH, null);
+		program(CommandInstruction.POWER_UP, CommandInstruction.POWER_UP);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new DamageCard(DamageInstruction.SPAM));
+		int spam = game.getDamagePiles().size(DamageInstruction.SPAM);
+
+		answer(ChoiceType.TURN_UPGRADE, "REFRESH");
+		answer(ChoiceType.REFRESH_CARD, "MOVE_2");
+
+		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(spam + 1,
+				game.getDamagePiles().size(DamageInstruction.SPAM));
 	}
 
 	/** Runs activation to the given choice and answers it. */

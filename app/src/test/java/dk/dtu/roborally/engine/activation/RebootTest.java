@@ -37,7 +37,7 @@ class RebootTest {
 	void rebootingTakesTwoSpamAndGoesToTheTokenCoveringTheSpace() {
 		Player ada = player("ada", 1, 1, new Vector2D(0, 4));
 
-		Reboot.reboot(game(ada), ada, new Vector2D(2, 2));
+		Reboot.reboot(game(ada), ada, true, new Vector2D(2, 2));
 
 		assertEquals(new Vector2D(3, 0), ada.getRobot().getCurrentSpace());
 		assertTrue(ada.getRobot().isRebootedThisRound());
@@ -50,7 +50,7 @@ class RebootTest {
 	void fallingFromTheStartBoardGoesBackToTheStartSpace() {
 		Player ada = player("ada", 0, 4, new Vector2D(0, 4));
 
-		Reboot.reboot(game(ada), ada, new Vector2D(0, 4));
+		Reboot.reboot(game(ada), ada, true, new Vector2D(0, 4));
 
 		assertEquals(new Vector2D(0, 4), ada.getRobot().getCurrentSpace());
 	}
@@ -61,7 +61,7 @@ class RebootTest {
 		Player bob = player("bob", 3, 0, new Vector2D(1, 4));
 		Game both = game(ada, bob);
 
-		Reboot.reboot(both, ada, new Vector2D(1, 1));
+		Reboot.reboot(both, ada, true, new Vector2D(1, 1));
 
 		assertEquals(new Vector2D(3, 0), ada.getRobot().getCurrentSpace());
 		assertEquals(new Vector2D(3, 1), bob.getRobot().getCurrentSpace());
@@ -77,7 +77,7 @@ class RebootTest {
 		}
 		game.getCurrentRound().startRegister(2, List.of(ada.getId()));
 
-		Reboot.reboot(game, ada, new Vector2D(1, 1));
+		Reboot.reboot(game, ada, true, new Vector2D(1, 1));
 
 		assertEquals("MOVE_1",
 				ada.getPlayerMat().getRegisters().get(1).getCard().getName());

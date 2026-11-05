@@ -23,14 +23,18 @@ public final class Reboot {
 	}
 
 	/**
-	 * Reboots the robot like the rulebook says: take 2 SPAM, the rest of the
-	 * program is cancelled, and the robot goes on the reboot token covering the
-	 * space it fell from. Off the start board it goes back to its start space
-	 * instead. A robot already standing there gets pushed off in the token's
-	 * direction. The player picks a facing afterwards.
+	 * Reboots the robot like the rulebook says: take 2 SPAM (unless it was the
+	 * Reboot upgrade), the rest of the program is cancelled, and the robot goes
+	 * on the reboot token covering the space it fell from. Off the start board
+	 * it goes back to its start space instead. A robot already standing there
+	 * gets pushed off in the token's direction. The player picks a facing
+	 * afterwards.
 	 */
-	public static void reboot(Game game, Player player, Vector2D fellFrom) {
-		Damage.take(game, player, DamageInstruction.SPAM, DAMAGE);
+	public static void reboot(Game game, Player player, boolean takeDamage,
+			Vector2D fellFrom) {
+		if (takeDamage) {
+			Damage.take(game, player, DamageInstruction.SPAM, DAMAGE);
+		}
 		cancelProgram(game, player);
 
 		Optional<RebootPoint> token = game.getBoard()
