@@ -4,7 +4,7 @@ package dk.dtu.roborally.loaders;
  * This object is used to store and extract the loaded info from the levels via
  * the Config and other loaders
  *
- * @author Victor
+ * @author Victor, Sebastian
  */
 
 public class LevelData {
@@ -18,6 +18,7 @@ public class LevelData {
 	public PushPanelData[] push_panels;
 	public GearData[] gears;
 	public CheckpointData[] checkpoints;
+	public AntennaData antenna;
 
 	public static class SquareData {
 		public int x1;
@@ -84,6 +85,11 @@ public class LevelData {
 		public int x;
 		public int y;
 		public String rotation_direction;
+	}
+
+	public static class AntennaData {
+		public int x;
+		public int y;
 	}
 
 }
