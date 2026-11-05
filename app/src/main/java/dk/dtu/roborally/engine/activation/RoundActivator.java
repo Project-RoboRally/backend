@@ -268,6 +268,10 @@ public class RoundActivator {
 				move(player, game, instruction.steps(), log);
 			case MOVE_BACK -> moveBack(player, game, log);
 			case POWER_UP, ENERGY_ROUTINE -> player.addEnergy(1);
+			case SPAM_FOLDER -> player.getPlayerMat()
+					.removeFromDiscardPile(DamageInstruction.SPAM.name())
+					.ifPresent(spam -> game.getDamagePiles()
+							.giveBack((DamageCard) spam));
 			default -> throw new IllegalArgumentException(
 					"Cannot activate " + instruction);
 		}

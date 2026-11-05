@@ -10,11 +10,12 @@ import lombok.Getter;
  */
 @Getter
 public enum UpgradeType {
-	ENERGY_ROUTINE(3, CommandInstruction.ENERGY_ROUTINE), SPEED_ROUTINE(3,
-			CommandInstruction.SPEED_ROUTINE), REPEAT_ROUTINE(3,
-					CommandInstruction.REPEAT_ROUTINE), SANDBOX_ROUTINE(5,
-							CommandInstruction.SANDBOX_ROUTINE), WEASEL_ROUTINE(
-									3, CommandInstruction.WEASEL_ROUTINE);
+	ENERGY_ROUTINE(3, CommandInstruction.ENERGY_ROUTINE), // Extra Power Up
+	SPEED_ROUTINE(3, CommandInstruction.SPEED_ROUTINE), // Extra Move 3
+	REPEAT_ROUTINE(3, CommandInstruction.REPEAT_ROUTINE), // Extra Again
+	SANDBOX_ROUTINE(5, CommandInstruction.SANDBOX_ROUTINE), // Any move or turn
+	WEASEL_ROUTINE(3, CommandInstruction.WEASEL_ROUTINE), // Any turn
+	SPAM_FOLDER(2, CommandInstruction.SPAM_FOLDER); // Gets rid of a SPAM
 
 	private final int cost;
 	private final CommandInstruction routine;

@@ -177,6 +177,20 @@ class RoundActivatorTest {
 		assertEquals(Direction.WEST, ada.getRobot().getOrientation());
 	}
 
+	@Test
+	void spamFolderPutsOneSpamFromTheDiscardPileBack() {
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Game game = game(ada);
+		Damage.take(game, ada, DamageInstruction.SPAM, 2);
+		program(ada, CommandInstruction.SPAM_FOLDER,
+				CommandInstruction.POWER_UP);
+
+		activator.activate(game);
+
+		assertEquals(1, ada.getPlayerMat().getDiscardPile().size());
+		assertEquals(37, game.getDamagePiles().size(DamageInstruction.SPAM));
+	}
+
 	/** Sets the draw pile, the last card is on top. */
 	private static void deck(Player player, CommandInstruction... cards) {
 		List<ProgrammableCard> draw = new ArrayList<>();

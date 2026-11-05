@@ -37,7 +37,7 @@ public class PlayerMat {
 			CommandInstruction.AGAIN, CommandInstruction.ENERGY_ROUTINE,
 			CommandInstruction.SPEED_ROUTINE, CommandInstruction.REPEAT_ROUTINE,
 			CommandInstruction.SANDBOX_ROUTINE,
-			CommandInstruction.WEASEL_ROUTINE);
+			CommandInstruction.WEASEL_ROUTINE, CommandInstruction.SPAM_FOLDER);
 
 	private final CardDeck<ProgrammableCard> drawPile = new CardDeck<>();
 	private final List<ProgrammableCard> hand = new ArrayList<>();
@@ -118,6 +118,20 @@ public class PlayerMat {
 	/** Puts a new card in the discard pile, it now cycles like any other. */
 	public void addToDiscardPile(ProgrammableCard card) {
 		discardPile.add(Objects.requireNonNull(card));
+	}
+
+	/**
+	 * Takes a card with the given name out of the discard pile, if there is
+	 * one.
+	 */
+	public Optional<ProgrammableCard> removeFromDiscardPile(String name) {
+		for (ProgrammableCard card : discardPile) {
+			if (card.getName().equals(name)) {
+				discardPile.remove(card);
+				return Optional.of(card);
+			}
+		}
+		return Optional.empty();
 	}
 
 	/** Puts a card in the hand so it can be programmed. */
