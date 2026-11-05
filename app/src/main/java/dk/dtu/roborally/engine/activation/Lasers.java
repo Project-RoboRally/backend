@@ -7,6 +7,8 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.LaserEmitter;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -22,6 +24,7 @@ public final class Lasers {
 
 	public static void fire(Game game) {
 		fireBoardLasers(game);
+		fireRobotLasers(game);
 	}
 
 	/**
@@ -37,6 +40,24 @@ public final class Lasers {
 			hit.ifPresent(player -> Damage.take(game, player,
 					DamageInstruction.SPAM, laser.getDamage()));
 		}
+	}
+
+	/**
+	 * Every robot shoots straight ahead and the first robot in line takes one
+	 * SPAM. They all fire at once, so who shoots first does not matter. A robot
+	 * that rebooted this round can be hit but can not shoot.
+	 */
+	private static void fireRobotLasers(Game game) {
+		List<Player> hits = new ArrayList<>();
+		for (Player shooter : game.getPlayersInGame()) {
+			if (shooter.getRobot().isRebootedThisRound()) {
+				continue;
+			}
+			firstRobotHit(game, shooter.getRobot().getCurrentSpace(),
+					shooter.getRobot().getOrientation()).ifPresent(hits::add);
+		}
+		hits.forEach(
+				target -> Damage.take(game, target, DamageInstruction.SPAM, 1));
 	}
 
 	/**

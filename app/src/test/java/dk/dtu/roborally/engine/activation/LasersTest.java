@@ -70,6 +70,52 @@ class LasersTest {
 		assertEquals(0, spam(behindAntenna));
 	}
 
+	@Test
+	void robotsShootTheFirstRobotTheyFace() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		Player target = player("target", 2, Direction.NORTH);
+		Player behind = player("behind", 3, Direction.NORTH);
+
+		Lasers.fire(game(shooter, target, behind));
+
+		assertEquals(1, spam(target));
+		assertEquals(0, spam(behind));
+		assertEquals(0, spam(shooter));
+	}
+
+	@Test
+	void robotsFacingEachOtherBothGetHit() {
+		Player ada = player("ada", 1, Direction.EAST);
+		Player bob = player("bob", 4, Direction.WEST);
+
+		Lasers.fire(game(ada, bob));
+
+		assertEquals(1, spam(ada));
+		assertEquals(1, spam(bob));
+	}
+
+	@Test
+	void wallsStopRobotLasers() {
+		put(1, new Wall(new Vector2D(1, 0), Direction.EAST));
+		Player shooter = player("shooter", 0, Direction.EAST);
+		Player target = player("target", 3, Direction.NORTH);
+
+		Lasers.fire(game(shooter, target));
+
+		assertEquals(0, spam(target));
+	}
+
+	@Test
+	void aRebootedRobotCanNotShoot() {
+		Player shooter = player("shooter", 0, Direction.EAST);
+		Player target = player("target", 2, Direction.NORTH);
+		shooter.getRobot().reboot(new Vector2D(0, 0));
+
+		Lasers.fire(game(shooter, target));
+
+		assertEquals(0, spam(target));
+	}
+
 	private void put(int x, BoardElement element) {
 		spaces.get(new Vector2D(x, 0)).addBoardElement(element);
 	}
