@@ -98,6 +98,17 @@ public class PlayerMat {
 		}
 	}
 
+	/**
+	 * Takes the top card of the draw pile, shuffling the discard pile into it
+	 * first if it is empty. Empty when there are no cards left anywhere.
+	 */
+	public Optional<ProgrammableCard> drawTop() {
+		if (drawPile.isEmpty()) {
+			shuffleDiscardPileIntoDrawPile();
+		}
+		return drawPile.drawCard();
+	}
+
 	private void shuffleDiscardPileIntoDrawPile() {
 		discardPile.forEach(drawPile::addCard);
 		discardPile.clear();
@@ -200,6 +211,7 @@ public class PlayerMat {
 				discardPile.add(register.getCard());
 				register.setCard(null);
 			}
+			register.setDamaged(false);
 		}
 		submitted = false;
 	}

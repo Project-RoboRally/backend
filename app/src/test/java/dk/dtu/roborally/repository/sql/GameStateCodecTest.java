@@ -80,6 +80,7 @@ class GameStateCodecTest {
 	void keepsDamageCardsAndPileSizes() {
 		Player player = game.getPlayersInGame().iterator().next();
 		Damage.take(game, player, DamageInstruction.VIRUS, 2);
+		player.getPlayerMat().getRegisters().get(2).setDamaged(true);
 
 		Game loaded = reload();
 		Player same = loaded.getPlayersInGame().stream()

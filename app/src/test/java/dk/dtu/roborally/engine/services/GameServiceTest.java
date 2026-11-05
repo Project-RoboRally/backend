@@ -43,6 +43,8 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -270,15 +272,19 @@ class GameServiceTest {
 	}
 
 	@Test
-	void againWithNothingToRepeatThrowsDuringActivation() {
-		Player mover = player("ada", 0, 0, Direction.NORTH, PlayerColor.RED);
-		Game round = game(board(space(0, 0)), mover);
+	void againInRegisterOneIsSwappedForTheTopCard() {
+		Player mover = player("ada", 0, 1, Direction.NORTH, PlayerColor.RED);
+		Game round = game(board(space(0, 0), space(0, 1)), mover);
 		mover.getPlayerMat().getRegisters().get(0)
 				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
 
-		assertThrows(IllegalStateException.class,
-				() -> gameService.activateRound(round));
-		assertEquals(new Vector2D(0, 0), mover.getRobot().getCurrentSpace());
+		gameService.activateRound(round);
+
+		assertTrue(mover.getPlayerMat().getDiscardPile().stream()
+				.anyMatch(card -> card.getName().equals("AGAIN")));
+		assertNotNull(mover.getPlayerMat().getRegisters().get(0).getCard());
+		assertNotEquals("AGAIN",
+				mover.getPlayerMat().getRegisters().get(0).getCard().getName());
 	}
 
 	@Test
