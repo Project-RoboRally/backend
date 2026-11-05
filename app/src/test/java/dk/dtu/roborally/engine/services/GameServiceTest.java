@@ -44,8 +44,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -270,9 +268,11 @@ class GameServiceTest {
 		gameService.activateRound(round);
 
 		// The dish points north, so carol to the east comes before alice to
-		// the south. Carol moves to 1,1 and alice can not push her off
-		assertEquals(new Vector2D(1, 1), carol.getRobot().getCurrentSpace());
-		assertEquals(new Vector2D(0, 1), alice.getRobot().getCurrentSpace());
+		// the south. Carol moves to 1,1, then alice pushes her off the board
+		// and carol reboots back where she started
+		assertEquals(new Vector2D(1, 1), alice.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(1, 0), carol.getRobot().getCurrentSpace());
+		assertTrue(carol.getRobot().isRebootedThisRound());
 	}
 
 	@Test
@@ -289,15 +289,20 @@ class GameServiceTest {
 	void againInRegisterOneIsSwappedForTheTopCard() {
 		Player mover = player("ada", 0, 1, Direction.NORTH, PlayerColor.RED);
 		Game round = game(board(space(0, 0), space(0, 1)), mover);
-		mover.getPlayerMat().getRegisters().get(0)
-				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
+		List<ProgrammableCard> registers = new ArrayList<>();
+		registers.add(new ProgrammingCard(CommandInstruction.AGAIN));
+		for (int i = 1; i < 5; i++) {
+			registers.add(null);
+		}
+		mover.getPlayerMat().restore(
+				List.of(new ProgrammingCard(CommandInstruction.POWER_UP)),
+				List.of(), List.of(), registers, true);
 
 		gameService.activateRound(round);
 
 		assertTrue(mover.getPlayerMat().getDiscardPile().stream()
 				.anyMatch(card -> card.getName().equals("AGAIN")));
-		assertNotNull(mover.getPlayerMat().getRegisters().get(0).getCard());
-		assertNotEquals("AGAIN",
+		assertEquals("POWER_UP",
 				mover.getPlayerMat().getRegisters().get(0).getCard().getName());
 	}
 
@@ -318,7 +323,7 @@ class GameServiceTest {
 		Player mover = player("ada", 2, 0, Direction.EAST, PlayerColor.RED);
 		run(game(board(space(0, 0), space(1, 0), space(2, 0)), mover), List.of(
 				CommandInstruction.MOVE_BACK, CommandInstruction.MOVE_BACK,
-				CommandInstruction.MOVE_BACK, CommandInstruction.POWER_UP,
+				CommandInstruction.POWER_UP, CommandInstruction.POWER_UP,
 				CommandInstruction.POWER_UP));
 
 		assertEquals(new Vector2D(0, 0), mover.getRobot().getCurrentSpace());
@@ -463,8 +468,11 @@ class GameServiceTest {
 		skipUpgrades(lobby, started);
 		Map<String, Direction> before = facings(started);
 		int boardsBefore = boardLobbyIds.size();
-		List<CommandInstruction> august = fromHand(named(started, "August"));
-		List<CommandInstruction> alice = fromHand(named(started, "Alice"));
+		// Turns only, so nobody can fall off the board and stop the round
+		List<CommandInstruction> august = fromHand(
+				turnsOnly(named(started, "August")));
+		List<CommandInstruction> alice = fromHand(
+				turnsOnly(named(started, "Alice")));
 
 		assertFalse(gameService.submitProgram(lobby, "August", names(august)));
 		assertEquals(before, facings(started));
@@ -607,6 +615,23 @@ class GameServiceTest {
 			player.getPlayerMat().getRegisters().get(i)
 					.setCard(new ProgrammingCard(registers.get(i)));
 		}
+	}
+
+	/** Swaps the player's nine cards in hand for turns. */
+	private static Player turnsOnly(Player player) {
+		List<ProgrammableCard> turns = new ArrayList<>();
+		for (int i = 0; i < 9; i++) {
+			turns.add(new ProgrammingCard(i % 2 == 0
+					? CommandInstruction.RIGHT_TURN
+					: CommandInstruction.LEFT_TURN));
+		}
+		List<ProgrammableCard> registers = new ArrayList<>();
+		for (int i = 0; i < 5; i++) {
+			registers.add(null);
+		}
+		player.getPlayerMat().restore(player.getPlayerMat().getDrawPile(),
+				turns, List.of(), registers, false);
+		return player;
 	}
 
 	private static List<CommandInstruction> fromHand(Player player) {
