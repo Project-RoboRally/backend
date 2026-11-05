@@ -4,7 +4,6 @@ import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.services.GameService;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.engine.services.UserService;
-import dk.dtu.roborally.models.Server;
 import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
@@ -13,7 +12,7 @@ import lombok.Getter;
 /**
  * Game Engine entry point. Initializes from App.java
  *
- * @author Elias, Victor
+ * @author Elias, Victor, Sebastian
  */
 public class GameEngine {
 
@@ -27,8 +26,6 @@ public class GameEngine {
 	@Getter
 	private final LobbyService lobbyService;
 
-	private Server server;
-
 	public GameEngine(GameRepository gameRepository,
 			UserRepository userRepository, LobbyRepository lobbyRepository,
 			GameEventPublisher gameEventPublisher) {
@@ -38,7 +35,5 @@ public class GameEngine {
 		this.gameService = new GameService(gameRepository, gameEventPublisher);
 		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
 				gameService);
-
-		this.server = new Server();
 	}
 }

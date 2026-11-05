@@ -70,8 +70,4 @@ public class Game {
 	public void endUpgradeTurn() {
 		upgradeOrder.pollFirst();
 	}
-
-	public boolean start() {
-		return true;
-	}
 }
