@@ -8,6 +8,7 @@ import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
@@ -16,6 +17,7 @@ import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Register;
@@ -54,6 +56,13 @@ public final class GameStateCodec {
 		for (UpgradeCard card : game.getUpgradeShop().getCards()) {
 			stored.shop.forSale.add(card.getType().name());
 		}
+		Round round = game.getCurrentRound();
+		stored.register = round.getCurrentRegisterIndex().orElse(null);
+		stored.stage = round.getStage() == null
+				? null
+				: round.getStage().name();
+		stored.activationOrder = round.getActivationOrder();
+		stored.activated = round.getActivatedCount();
 		stored.players = new ArrayList<>();
 		for (Player player : game.getPlayersInGame()) {
 			stored.players.add(storePlayer(player));
@@ -86,6 +95,14 @@ public final class GameStateCodec {
 		if (stored.winnerPlayerId != null) {
 			game.setWinner(requirePlayer(playersById, stored.winnerPlayerId));
 		}
+		game.getCurrentRound().restoreActivation(stored.register,
+				stored.stage == null
+						? null
+						: RegisterStage.valueOf(stored.stage),
+				stored.activationOrder == null
+						? List.of()
+						: stored.activationOrder,
+				stored.activated);
 		game.getUpgradeShop().restore(types(stored.shop.deck),
 				types(stored.shop.discard), types(stored.shop.forSale));
 
@@ -218,6 +235,10 @@ public final class GameStateCodec {
 		private String phase;
 		private String winnerPlayerId;
 		private List<String> upgradeOrder;
+		private Integer register;
+		private String stage;
+		private List<String> activationOrder;
+		private int activated;
 		private StoredShop shop;
 		private List<StoredPlayer> players;
 	}
