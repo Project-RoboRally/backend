@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
-import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
@@ -26,7 +25,6 @@ import dk.dtu.roborally.models.player.Register;
 import dk.dtu.roborally.models.player.Robot;
 
 import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -91,8 +89,7 @@ public final class GameStateCodec {
 		}
 
 		Game game = new Game(lobby.getGameId(), board,
-				new HashSet<>(playersById.values()),
-				new EnumMap<>(DamageInstruction.class));
+				new HashSet<>(playersById.values()));
 		game.setGameStatus(GameStatus.valueOf(stored.status));
 		game.getCurrentRound().setCurrentPhase(Phase.valueOf(stored.phase));
 		if (stored.winnerPlayerId != null) {

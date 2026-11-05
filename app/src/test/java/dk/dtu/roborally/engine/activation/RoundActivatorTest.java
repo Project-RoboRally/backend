@@ -121,7 +121,7 @@ class RoundActivatorTest {
 				spaces.put(new Vector2D(x, y), new Space(new Vector2D(x, y)));
 			}
 		}
-		return new Game("game", new Board(spaces), Set.of(players), Map.of());
+		return new Game("game", new Board(spaces), Set.of(players));
 	}
 
 	private static Player player(String username, int x, int y,

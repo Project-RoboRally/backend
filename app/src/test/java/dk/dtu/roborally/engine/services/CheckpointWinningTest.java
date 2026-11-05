@@ -230,7 +230,7 @@ class CheckpointWinningTest {
 	}
 
 	private Game game(Board board, Player... players) {
-		Game game = new Game("test-game", board, Set.of(players), Map.of());
+		Game game = new Game("test-game", board, Set.of(players));
 		repository.add(game);
 		return game;
 	}
