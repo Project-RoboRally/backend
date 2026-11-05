@@ -19,19 +19,19 @@ import dk.dtu.roborally.models.board.elements.Wall;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 /**
- * This class loads the data from Level.java into the correct classes from the
- * objects folder
+ * Builds a board from a level file, placing every board element on the spaces
+ * it covers.
  *
  * @author Victor, Sebastian
  */
 
 public class LevelLoader {
 	public static Board load(String levelPath) {
-		// We need to load all the data into a board here.
-		// We just need to use the methods below to load everything correctly.
 		LevelData level = JsonLoader.loadLevel(levelPath);
 		if (level == null) {
 			throw new IllegalArgumentException(
@@ -43,84 +43,36 @@ public class LevelLoader {
 		}
 
 		Map<Vector2D, Space> spaceMap = new HashMap<>();
-		ArrayList<ConveyorBelt> cBelts = new ArrayList<>();
-		ArrayList<Wall> walls = new ArrayList<>();
-		ArrayList<LaserEmitter> laserEmitters = new ArrayList<>();
-		ArrayList<StartingPoint> startingPoints = new ArrayList<>();
-		ArrayList<Checkpoint> checkpoints = new ArrayList<>();
-		ArrayList<Gear> gears = new ArrayList<>();
-		ArrayList<PushPanel> pushPanels = new ArrayList<>();
-		ArrayList<Pit> pits = new ArrayList<>();
-		ArrayList<EnergySpace> energySpaces = new ArrayList<>();
-		// Load Tiles
-		for (int i = 0; i < level.squares.length; i++) {
-			createSpaces(level.squares[i], spaceMap);
+
+		for (LevelData.SquareData square : level.squares) {
+			createSpaces(square, spaceMap);
 		}
-		// Make board from the tiles
-		Board board = new Board(spaceMap);
-		// Load belts
-		if (level.belts != null) {
-			for (int i = 0; i < level.belts.length; i++) {
-				cBelts.add(createConveyorBelt(level.belts[i], spaceMap));
-			}
-		}
-		// Load Walls
-		if (level.walls != null) {
-			for (int i = 0; i < level.walls.length; i++) {
-				createWalls(level.walls[i], walls, spaceMap);
-			}
-		}
-		// Load LaserEmitters
-		if (level.laser_emitters != null) {
-			for (int i = 0; i < level.laser_emitters.length; i++) {
-				laserEmitters.add(
-						createLaserEmitter(level.laser_emitters[i], spaceMap));
-			}
-		}
-		// Load StartingPoints
-		if (level.start_points != null) {
-			for (int i = 0; i < level.start_points.length; i++) {
-				startingPoints.add(
-						createStartingPoint(level.start_points[i], spaceMap));
-			}
-		}
-		// Load Checkpoints
-		if (level.checkpoints != null) {
-			for (int i = 0; i < level.checkpoints.length; i++) {
-				checkpoints
-						.add(createCheckpoint(level.checkpoints[i], spaceMap));
-			}
-		}
-		// Load Gears
-		if (level.gears != null) {
-			for (int i = 0; i < level.gears.length; i++) {
-				gears.add(createGear(level.gears[i], spaceMap));
-			}
-		}
-		// Load Push Panels
-		if (level.push_panels != null) {
-			for (int i = 0; i < level.push_panels.length; i++) {
-				pushPanels.add(createPushPanel(level.push_panels[i], spaceMap));
-			}
-		}
-		// Load Pits
-		if (level.pits != null) {
-			for (int i = 0; i < level.pits.length; i++) {
-				createPits(level.pits[i], pits, spaceMap);
-			}
-		}
-		// Load EnergySpaces
-		if (level.energy_spaces != null) {
-			for (int i = 0; i < level.energy_spaces.length; i++) {
-				energySpaces.add(
-						createEnergySpace(level.energy_spaces[i], spaceMap));
-			}
-		}
-		// Load Antenna
+		// Everything but the squares is optional in a level file
+		each(level.belts, belt -> createConveyorBelt(belt, spaceMap));
+		each(level.walls, wall -> createWalls(wall, spaceMap));
+		each(level.laser_emitters,
+				laser -> createLaserEmitter(laser, spaceMap));
+		each(level.start_points, point -> createStartingPoint(point, spaceMap));
+		each(level.checkpoints,
+				checkpoint -> createCheckpoint(checkpoint, spaceMap));
+		each(level.gears, gear -> createGear(gear, spaceMap));
+		each(level.push_panels, panel -> createPushPanel(panel, spaceMap));
+		each(level.pits, pit -> createPits(pit, spaceMap));
+		each(level.energy_spaces,
+				energySpace -> createEnergySpace(energySpace, spaceMap));
 		if (level.antenna != null) {
 			createPriorityAntenna(level.antenna, spaceMap);
 		}
-		return board;
+		return new Board(spaceMap);
+	}
+
+	private static <T> void each(T[] items, Consumer<T> create) {
+		if (items == null) {
+			return;
+		}
+		for (T item : items) {
+			create.accept(item);
+		}
 	}
 
 	public static Space getSpaceAt(Map<Vector2D, Space> spaceMap,
@@ -150,47 +102,20 @@ public class LevelLoader {
 		throw new IllegalArgumentException("Invalid " + field + ": " + value);
 	}
 
-	private static ConveyorBelt createConveyorBelt(LevelData.BeltData belt,
+	private static void createConveyorBelt(LevelData.BeltData belt,
 			Map<Vector2D, Space> spaceMap) {
 		ConveyorBeltType cbt = parse(ConveyorBeltType.class, belt.type,
 				"conveyor belt type");
 
 		Direction dir = parse(Direction.class, belt.direction,
 				"conveyor belt direction");
-		ConveyorBelt cb = new ConveyorBelt(new Vector2D(belt.x, belt.y),
-				belt.length, dir, cbt);
-		switch (dir) {
-			case Direction.NORTH : // we need to change this if the frontenders
-									// are using negative Y as down
-				for (int i = belt.y; i > belt.y - belt.length; i--) {
-					getSpaceAt(spaceMap, new Vector2D(belt.x, i))
-							.addBoardElement(cb);
-				}
-				break;
-
-			case Direction.SOUTH : // we need to change this if the frontenders
-									// are using negative Y as down
-				for (int i = belt.y; i < belt.y + belt.length; i++) {
-					getSpaceAt(spaceMap, new Vector2D(belt.x, i))
-							.addBoardElement(cb);
-				}
-				break;
-
-			case Direction.WEST :
-				for (int i = belt.x; i > belt.x - belt.length; i--) {
-					getSpaceAt(spaceMap, new Vector2D(i, belt.y))
-							.addBoardElement(cb);
-				}
-				break;
-
-			case Direction.EAST :
-				for (int i = belt.x; i < belt.x + belt.length; i++) {
-					getSpaceAt(spaceMap, new Vector2D(i, belt.y))
-							.addBoardElement(cb);
-				}
-				break;
+		Vector2D position = new Vector2D(belt.x, belt.y);
+		ConveyorBelt cb = new ConveyorBelt(position, belt.length, dir, cbt);
+		// One belt object covers every space it runs over
+		for (int i = 0; i < belt.length; i++) {
+			getSpaceAt(spaceMap, position).addBoardElement(cb);
+			position = position.add(dir.step());
 		}
-		return cb;
 	}
 
 	private static void createSpaces(LevelData.SquareData square,
@@ -210,37 +135,26 @@ public class LevelLoader {
 	}
 
 	private static void createWalls(LevelData.WallData wall,
-			ArrayList<Wall> wallList, Map<Vector2D, Space> spaceMap) {
+			Map<Vector2D, Space> spaceMap) {
 		Direction dir = parse(Direction.class, wall.direction,
 				"wall direction");
-		// Make connected walls
-		int minX = Math.min(wall.x1, wall.x2);
-		int maxX = Math.max(wall.x1, wall.x2);
-
-		int minY = Math.min(wall.y1, wall.y2);
-		int maxY = Math.max(wall.y1, wall.y2);
-
-		for (int x = minX; x <= maxX; x++) {
-			for (int y = minY; y <= maxY; y++) {
-				Wall w = new Wall(new Vector2D(x, y), dir);
-				getSpaceAt(spaceMap, w.getPosition()).addBoardElement(w);
-				wallList.add(w);
-			}
+		for (Vector2D position : area(wall.x1, wall.y1, wall.x2, wall.y2)) {
+			getSpaceAt(spaceMap, position)
+					.addBoardElement(new Wall(position, dir));
 		}
 	}
 
-	private static LaserEmitter createLaserEmitter(LevelData.LaserData laser,
+	private static void createLaserEmitter(LevelData.LaserData laser,
 			Map<Vector2D, Space> spaceMap) {
 		Direction dir = parse(Direction.class, laser.direction,
 				"laser direction");
 		LaserEmitter le = new LaserEmitter(new Vector2D(laser.x, laser.y), dir,
 				laser.amount);
 		getSpaceAt(spaceMap, le.getPosition()).addBoardElement(le);
-		return le;
 	}
 
-	private static StartingPoint createStartingPoint(
-			LevelData.StartingPointData stp, Map<Vector2D, Space> spaceMap) {
+	private static void createStartingPoint(LevelData.StartingPointData stp,
+			Map<Vector2D, Space> spaceMap) {
 
 		Direction orientation = parse(Direction.class, stp.orientation,
 				"starting orientation");
@@ -250,17 +164,14 @@ public class LevelLoader {
 
 		getSpaceAt(spaceMap, startPoint.getPosition())
 				.addBoardElement(startPoint);
-
-		return startPoint;
 	}
 
-	private static Checkpoint createCheckpoint(LevelData.CheckpointData cp,
+	private static void createCheckpoint(LevelData.CheckpointData cp,
 			Map<Vector2D, Space> spaceMap) {
 		Checkpoint checkpoint = new Checkpoint(new Vector2D(cp.x, cp.y),
 				cp.number);
 		getSpaceAt(spaceMap, checkpoint.getPosition())
 				.addBoardElement(checkpoint);
-		return checkpoint;
 	}
 
 	private static void createPriorityAntenna(LevelData.AntennaData antenna,
@@ -269,49 +180,46 @@ public class LevelLoader {
 				.addBoardElement(new PriorityAntenna());
 	}
 
-	private static Gear createGear(LevelData.GearData gear,
+	private static void createGear(LevelData.GearData gear,
 			Map<Vector2D, Space> spaceMap) {
 		RotationDirection rd = parse(RotationDirection.class,
 				gear.rotation_direction, "gear rotation direction");
 		Gear g = new Gear(new Vector2D(gear.x, gear.y), rd);
 		getSpaceAt(spaceMap, g.getPosition()).addBoardElement(g);
-		return g;
 	}
 
-	private static PushPanel createPushPanel(LevelData.PushPanelData pPanel,
+	private static void createPushPanel(LevelData.PushPanelData pPanel,
 			Map<Vector2D, Space> spaceMap) {
 		Direction dir = parse(Direction.class, pPanel.push_direction,
 				"push panel push direction");
 		PushPanel pp = new PushPanel(new Vector2D(pPanel.x, pPanel.y), dir);
 		getSpaceAt(spaceMap, pp.getPosition()).addBoardElement(pp);
-		return pp;
 	}
 
 	private static void createPits(LevelData.PitData pit,
-			ArrayList<Pit> pitList, Map<Vector2D, Space> spaceMap) {
-		// Make connected walls
-		int minX = Math.min(pit.x1, pit.x2);
-		int maxX = Math.max(pit.x1, pit.x2);
-
-		int minY = Math.min(pit.y1, pit.y2);
-		int maxY = Math.max(pit.y1, pit.y2);
-
-		for (int x = minX; x <= maxX; x++) {
-			for (int y = minY; y <= maxY; y++) {
-				Pit p = new Pit(new Vector2D(x, y));
-				getSpaceAt(spaceMap, p.getPosition()).addBoardElement(p);
-				pitList.add(p);
-			}
+			Map<Vector2D, Space> spaceMap) {
+		for (Vector2D position : area(pit.x1, pit.y1, pit.x2, pit.y2)) {
+			getSpaceAt(spaceMap, position).addBoardElement(new Pit(position));
 		}
 	}
 
-	private static EnergySpace createEnergySpace(LevelData.EnergySpaceData esp,
+	/** Every position in the rectangle between two corners, both included. */
+	private static List<Vector2D> area(int x1, int y1, int x2, int y2) {
+		List<Vector2D> positions = new ArrayList<>();
+		for (int x = Math.min(x1, x2); x <= Math.max(x1, x2); x++) {
+			for (int y = Math.min(y1, y2); y <= Math.max(y1, y2); y++) {
+				positions.add(new Vector2D(x, y));
+			}
+		}
+		return positions;
+	}
+
+	private static void createEnergySpace(LevelData.EnergySpaceData esp,
 			Map<Vector2D, Space> spaceMap) {
 		EnergySpace energySpace = new EnergySpace(new Vector2D(esp.x, esp.y),
 				esp.energy_cubes);
 		getSpaceAt(spaceMap, energySpace.getPosition())
 				.addBoardElement(energySpace);
-		return energySpace;
 	}
 
 }
