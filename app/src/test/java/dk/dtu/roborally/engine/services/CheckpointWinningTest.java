@@ -140,6 +140,7 @@ class CheckpointWinningTest {
 		assertFalse(alice.getPlayerMat().isSubmitted());
 		assertEquals(new Vector2D(1, 0), alice.getRobot().getCurrentSpace());
 		assertEquals(1, alice.getCheckpointsReached());
+		assertEquals(Phase.ENDED, game.getCurrentRound().getCurrentPhase());
 	}
 
 	@Test
