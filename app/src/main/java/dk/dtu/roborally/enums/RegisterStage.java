@@ -6,5 +6,5 @@ package dk.dtu.roborally.enums;
  * @author Sebastian
  */
 public enum RegisterStage {
-	CARDS, BOARD_ELEMENTS, LASERS, END_OF_REGISTER
+	START, CARDS, BOARD_ELEMENTS, LASERS, END_OF_REGISTER
 }

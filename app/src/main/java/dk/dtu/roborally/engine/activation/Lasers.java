@@ -13,7 +13,8 @@ import java.util.Optional;
 
 /**
  * Fires the lasers after the board elements. A laser hits the first robot in
- * its line and goes no further. Walls and the priority antenna stop it.
+ * its line and goes no further. Walls and the priority antenna stop it, and a
+ * Deflector Shield stops robot lasers.
  *
  * @author Sebastian
  */
@@ -56,8 +57,11 @@ public final class Lasers {
 			firstRobotHit(game, shooter.getRobot().getCurrentSpace(),
 					shooter.getRobot().getOrientation()).ifPresent(hits::add);
 		}
-		hits.forEach(
-				target -> Damage.take(game, target, DamageInstruction.SPAM, 1));
+		for (Player target : hits) {
+			if (!game.getCurrentRound().isShielded(target.getId())) {
+				Damage.take(game, target, DamageInstruction.SPAM, 1);
+			}
+		}
 	}
 
 	/**

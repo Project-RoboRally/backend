@@ -1,13 +1,19 @@
 package dk.dtu.roborally.models.game;
 
+import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.RegisterStage;
+import dk.dtu.roborally.enums.UpgradeType;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Represents an active or ended round
@@ -38,6 +44,24 @@ public class Round {
 
 	private PendingChoice choice;
 	private String answer;
+
+	/** Upgrades each player used at the start of this register. */
+	private final Map<String, List<UpgradeType>> usedAtRegisterStart = new HashMap<>();
+	/** Players who are done picking upgrades at the start of this register. */
+	private final Set<String> startDone = new HashSet<>();
+
+	/** Whether the player whose turn it is has finished using upgrades. */
+	@Getter
+	@Setter
+	private boolean turnDone;
+	/** A turn upgrade that was picked and still needs its direction. */
+	private UpgradeType pickedUpgrade;
+	/** Hack was used this turn, the card gets played twice. */
+	@Getter
+	@Setter
+	private boolean hacked;
+	/** Refresh changed this turn's card to this. */
+	private CommandInstruction refreshedTo;
 
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
@@ -75,6 +99,68 @@ public class Round {
 		activated = 0;
 	}
 
+	/**
+	 * Starts a register with the upgrades asked about first. The order is set
+	 * once everyone has answered, see {@link #setActivationOrder}.
+	 */
+	public void beginRegister(int register) {
+		startRegister(register, List.of());
+		stage = RegisterStage.START;
+		usedAtRegisterStart.clear();
+		startDone.clear();
+	}
+
+	/** Sets who goes in what order this register, and the cards can start. */
+	public void setActivationOrder(List<String> order) {
+		activationOrder.clear();
+		activationOrder.addAll(order);
+		activated = 0;
+		stage = RegisterStage.CARDS;
+	}
+
+	public void useAtRegisterStart(String playerId, UpgradeType type) {
+		usedAtRegisterStart
+				.computeIfAbsent(playerId, ignored -> new ArrayList<>())
+				.add(type);
+	}
+
+	public List<UpgradeType> getUsedAtRegisterStart(String playerId) {
+		return List
+				.copyOf(usedAtRegisterStart.getOrDefault(playerId, List.of()));
+	}
+
+	public Map<String, List<UpgradeType>> getUsedAtRegisterStart() {
+		return Map.copyOf(usedAtRegisterStart);
+	}
+
+	public void markStartDone(String playerId) {
+		startDone.add(playerId);
+	}
+
+	public boolean isStartDone(String playerId) {
+		return startDone.contains(playerId);
+	}
+
+	public Set<String> getStartDone() {
+		return Set.copyOf(startDone);
+	}
+
+	/** Whether the player put up a Deflector Shield this register. */
+	public boolean isShielded(String playerId) {
+		return getUsedAtRegisterStart(playerId)
+				.contains(UpgradeType.DEFLECTOR_SHIELD);
+	}
+
+	/** Puts back the register start upgrades loaded from storage. */
+	public void restoreRegisterStart(Map<String, List<UpgradeType>> used,
+			Set<String> done) {
+		usedAtRegisterStart.clear();
+		used.forEach((id, types) -> usedAtRegisterStart.put(id,
+				new ArrayList<>(types)));
+		startDone.clear();
+		startDone.addAll(done);
+	}
+
 	public List<String> getActivationOrder() {
 		return List.copyOf(activationOrder);
 	}
@@ -89,6 +175,26 @@ public class Round {
 
 	public void markActivated() {
 		activated++;
+		turnDone = false;
+		pickedUpgrade = null;
+		hacked = false;
+		refreshedTo = null;
+	}
+
+	public Optional<CommandInstruction> getRefreshedTo() {
+		return Optional.ofNullable(refreshedTo);
+	}
+
+	public void setRefreshedTo(CommandInstruction instruction) {
+		refreshedTo = instruction;
+	}
+
+	public Optional<UpgradeType> getPickedUpgrade() {
+		return Optional.ofNullable(pickedUpgrade);
+	}
+
+	public void setPickedUpgrade(UpgradeType type) {
+		pickedUpgrade = type;
 	}
 
 	public int getActivatedCount() {

@@ -3,6 +3,7 @@ package dk.dtu.roborally.repository.sql;
 import com.google.gson.Gson;
 
 import dk.dtu.roborally.enums.ChoiceType;
+import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
@@ -66,6 +67,16 @@ public final class GameStateCodec {
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
 		stored.rebootsToFace = round.getRebootsToFace();
+		stored.usedAtRegisterStart = new HashMap<>();
+		round.getUsedAtRegisterStart().forEach((id,
+				types) -> stored.usedAtRegisterStart.put(id, names(types)));
+		stored.startDone = List.copyOf(round.getStartDone());
+		stored.turnDone = round.isTurnDone();
+		stored.hacked = round.isHacked();
+		stored.refreshedTo = round.getRefreshedTo().map(Enum::name)
+				.orElse(null);
+		stored.pickedUpgrade = round.getPickedUpgrade().map(Enum::name)
+				.orElse(null);
 		stored.programmingEndsAt = round.getTimer().getEndsAt()
 				.map(Instant::toEpochMilli).orElse(null);
 		stored.energyCubes = new HashMap<>();
@@ -119,6 +130,25 @@ public final class GameStateCodec {
 		if (stored.programmingEndsAt != null) {
 			game.getCurrentRound().getTimer()
 					.restore(Instant.ofEpochMilli(stored.programmingEndsAt));
+		}
+		if (stored.usedAtRegisterStart != null) {
+			Map<String, List<UpgradeType>> used = new HashMap<>();
+			stored.usedAtRegisterStart
+					.forEach((id, names) -> used.put(id, types(names)));
+			game.getCurrentRound().restoreRegisterStart(used,
+					stored.startDone == null
+							? Set.of()
+							: Set.copyOf(stored.startDone));
+		}
+		game.getCurrentRound().setTurnDone(stored.turnDone);
+		game.getCurrentRound().setHacked(stored.hacked);
+		if (stored.refreshedTo != null) {
+			game.getCurrentRound().setRefreshedTo(
+					CommandInstruction.valueOf(stored.refreshedTo));
+		}
+		if (stored.pickedUpgrade != null) {
+			game.getCurrentRound().setPickedUpgrade(
+					UpgradeType.valueOf(stored.pickedUpgrade));
 		}
 		if (stored.rebootsToFace != null) {
 			game.getCurrentRound().restoreRebootsToFace(stored.rebootsToFace);
@@ -310,6 +340,12 @@ public final class GameStateCodec {
 		private int activated;
 		private StoredChoice choice;
 		private List<String> rebootsToFace;
+		private Map<String, List<String>> usedAtRegisterStart;
+		private List<String> startDone;
+		private boolean turnDone;
+		private boolean hacked;
+		private String refreshedTo;
+		private String pickedUpgrade;
 		private Long programmingEndsAt;
 		private Map<String, Integer> damagePiles;
 		private Map<String, Integer> energyCubes;

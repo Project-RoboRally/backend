@@ -101,6 +101,10 @@ public class RoundActivator {
 		Round round = game.getCurrentRound();
 		int register = round.getCurrentRegisterIndex().orElseThrow();
 		switch (round.getStage()) {
+			case START -> {
+				// Sets the order and moves on to the cards once all answered
+				RegisterUpgrades.ask(game);
+			}
 			case CARDS -> {
 				Optional<String> next = round.getNextToActivate();
 				if (next.isEmpty()) {
@@ -133,8 +137,7 @@ public class RoundActivator {
 	}
 
 	private void startRegister(Game game, int register) {
-		game.getCurrentRound().startRegister(register,
-				Priority.order(game).stream().map(Player::getId).toList());
+		game.getCurrentRound().beginRegister(register);
 	}
 
 	/**
@@ -142,15 +145,35 @@ public class RoundActivator {
 	 * waits on the player choosing an action, nothing has happened yet then.
 	 */
 	private boolean activateCard(Game game, Player player, int register) {
+		if (!TurnUpgrades.ask(game, player)) {
+			return false;
+		}
+		Round round = game.getCurrentRound();
 		Register slot = player.getPlayerMat().getRegisters().get(register);
-		while (mustBeReplaced(player, register)) {
-			replaceCard(game, player, slot);
+		Optional<CommandInstruction> refreshed = round.getRefreshedTo();
+		CommandInstruction instruction;
+		ProgrammableCard card;
+		if (refreshed.isPresent()) {
+			// Refresh swapped the programming for this register
+			card = new ProgrammingCard(refreshed.get());
+			instruction = refreshed.get().repeatsPreviousRegister()
+					? previousInstruction(player, register)
+					: refreshed.get();
+			if (instruction == null) {
+				return true;
+			}
+		} else {
+			while (mustBeReplaced(player, register)) {
+				replaceCard(game, player, slot);
+			}
+			if (slot.getCard() == null) {
+				// Nothing left in the deck, or the robot rebooted
+				return true;
+			}
+			// Taken first, a reboot during the move empties the register
+			card = slot.getCard();
+			instruction = resolveInstruction(player, register);
 		}
-		if (slot.getCard() == null) {
-			// Nothing left in the deck to replace the card with
-			return true;
-		}
-		CommandInstruction instruction = resolveInstruction(player, register);
 		if (!instruction.actionsToChooseFrom().isEmpty()) {
 			Optional<CommandInstruction> chosen = chooseAction(game, player,
 					instruction);
@@ -159,14 +182,21 @@ public class RoundActivator {
 			}
 			instruction = chosen.get();
 		}
-		ActivationLog log = game.getCurrentRound().getLog();
+		ActivationLog log = round.getLog();
 		int firstStep = log.stepCount();
-		// Taken first, a reboot during the move empties the register
-		ProgrammableCard card = slot.getCard();
 		execute(instruction, player, game, log);
+		if (round.isHacked() && !player.getRobot().isRebootedThisRound()) {
+			execute(instruction, player, game, log);
+		}
 		log.addCard(register, new PlayedCard(player.getUser().getUsername(),
 				card, firstStep, log.stepCount() - firstStep));
 		return true;
+	}
+
+	/** What an Again from Refresh repeats, null in register 1. */
+	private CommandInstruction previousInstruction(Player player,
+			int register) {
+		return register == 0 ? null : resolveInstruction(player, register - 1);
 	}
 
 	/**
@@ -228,7 +258,7 @@ public class RoundActivator {
 					}
 				}
 			}
-			case WORM -> Reboot.reboot(game, player,
+			case WORM -> Reboot.reboot(game, player, true,
 					player.getRobot().getCurrentSpace());
 			case SPAM -> {
 				// SPAM only clogs up the deck
