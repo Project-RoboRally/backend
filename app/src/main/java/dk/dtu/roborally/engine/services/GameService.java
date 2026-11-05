@@ -355,10 +355,10 @@ public class GameService {
 
 	private boolean wallBlocks(Board board, Vector2D from, Vector2D to,
 			Direction direction) {
-		if (hasWall(board.getSpace(from.x(), from.y()), direction)) {
+		if (hasWall(board.getSpace(from), direction)) {
 			return true;
 		}
-		return hasWall(board.getSpace(to.x(), to.y()), direction.uTurn());
+		return hasWall(board.getSpace(to), direction.uTurn());
 	}
 
 	private boolean hasWall(Space space, Direction side) {
@@ -384,14 +384,10 @@ public class GameService {
 	}
 
 	private Vector2D antennaPosition(Board board) {
-		for (Space space : board.getSpaceMap().values()) {
-			for (BoardElement element : space.getBoardElements()) {
-				if (element instanceof PriorityAntenna) {
-					return space.getPosition();
-				}
-			}
-		}
-		return null;
+		return board.getSpaceMap().values().stream()
+				.filter(space -> space.getBoardElements().stream()
+						.anyMatch(PriorityAntenna.class::isInstance))
+				.map(Space::getPosition).findFirst().orElse(null);
 	}
 
 	/**
@@ -406,21 +402,12 @@ public class GameService {
 	}
 
 	/**
-	 * Counts the checkpoints on the board.
-	 */
-	private int checkpointCount(Board board) {
-		return (int) board.getSpaceMap().values().stream()
-				.flatMap(space -> space.getBoardElements().stream())
-				.filter(element -> element instanceof Checkpoint).count();
-	}
-
-	/**
 	 * Awards checkpoints in numbered order based on robot positions after a
 	 * register. Records the first winner in the supplied player order, finishes
 	 * the game, and publishes the updated status.
 	 */
 	private void evaluateCheckpoints(Game game, List<Player> players) {
-		int total = checkpointCount(game.getBoard());
+		int total = game.getBoard().getElements(Checkpoint.class).size();
 
 		if (total == 0) {
 			return;
@@ -428,7 +415,7 @@ public class GameService {
 
 		for (Player player : players) {
 			Vector2D position = player.getRobot().getCurrentSpace();
-			Space space = game.getBoard().getSpace(position.x(), position.y());
+			Space space = game.getBoard().getSpace(position);
 
 			if (space == null) {
 				continue;
