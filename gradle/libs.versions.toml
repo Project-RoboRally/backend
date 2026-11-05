@@ -7,6 +7,7 @@ junit = "4.13.2"
 lombok = "1.18.48"
 gson = "2.14.0"
 spring-boot = "4.1.1"
+bouncycastle = "1.80"
 
 [libraries]
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -16,6 +17,8 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 spring-boot-bom = { module = "org.springframework.boot:spring-boot-dependencies", version.ref = "spring-boot" }
 spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-boot-starter-websocket = { module = "org.springframework.boot:spring-boot-starter-websocket" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+bouncycastle-provider = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
 junit-vintage-engine = { module = "org.junit.vintage:junit-vintage-engine" }

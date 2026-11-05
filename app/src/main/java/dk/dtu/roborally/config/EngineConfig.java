@@ -1,5 +1,11 @@
 package dk.dtu.roborally.config;
 
+import java.nio.file.Path;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 import dk.dtu.roborally.engine.GameEngine;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.services.GameService;
@@ -11,8 +17,6 @@ import dk.dtu.roborally.repository.UserRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryLobbyRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryUserRepository;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class EngineConfig {
@@ -23,8 +27,9 @@ public class EngineConfig {
 	}
 
 	@Bean
-	public UserRepository userRepository() {
-		return new InMemoryUserRepository();
+	public UserRepository userRepository(
+			@Value("${app.user-store:./data/users.json}") String userStore) {
+		return new InMemoryUserRepository(Path.of(userStore));
 	}
 
 	@Bean

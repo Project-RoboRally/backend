@@ -1,6 +1,8 @@
 package dk.dtu.roborally.websocket;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -13,16 +15,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * {@code /app} (routed to {@code @MessageMapping} controllers), and subscribe
  * to {@code /game/...} destinations to receive broadcasts.
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Anton
  */
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
+	@Value("${app.cors.allowed-origin-patterns}")
+	private String[] allowedOriginPatterns;
+
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
-		// TODO: restrict allowed origins once the frontend's origin is known.
-		registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+		registry.addEndpoint("/ws").setAllowedOriginPatterns(allowedOriginPatterns)
+				.withSockJS();
 	}
 
 	@Override
@@ -33,5 +38,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 															// application
 															// destination
 															// prefix to /app
+	}
+
+	@Override
+	public void configureClientInboundChannel(
+			ChannelRegistration registration) {
+		registration.interceptors(new PlayerStateSubscriptionInterceptor());
 	}
 }

@@ -99,6 +99,7 @@ out/
 
 ### NetBeans ###
 /nbproject/private/
+/app/data/
 /nbbuild/
 /dist/
 /nbdist/

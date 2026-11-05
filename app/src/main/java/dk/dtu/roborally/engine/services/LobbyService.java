@@ -1,9 +1,11 @@
 package dk.dtu.roborally.engine.services;
 
+import java.util.List;
+
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.enums.CommandInstruction;
-import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
@@ -13,13 +15,11 @@ import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.JsonLoader;
-import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
-
-import java.util.List;
 
 public class LobbyService {
 	private final LobbyRepository lobbyRepository;
@@ -40,14 +40,17 @@ public class LobbyService {
 	}
 
 	public GameLobby createLobby(CreateLobbyDTO payload) {
+		return createLobby(payload, payload.username());
+	}
+
+	public GameLobby createLobby(CreateLobbyDTO payload, String username) {
 		validateLobbyName(payload.name());
 
-		User owner = userRepository.getByUsername(payload.username())
-				.orElseThrow(() -> new LobbyCreatorNotFoundOnCreate(
-						payload.username()));
+		User owner = userRepository.getByUsername(username)
+				.orElseThrow(() -> new LobbyCreatorNotFoundOnCreate(username));
 
 		if (userInLobby(owner.getUsername()))
-			throw new LobbyUserAlreadyInLobby(payload.username());
+			throw new LobbyUserAlreadyInLobby(username);
 
 		GameLobby lobby = new GameLobby(config, payload.name(), owner);
 		lobbyRepository.add(lobby);
@@ -98,8 +101,12 @@ public class LobbyService {
 		return lobby;
 	}
 
-	public GameLobby renameLobby(String id, String name) {
+	public GameLobby renameLobby(String id, String name, String username) {
 		GameLobby lobby = getLobby(id);
+
+		if (lobby.getLobbyOwner() == null
+				|| !lobby.getLobbyOwner().getUsername().equals(username))
+			throw new NotAuthorizedException(username);
 
 		validateLobbyName(name);
 		lobby.setLobbyName(name);

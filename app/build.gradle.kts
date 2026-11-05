@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.websocket)
+    implementation(libs.spring.boot.starter.security)
+    implementation(libs.bouncycastle.provider)
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

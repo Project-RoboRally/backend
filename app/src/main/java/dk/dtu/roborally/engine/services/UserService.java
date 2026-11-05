@@ -2,17 +2,23 @@ package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.repository.UserRepository;
+import dk.dtu.roborally.exceptions.auth.LoginException;
+import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
  * Service for all user logic
  *
- * @author Elias
+ * @author Elias, Anton
  */
 public class UserService {
 
 	private final UserRepository userRepository;
+	private final PasswordEncoder passwordEncoder = Argon2PasswordEncoder
+			.defaultsForSpringSecurity_v5_8();
 
 	public UserService(UserRepository userRepository) {
 		this.userRepository = userRepository;
@@ -25,38 +31,25 @@ public class UserService {
 		return userRepository.getByUsername(username);
 	}
 
-	/**
-	 * Returns the active user for this username, creating one when the server
-	 * does not have them yet. Logging in again with the same username restores
-	 * the same user after a restart.
-	 */
-	public User ensureUser(String username) {
+	public User register(String username, String password) {
 		validateUsername(username);
+		validatePassword(password);
 
-		Optional<User> existing = userRepository.getByUsername(username);
-		if (existing.isPresent())
-			return existing.get();
-
-		User user = new User(username);
+		User user = new User(username, passwordEncoder.encode(password));
 		if (!userRepository.add(user)) {
-			return userRepository.getByUsername(username)
-					.orElseThrow(() -> new IllegalStateException(
-							"user could not be created"));
+			throw new IllegalStateException("username already taken");
 		}
-
 		return user;
 	}
 
-	public void addUser(String username) {
-		validateUsername(username);
-
-		if (userRepository.existsByUsername(username))
-			throw new IllegalStateException("username already taken");
-
-		User user = new User(username);
-		if (!userRepository.add(user)) {
-			throw new IllegalStateException("user could not be created");
+	public User authenticate(String username, String password) {
+		User user = findByUsername(username).orElseThrow(
+				() -> new LoginException("Invalid username or password"));
+		if (password == null || user.getPasswordHash() == null
+				|| !passwordEncoder.matches(password, user.getPasswordHash())) {
+			throw new LoginException("Invalid username or password");
 		}
+		return user;
 	}
 
 	private void validateUsername(String username) {
@@ -66,13 +59,23 @@ public class UserService {
 		if (username.isBlank())
 			throw new IllegalArgumentException("Username may not be empty");
 
-		if (username.contains(" "))
+		if (username.chars().anyMatch(Character::isWhitespace))
 			throw new IllegalArgumentException(
 					"Username may not contain spaces");
 
 		if (username.length() < 3 || username.length() > 16)
 			throw new IllegalArgumentException(
 					"Username should be between 3 and 16 characters");
+	}
+
+	private void validatePassword(String password) {
+		if (password == null || password.length() < 8)
+			throw new IllegalArgumentException(
+					"Password must be at least 8 characters");
+
+		if (password.getBytes(StandardCharsets.UTF_8).length > 72)
+			throw new IllegalArgumentException(
+					"Password must be no more than 72 UTF-8 bytes");
 	}
 
 }

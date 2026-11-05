@@ -33,12 +33,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.Map;
+import java.security.Principal;
 
 /**
  * Handles lobby creation, retrieval, and player joining, leaving, kicking other
  * players
  *
- * @author Nicoleta
+ * @author Nicoleta, Anton
  */
 
 @RestController
@@ -63,78 +64,78 @@ public class LobbyController {
 
 	@PostMapping
 	public ResponseEntity<LobbyDTO> createLobby(
-			@RequestBody CreateLobbyDTO payload) {
-		return ResponseEntity
-				.ok(LobbyDTO.from(lobbyService.createLobby(payload)));
+			@RequestBody CreateLobbyDTO payload, Principal principal) {
+		return ResponseEntity.ok(LobbyDTO
+				.from(lobbyService.createLobby(payload, principal.getName())));
 	}
 
 	@PostMapping("/{id}/rename")
 	public ResponseEntity<LobbyDTO> updateLobby(@PathVariable String id,
-			@RequestBody RenameLobbyDTO payload) {
-		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.renameLobby(id, payload.name())));
+			@RequestBody RenameLobbyDTO payload, Principal principal) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.renameLobby(id,
+				payload.name(), principal.getName())));
 	}
 
 	@PostMapping("/{id}/join")
 	public ResponseEntity<LobbyDTO> joinLobby(@PathVariable String id,
-			@RequestBody AddToRemoveFromLobbyDTO payload) {
+			@RequestBody AddToRemoveFromLobbyDTO payload, Principal principal) {
 		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.joinLobby(id, payload.username())));
+				LobbyDTO.from(lobbyService.joinLobby(id, principal.getName())));
 	}
 
 	@PostMapping("/{id}/leave")
 	public ResponseEntity<LobbyDTO> leaveLobby(@PathVariable String id,
-			@RequestBody AddToRemoveFromLobbyDTO payload) {
-		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.leaveLobby(id, payload.username())));
+			@RequestBody AddToRemoveFromLobbyDTO payload, Principal principal) {
+		return ResponseEntity.ok(LobbyDTO
+				.from(lobbyService.leaveLobby(id, principal.getName())));
 	}
 
 	@PostMapping("/{id}/kick")
 	public ResponseEntity<LobbyDTO> kickUser(@PathVariable String id,
-			@RequestBody KickUserDTO payload) {
-		lobbyService.kickUser(id, payload.kickedBy(), payload.userKicked());
+			@RequestBody KickUserDTO payload, Principal principal) {
+		lobbyService.kickUser(id, principal.getName(), payload.userKicked());
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
 	}
 
 	@PostMapping("/{id}/ready")
 	public ResponseEntity<LobbyDTO> setReady(@PathVariable String id,
-			@RequestBody SetReadyDTO payload) {
+			@RequestBody SetReadyDTO payload, Principal principal) {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setReady(id,
-				payload.username(), payload.ready())));
+				principal.getName(), payload.ready())));
 	}
 
 	@PostMapping("/{id}/color")
 	public ResponseEntity<LobbyDTO> setColor(@PathVariable String id,
-			@RequestBody SetColorDTO payload) {
+			@RequestBody SetColorDTO payload, Principal principal) {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setColor(id,
-				payload.username(), payload.color())));
+				principal.getName(), payload.color())));
 	}
 
 	@PostMapping("/{id}/start")
 	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
-			@RequestBody StartGameDTO payload) {
+			@RequestBody StartGameDTO payload, Principal principal) {
 		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
+				LobbyDTO.from(lobbyService.startGame(id, principal.getName())));
 	}
 
 	@PostMapping("/{id}/program")
 	public ResponseEntity<ProgramResultDTO> program(@PathVariable String id,
-			@RequestBody ProgramDTO payload) {
+			@RequestBody ProgramDTO payload, Principal principal) {
 		return ResponseEntity.ok(new ProgramResultDTO(lobbyService
-				.submitProgram(id, payload.username(), payload.registers())));
+				.submitProgram(id, principal.getName(), payload.registers())));
 	}
 
 	@PostMapping("/{id}/upgrade/buy")
 	public ResponseEntity<Void> buyUpgrade(@PathVariable String id,
-			@RequestBody BuyUpgradeDTO payload) {
-		lobbyService.buyUpgrade(id, payload.username(), payload.upgrade());
+			@RequestBody BuyUpgradeDTO payload, Principal principal) {
+		lobbyService.buyUpgrade(id, principal.getName(), payload.upgrade());
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/{id}/upgrade/skip")
 	public ResponseEntity<Void> skipUpgrade(@PathVariable String id,
-			@RequestBody SkipUpgradeDTO payload) {
-		lobbyService.skipUpgrade(id, payload.username());
+			@RequestBody SkipUpgradeDTO payload, Principal principal) {
+		lobbyService.skipUpgrade(id, principal.getName());
 		return ResponseEntity.noContent().build();
 	}
 
