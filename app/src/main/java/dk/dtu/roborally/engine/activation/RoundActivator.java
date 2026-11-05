@@ -104,7 +104,7 @@ public class RoundActivator {
 			case CARDS -> {
 				Optional<String> next = round.getNextToActivate();
 				if (next.isEmpty()) {
-					round.setStage(RegisterStage.END_OF_REGISTER);
+					round.setStage(RegisterStage.BOARD_ELEMENTS);
 					return;
 				}
 				if (activateCard(game, findPlayer(game, next.get()),
@@ -112,7 +112,12 @@ public class RoundActivator {
 					round.markActivated();
 				}
 			}
+			case BOARD_ELEMENTS -> {
+				BoardElements.activate(game, register, round.getLog());
+				round.setStage(RegisterStage.END_OF_REGISTER);
+			}
 			case END_OF_REGISTER -> {
+				BoardElements.collectEnergy(game, register);
 				evaluateCheckpoints(game, playersInOrder(game));
 				if (register + 1 < PlayerMat.REGISTER_COUNT) {
 					startRegister(game, register + 1);

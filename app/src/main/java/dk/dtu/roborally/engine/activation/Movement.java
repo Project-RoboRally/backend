@@ -57,30 +57,29 @@ public final class Movement {
 		for (Player moving : line) {
 			Robot robot = moving.getRobot();
 			Vector2D from = robot.getCurrentSpace();
-			Vector2D to = from.add(direction.step());
-			robot.moveTo(to);
-			Optional<Vector2D> fellFrom = fall(board, from, to);
-			if (fellFrom.isPresent()) {
-				Reboot.reboot(game, moving, fellFrom.get());
-				moverFell |= moving == player;
-			}
+			robot.moveTo(from.add(direction.step()));
+			moverFell |= fallIfNeeded(game, moving, from) && moving == player;
 		}
 		return !moverFell;
 	}
 
 	/**
-	 * Where a robot that just moved fell from, if it fell. Off the board it
-	 * counts from the last space it was on, a pit is on the board itself.
+	 * Reboots a robot that just moved from the given space into a pit or off
+	 * the board. Off the board it counts as falling from the last space it was
+	 * on, a pit is on the board itself. Returns whether it fell.
 	 */
-	private static Optional<Vector2D> fall(Board board, Vector2D from,
-			Vector2D to) {
+	static boolean fallIfNeeded(Game game, Player player, Vector2D from) {
+		Board board = game.getBoard();
+		Vector2D to = player.getRobot().getCurrentSpace();
 		if (!board.isWithinBoard(to)) {
-			return Optional.of(from);
+			Reboot.reboot(game, player, from);
+			return true;
 		}
 		if (hasPit(board.getSpace(to))) {
-			return Optional.of(to);
+			Reboot.reboot(game, player, to);
+			return true;
 		}
-		return Optional.empty();
+		return false;
 	}
 
 	/**
@@ -88,7 +87,7 @@ public final class Movement {
 	 * priority antenna stop it, nothing can stand on the antenna. The board
 	 * edge does not, the robot just falls off.
 	 */
-	private static boolean blocked(Board board, Vector2D from, Vector2D to,
+	static boolean blocked(Board board, Vector2D from, Vector2D to,
 			Direction direction) {
 		return wallBlocks(board, from, to, direction)
 				|| hasAntenna(board.getSpace(to));
