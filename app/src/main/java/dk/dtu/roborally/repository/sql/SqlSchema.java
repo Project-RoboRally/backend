@@ -12,17 +12,23 @@ public final class SqlSchema {
 	private static final String[] STATEMENTS = {"""
 			CREATE TABLE IF NOT EXISTS users (
 			    id VARCHAR(64) PRIMARY KEY,
-			    username VARCHAR(32) NOT NULL UNIQUE
-			)
-			""", """
-			CREATE TABLE IF NOT EXISTS lobbies (
-			    id VARCHAR(64) PRIMARY KEY,
-			    name VARCHAR(32) NOT NULL,
-			    owner_id VARCHAR(64) NOT NULL REFERENCES users (id),
-			    level_path VARCHAR(255) NOT NULL,
-			    game_id VARCHAR(64)
+			    username VARCHAR(32) NOT NULL UNIQUE,
+			    password_hash VARCHAR(60)
 			)
 			""",
+			// databases created before passwords were added
+			"""
+					ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash VARCHAR(60)
+					""",
+			"""
+					CREATE TABLE IF NOT EXISTS lobbies (
+					    id VARCHAR(64) PRIMARY KEY,
+					    name VARCHAR(32) NOT NULL,
+					    owner_id VARCHAR(64) NOT NULL REFERENCES users (id),
+					    level_path VARCHAR(255) NOT NULL,
+					    game_id VARCHAR(64)
+					)
+					""",
 			"""
 					CREATE TABLE IF NOT EXISTS lobby_members (
 					    lobby_id VARCHAR(64) NOT NULL REFERENCES lobbies (id) ON DELETE CASCADE,
