@@ -79,9 +79,9 @@ public class GameService {
 
 	/**
 	 * Stores this player's five-card program. When every player has submitted,
-	 * resolves the round, clears the mats and republishes the board. A finished
-	 * game rejects further programs and does not start another upgrade phase.
-	 * Returns false while the round is still waiting.
+	 * activation starts, see {@link #continueActivation}. A finished game
+	 * rejects further programs. Returns false while the round is still waiting
+	 * for programs.
 	 */
 	public boolean submitProgram(GameLobby lobby, String username,
 			List<CommandInstruction> registers) {
@@ -104,7 +104,38 @@ public class GameService {
 		}
 
 		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
+		continueActivation(lobby, game);
+		return true;
+	}
+
+	/**
+	 * Answers the choice activation is waiting on, then carries on with the
+	 * round.
+	 */
+	public void makeChoice(GameLobby lobby, String username, String choice) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.ACTIVATION);
+		game.getCurrentRound().answer(findPlayer(game, username).getId(),
+				choice);
+		continueActivation(lobby, game);
+	}
+
+	/**
+	 * Runs activation until it is done or waits on a choice. Once the round is
+	 * over the mats are cleared and the next round starts, unless someone won.
+	 */
+	private void continueActivation(GameLobby lobby, Game game) {
 		RoundResult result = activateRound(game);
+		if (game.getCurrentRound().isActivating()) {
+			gameRepository.update(game);
+			gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
+			gameEventPublisher.publishChoiceRequired(lobby.getLobbyId(), game);
+			return;
+		}
+
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
 		}
@@ -112,12 +143,11 @@ public class GameService {
 		if (game.getGameStatus() == GameStatus.FINISHED) {
 			game.getCurrentRound().setCurrentPhase(Phase.ENDED);
 			gameRepository.update(game);
-			return true;
+			return;
 		}
 		startUpgradePhase(game);
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
 		gameRepository.update(game);
-		return true;
 	}
 
 	/**

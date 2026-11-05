@@ -56,6 +56,7 @@ class GameServiceTest {
 	private final List<String> roundStartedLobbyIds = new ArrayList<>();
 	private final List<String> upgradeTurns = new ArrayList<>();
 	private final List<String> programmingStartedLobbyIds = new ArrayList<>();
+	private final List<String> choiceLobbyIds = new ArrayList<>();
 	private GameService gameService;
 	private Game game;
 
@@ -86,6 +87,11 @@ class GameServiceTest {
 			@Override
 			public void publishProgrammingStarted(String lobbyId, Game game) {
 				programmingStartedLobbyIds.add(lobbyId);
+			}
+
+			@Override
+			public void publishChoiceRequired(String lobbyId, Game game) {
+				choiceLobbyIds.add(lobbyId);
 			}
 
 			@Override
@@ -533,6 +539,17 @@ class GameServiceTest {
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertTrue(buyer.getPlayerMat().getDiscardPile().isEmpty());
 		assertEquals(buyer, started.getCurrentBuyer().orElseThrow());
+	}
+
+	@Test
+	void choosingOutsideActivationIsRejected() {
+		GameLobby lobby = startedLobby();
+
+		IllegalStateException error = assertThrows(IllegalStateException.class,
+				() -> gameService.makeChoice(lobby, "August", "LEFT_TURN"));
+
+		assertEquals("The game is not in the ACTIVATION phase.",
+				error.getMessage());
 	}
 
 	private GameLobby startedLobby() {

@@ -1,10 +1,12 @@
 package dk.dtu.roborally.websocket.dto;
 
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.ProgrammingTimer;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.game.RoundResult;
@@ -23,13 +25,26 @@ import java.util.List;
 public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		RoundDTO round, BoardDTO board, List<PlayerDTO> players, String you,
 		PlayerMatDTO playerMat, List<UpgradeDTO> upgradeShop,
-		String currentBuyer, String winnerUsername) {
+		String currentBuyer, ChoiceDTO choice, String winnerUsername) {
 
 	public static final String GAME_STARTED = "GAME_STARTED";
 	public static final String CURRENT_STATE = "CURRENT_STATE";
 	public static final String ROUND_STARTED = "ROUND_STARTED";
 	public static final String UPGRADE_TURN = "UPGRADE_TURN";
 	public static final String PROGRAMMING_STARTED = "PROGRAMMING_STARTED";
+	public static final String CHOICE_REQUIRED = "CHOICE_REQUIRED";
+
+	/** The choice activation is waiting on, and who has to make it. */
+	public record ChoiceDTO(String username, ChoiceType type,
+			List<String> options) {
+		public static ChoiceDTO from(Game game, PendingChoice choice) {
+			String username = game.getPlayersInGame().stream()
+					.filter(player -> player.getId().equals(choice.playerId()))
+					.map(player -> player.getUser().getUsername()).findFirst()
+					.orElseThrow();
+			return new ChoiceDTO(username, choice.type(), choice.options());
+		}
+	}
 
 	public record UpgradeDTO(UpgradeType type, int cost) {
 
@@ -81,6 +96,9 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 						.toList(),
 				game.getCurrentBuyer()
 						.map(player -> player.getUser().getUsername())
+						.orElse(null),
+				game.getCurrentRound().getPendingChoice()
+						.map(choice -> ChoiceDTO.from(game, choice))
 						.orElse(null),
 				winnerUsername);
 	}

@@ -185,6 +185,10 @@ public class LobbyService {
 		gameService.skipUpgrade(getLobby(lobbyId), username);
 	}
 
+	public void makeChoice(String lobbyId, String username, String choice) {
+		gameService.makeChoice(getLobby(lobbyId), username, choice);
+	}
+
 	private void validateLobbyName(String name) {
 		if (name == null || name.isBlank())
 			throw new LobbyInvalidName("Name must not be blank");

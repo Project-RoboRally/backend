@@ -35,6 +35,12 @@ public interface GameEventPublisher {
 	void publishProgrammingStarted(String lobbyId, Game game);
 
 	/**
+	 * Sends every player the full game state when activation stops to wait for
+	 * a player's choice. The state says who has to choose and between what.
+	 */
+	void publishChoiceRequired(String lobbyId, Game game);
+
+	/**
 	 * Sends the board layout, including robots placed on it, to everyone
 	 * subscribed to the lobby.
 	 */

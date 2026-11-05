@@ -47,6 +47,10 @@ class PlayerStateControllerTest {
 			}
 
 			@Override
+			public void publishChoiceRequired(String lobbyId, Game game) {
+			}
+
+			@Override
 			public void publishBoard(String lobbyId, Game game) {
 			}
 		};
