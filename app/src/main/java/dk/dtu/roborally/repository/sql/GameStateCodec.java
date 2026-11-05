@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Converts a live game to JSON and back. The board itself is reloaded from the
@@ -194,6 +195,8 @@ public final class GameStateCodec {
 		stored.startY = player.getRobot().getStartSpace().y();
 		stored.energy = player.getEnergy();
 		stored.upgrades = names(player.getUpgrades().getAll());
+		stored.upgradesUsed = names(
+				List.copyOf(player.getUpgrades().getUsedThisRound()));
 		stored.checkpointsReached = player.getCheckpointsReached();
 		stored.submitted = player.getPlayerMat().isSubmitted();
 		stored.cardsToPutBack = player.getPlayerMat().getCardsToPutBack();
@@ -228,7 +231,8 @@ public final class GameStateCodec {
 		Player player = new Player(stored.id, user,
 				PlayerColor.valueOf(stored.color), robot);
 		player.restoreProgress(stored.energy, stored.checkpointsReached);
-		player.getUpgrades().restore(types(stored.upgrades));
+		player.getUpgrades().restore(types(stored.upgrades),
+				Set.copyOf(types(stored.upgradesUsed)));
 		player.getPlayerMat().restore(cards(stored.drawPile),
 				cards(stored.hand), cards(stored.discard),
 				cards(stored.registers), stored.submitted);
@@ -337,6 +341,7 @@ public final class GameStateCodec {
 		private Integer startY;
 		private int energy;
 		private List<String> upgrades;
+		private List<String> upgradesUsed;
 		private int checkpointsReached;
 		private boolean submitted;
 		private int cardsToPutBack;

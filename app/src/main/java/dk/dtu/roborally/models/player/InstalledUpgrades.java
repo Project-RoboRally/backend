@@ -3,8 +3,10 @@ package dk.dtu.roborally.models.player;
 import dk.dtu.roborally.enums.UpgradeKind;
 import dk.dtu.roborally.enums.UpgradeType;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * The upgrades a robot has installed. It fits three permanent and three
@@ -17,6 +19,9 @@ public class InstalledUpgrades {
 	public static final int SLOTS_PER_KIND = 3;
 
 	private final List<UpgradeType> upgrades = new ArrayList<>();
+	/** Once a round upgrades already used this round. */
+	private final Set<UpgradeType> usedThisRound = EnumSet
+			.noneOf(UpgradeType.class);
 
 	public boolean has(UpgradeType type) {
 		return upgrades.contains(type);
@@ -63,9 +68,27 @@ public class InstalledUpgrades {
 		}
 	}
 
+	public void markUsed(UpgradeType type) {
+		usedThisRound.add(type);
+	}
+
+	public boolean usedThisRound(UpgradeType type) {
+		return usedThisRound.contains(type);
+	}
+
+	public Set<UpgradeType> getUsedThisRound() {
+		return Set.copyOf(usedThisRound);
+	}
+
+	public void newRound() {
+		usedThisRound.clear();
+	}
+
 	/** Puts back upgrades loaded from storage. */
-	public void restore(List<UpgradeType> types) {
+	public void restore(List<UpgradeType> types, Set<UpgradeType> used) {
 		upgrades.clear();
 		upgrades.addAll(types);
+		usedThisRound.clear();
+		usedThisRound.addAll(used);
 	}
 }

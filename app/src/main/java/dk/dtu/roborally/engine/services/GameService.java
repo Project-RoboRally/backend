@@ -341,6 +341,8 @@ public class GameService {
 		List<Player> order = Priority.order(game);
 
 		game.getCurrentRound().setCurrentPhase(Phase.UPGRADE);
+		game.getPlayersInGame()
+				.forEach(player -> player.getUpgrades().newRound());
 		game.getUpgradeShop().refill(order.size());
 		game.setUpgradeOrder(order);
 	}
