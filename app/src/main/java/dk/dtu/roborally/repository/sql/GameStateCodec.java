@@ -73,6 +73,9 @@ public final class GameStateCodec {
 		stored.startDone = List.copyOf(round.getStartDone());
 		stored.turnDone = round.isTurnDone();
 		stored.hacked = round.isHacked();
+		stored.turnAnswers = new HashMap<>();
+		round.getTurnAnswers().forEach(
+				(type, answer) -> stored.turnAnswers.put(type.name(), answer));
 		stored.refreshedTo = round.getRefreshedTo().map(Enum::name)
 				.orElse(null);
 		stored.pickedUpgrade = round.getPickedUpgrade().map(Enum::name)
@@ -142,6 +145,10 @@ public final class GameStateCodec {
 		}
 		game.getCurrentRound().setTurnDone(stored.turnDone);
 		game.getCurrentRound().setHacked(stored.hacked);
+		if (stored.turnAnswers != null) {
+			stored.turnAnswers.forEach((type, answer) -> game.getCurrentRound()
+					.setTurnAnswer(ChoiceType.valueOf(type), answer));
+		}
 		if (stored.refreshedTo != null) {
 			game.getCurrentRound().setRefreshedTo(
 					CommandInstruction.valueOf(stored.refreshedTo));
@@ -344,6 +351,7 @@ public final class GameStateCodec {
 		private List<String> startDone;
 		private boolean turnDone;
 		private boolean hacked;
+		private Map<String, String> turnAnswers;
 		private String refreshedTo;
 		private String pickedUpgrade;
 		private Long programmingEndsAt;
