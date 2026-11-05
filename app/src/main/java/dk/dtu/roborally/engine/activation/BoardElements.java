@@ -7,6 +7,7 @@ import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.ConveyorBelt;
 import dk.dtu.roborally.models.board.elements.Gear;
+import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -38,6 +39,7 @@ public final class BoardElements {
 		// Blue belts carry robots a second space if they are still on one
 		convey(game, ConveyorBeltType.BLUE, onBlue, log);
 		convey(game, ConveyorBeltType.GREEN, game.getPlayersInGame(), log);
+		pushFromPanels(game, register, log);
 		rotateOnGears(game, log);
 	}
 
@@ -125,6 +127,27 @@ public final class BoardElements {
 				player.getRobot().turnLeft();
 			}
 		});
+	}
+
+	/**
+	 * Push panels push the robot on them one space away from the wall, but only
+	 * in the registers printed on the panel. A robot in the way gets pushed
+	 * along too.
+	 */
+	private static void pushFromPanels(Game game, int register,
+			ActivationLog log) {
+		boolean pushed = false;
+		for (Player player : Priority.order(game)) {
+			Optional<PushPanel> panel = element(game, player, PushPanel.class)
+					.filter(found -> found.pushesIn(register));
+			if (panel.isPresent()) {
+				Movement.step(game, player, panel.get().getPushDirection());
+				pushed = true;
+			}
+		}
+		if (pushed) {
+			log.addStep(snapshot(game));
+		}
 	}
 
 	/** Red gears turn robots left, green gears turn them right. */

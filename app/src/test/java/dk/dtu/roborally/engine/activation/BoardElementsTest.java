@@ -11,6 +11,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.ConveyorBelt;
 import dk.dtu.roborally.models.board.elements.Gear;
+import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
@@ -161,6 +162,32 @@ class BoardElementsTest {
 		BoardElements.activate(game(ada), 0, log);
 
 		assertEquals(new Vector2D(0, 0), ada.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void pushPanelsOnlyPushInTheirRegisters() {
+		put(1, 1, new PushPanel(new Vector2D(1, 1), Direction.EAST,
+				Set.of(2, 4)));
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Game game = game(ada);
+
+		BoardElements.activate(game, 0, log);
+		assertEquals(new Vector2D(1, 1), ada.getRobot().getCurrentSpace());
+
+		BoardElements.activate(game, 1, log);
+		assertEquals(new Vector2D(2, 1), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.NORTH, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void aPushPanelPushesTheRobotsInTheWayToo() {
+		put(1, 1, new PushPanel(new Vector2D(1, 1), Direction.EAST, Set.of(1)));
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Player bob = player("bob", 2, 1, Direction.NORTH);
+
+		BoardElements.activate(game(ada, bob), 0, log);
+
+		assertEquals(new Vector2D(3, 1), bob.getRobot().getCurrentSpace());
 	}
 
 	/** A belt running from x,y in the given direction. */

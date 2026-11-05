@@ -5,11 +5,13 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
+import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.RebootPoint;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -90,5 +92,18 @@ class LevelLoaderTest {
 		assertEquals(Direction.NORTH, reboot.getDirection());
 		assertTrue(reboot.covers(new Vector2D(0, 16)));
 		assertFalse(reboot.covers(new Vector2D(5, 18)));
+	}
+
+	@Test
+	void pushPanelsKnowTheirRegisters() {
+		Board board = LevelLoader.load("levels/level_0.json");
+
+		PushPanel panel = board.getSpace(19, 8).getBoardElements().stream()
+				.filter(PushPanel.class::isInstance).map(PushPanel.class::cast)
+				.findFirst().orElseThrow();
+
+		assertEquals(Set.of(2, 4), panel.getRegisters());
+		assertTrue(panel.pushesIn(1));
+		assertFalse(panel.pushesIn(2));
 	}
 }
