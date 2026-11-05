@@ -494,7 +494,10 @@ class GameServiceTest {
 		for (Player player : started.getPlayersInGame()) {
 			assertFalse(player.getPlayerMat().isSubmitted());
 			assertEquals(9, player.getPlayerMat().getHand().size());
-			assertEquals(9, player.getPlayerMat().getDiscardPile().size());
+			// Robots in the same row can shoot each other once they turn,
+			// so leave out any SPAM that adds
+			assertEquals(9, player.getPlayerMat().getDiscardPile().stream()
+					.filter(card -> !card.getName().equals("SPAM")).count());
 			for (Register register : player.getPlayerMat().getRegisters()) {
 				assertNull(register.getCard());
 			}
