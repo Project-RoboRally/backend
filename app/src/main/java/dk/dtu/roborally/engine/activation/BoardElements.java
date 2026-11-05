@@ -1,14 +1,24 @@
 package dk.dtu.roborally.engine.activation;
 
+import dk.dtu.roborally.enums.ConveyorBeltType;
+import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
 import dk.dtu.roborally.models.board.Space;
+import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.ConveyorBelt;
 import dk.dtu.roborally.models.board.elements.Gear;
 import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.RobotView;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Activates the board elements after every robot has played its card for a
@@ -23,7 +33,98 @@ public final class BoardElements {
 	}
 
 	public static void activate(Game game, int register, ActivationLog log) {
+		List<Player> onBlue = convey(game, ConveyorBeltType.BLUE,
+				game.getPlayersInGame(), log);
+		// Blue belts carry robots a second space if they are still on one
+		convey(game, ConveyorBeltType.BLUE, onBlue, log);
+		convey(game, ConveyorBeltType.GREEN, game.getPlayersInGame(), log);
 		rotateOnGears(game, log);
+	}
+
+	/**
+	 * Moves every robot on a belt of the given colour one space, all at the
+	 * same time. Belts never push: a robot stays put if the space ahead has a
+	 * robot that is not moving away, if another robot is heading for the same
+	 * space, or if a wall is in the way. Returns the robots that were on a belt
+	 * of that colour.
+	 */
+	private static List<Player> convey(Game game, ConveyorBeltType colour,
+			Collection<Player> candidates, ActivationLog log) {
+		Map<Player, ConveyorBelt> riding = new LinkedHashMap<>();
+		for (Player player : candidates) {
+			element(game, player, ConveyorBelt.class)
+					.filter(belt -> belt.getType() == colour)
+					.ifPresent(belt -> riding.put(player, belt));
+		}
+		Map<Player, Vector2D> targets = new HashMap<>();
+		Set<Player> stuck = new HashSet<>();
+		for (Map.Entry<Player, ConveyorBelt> ride : riding.entrySet()) {
+			Vector2D from = ride.getKey().getRobot().getCurrentSpace();
+			Direction direction = ride.getValue().getDirection();
+			Vector2D to = from.add(direction.step());
+			targets.put(ride.getKey(), to);
+			if (Movement.blocked(game.getBoard(), from, to, direction)) {
+				stuck.add(ride.getKey());
+			}
+		}
+		for (Player player : riding.keySet()) {
+			long sameTarget = targets.values().stream()
+					.filter(targets.get(player)::equals).count();
+			if (sameTarget > 1) {
+				stuck.add(player);
+			}
+		}
+		// A robot that is not moving out of the way stops the one behind it,
+		// which can stop the one behind that, and so on
+		boolean changed = true;
+		while (changed) {
+			changed = false;
+			for (Player player : riding.keySet()) {
+				if (stuck.contains(player)) {
+					continue;
+				}
+				Optional<Player> ahead = Movement.robotAt(game,
+						targets.get(player));
+				if (ahead.isPresent() && (!riding.containsKey(ahead.get())
+						|| stuck.contains(ahead.get()))) {
+					stuck.add(player);
+					changed = true;
+				}
+			}
+		}
+
+		boolean moved = false;
+		for (Player player : riding.keySet()) {
+			if (stuck.contains(player)) {
+				continue;
+			}
+			Vector2D from = player.getRobot().getCurrentSpace();
+			Direction direction = riding.get(player).getDirection();
+			player.getRobot().moveTo(targets.get(player));
+			if (!Movement.fallIfNeeded(game, player, from)) {
+				turnOntoCurve(game, player, direction);
+			}
+			moved = true;
+		}
+		if (moved) {
+			log.addStep(snapshot(game));
+		}
+		return List.copyOf(riding.keySet());
+	}
+
+	/**
+	 * A belt carrying a robot onto a belt pointing another way is a curve, and
+	 * the robot turns with it.
+	 */
+	private static void turnOntoCurve(Game game, Player player,
+			Direction travelled) {
+		element(game, player, ConveyorBelt.class).ifPresent(belt -> {
+			if (belt.getDirection() == travelled.turnRight()) {
+				player.getRobot().turnRight();
+			} else if (belt.getDirection() == travelled.turnLeft()) {
+				player.getRobot().turnLeft();
+			}
+		});
 	}
 
 	/** Red gears turn robots left, green gears turn them right. */

@@ -1,5 +1,6 @@
 package dk.dtu.roborally.engine.activation;
 
+import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.enums.RotationDirection;
@@ -8,7 +9,9 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
+import dk.dtu.roborally.models.board.elements.ConveyorBelt;
 import dk.dtu.roborally.models.board.elements.Gear;
+import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -21,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BoardElementsTest {
 
@@ -51,6 +55,124 @@ class BoardElementsTest {
 		assertEquals(Direction.WEST, left.getRobot().getOrientation());
 		assertEquals(Direction.NORTH, none.getRobot().getOrientation());
 		assertEquals(1, log.stepCount());
+	}
+
+	@Test
+	void greenBeltsMoveOneSpaceAndBlueBeltsTwo() {
+		belt(0, 0, 4, Direction.EAST, ConveyorBeltType.BLUE);
+		belt(0, 2, 4, Direction.EAST, ConveyorBeltType.GREEN);
+		Player blue = player("blue", 0, 0, Direction.NORTH);
+		Player green = player("green", 0, 2, Direction.NORTH);
+
+		BoardElements.activate(game(blue, green), 0, log);
+
+		assertEquals(new Vector2D(2, 0), blue.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(1, 2), green.getRobot().getCurrentSpace());
+		assertEquals(Direction.NORTH, blue.getRobot().getOrientation());
+	}
+
+	@Test
+	void blueBeltStopsCarryingOnceTheRobotIsOffIt() {
+		belt(0, 0, 1, Direction.EAST, ConveyorBeltType.BLUE);
+		Player ada = player("ada", 0, 0, Direction.NORTH);
+
+		BoardElements.activate(game(ada), 0, log);
+
+		assertEquals(new Vector2D(1, 0), ada.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void blueOntoGreenGetsThreeSpaces() {
+		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.BLUE);
+		belt(2, 0, 3, Direction.EAST, ConveyorBeltType.GREEN);
+		Player ada = player("ada", 0, 0, Direction.NORTH);
+
+		BoardElements.activate(game(ada), 0, log);
+
+		assertEquals(new Vector2D(3, 0), ada.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void beltsDoNotPushRobotsOffTheBelt() {
+		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN);
+		Player ada = player("ada", 1, 0, Direction.NORTH);
+		Player bob = player("bob", 2, 0, Direction.NORTH);
+
+		BoardElements.activate(game(ada, bob), 0, log);
+
+		assertEquals(new Vector2D(1, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(2, 0), bob.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void robotsOnTheSameBeltMoveTogether() {
+		belt(0, 0, 4, Direction.EAST, ConveyorBeltType.GREEN);
+		Player ada = player("ada", 0, 0, Direction.NORTH);
+		Player bob = player("bob", 1, 0, Direction.NORTH);
+
+		BoardElements.activate(game(ada, bob), 0, log);
+
+		assertEquals(new Vector2D(1, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(2, 0), bob.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void twoRobotsHeadingForTheSameSpaceBothStay() {
+		belt(0, 1, 1, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(1, 0, 1, Direction.SOUTH, ConveyorBeltType.GREEN);
+		Player ada = player("ada", 0, 1, Direction.NORTH);
+		Player bob = player("bob", 1, 0, Direction.NORTH);
+
+		BoardElements.activate(game(ada, bob), 0, log);
+
+		assertEquals(new Vector2D(0, 1), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(1, 0), bob.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void aBeltTurningACornerTurnsTheRobot() {
+		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(2, 0, 2, Direction.SOUTH, ConveyorBeltType.GREEN);
+		Player ada = player("ada", 1, 0, Direction.EAST);
+
+		BoardElements.activate(game(ada), 0, log);
+
+		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.SOUTH, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void aBeltCanCarryARobotOffTheBoard() {
+		belt(5, 0, 1, Direction.EAST, ConveyorBeltType.GREEN);
+		Player ada = player("ada", 5, 0, Direction.NORTH);
+
+		BoardElements.activate(game(ada), 0, log);
+
+		assertEquals(new Vector2D(5, 5), ada.getRobot().getCurrentSpace());
+		assertTrue(ada.getRobot().isRebootedThisRound());
+	}
+
+	@Test
+	void wallsStopBelts() {
+		belt(0, 0, 3, Direction.EAST, ConveyorBeltType.GREEN);
+		put(0, 0, new Wall(new Vector2D(0, 0), Direction.EAST));
+		Player ada = player("ada", 0, 0, Direction.NORTH);
+
+		BoardElements.activate(game(ada), 0, log);
+
+		assertEquals(new Vector2D(0, 0), ada.getRobot().getCurrentSpace());
+	}
+
+	/** A belt running from x,y in the given direction. */
+	private void belt(int x, int y, int length, Direction direction,
+			ConveyorBeltType colour) {
+		ConveyorBelt belt = new ConveyorBelt(new Vector2D(x, y), length,
+				direction, colour);
+		Vector2D position = new Vector2D(x, y);
+		for (int i = 0; i < length; i++) {
+			spaces.get(position).addBoardElement(belt);
+			position = position.add(direction.step());
+		}
 	}
 
 	void put(int x, int y, BoardElement element) {
