@@ -8,28 +8,32 @@ import dk.dtu.roborally.engine.services.UserService;
 import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
-import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
-import dk.dtu.roborally.repository.inmemory.InMemoryLobbyRepository;
-import dk.dtu.roborally.repository.inmemory.InMemoryUserRepository;
+import dk.dtu.roborally.repository.sql.SqlGameRepository;
+import dk.dtu.roborally.repository.sql.SqlLobbyRepository;
+import dk.dtu.roborally.repository.sql.SqlUserRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
 
 @Configuration
 public class EngineConfig {
 
 	@Bean
-	public GameRepository gameRepository() {
-		return new InMemoryGameRepository();
+	public UserRepository userRepository(DataSource dataSource) {
+		return new SqlUserRepository(dataSource);
 	}
 
 	@Bean
-	public UserRepository userRepository() {
-		return new InMemoryUserRepository();
+	public LobbyRepository lobbyRepository(DataSource dataSource,
+			UserRepository userRepository) {
+		return new SqlLobbyRepository(dataSource, userRepository);
 	}
 
 	@Bean
-	public LobbyRepository lobbyRepository() {
-		return new InMemoryLobbyRepository();
+	public GameRepository gameRepository(DataSource dataSource,
+			LobbyRepository lobbyRepository) {
+		return new SqlGameRepository(dataSource, lobbyRepository);
 	}
 
 	@Bean

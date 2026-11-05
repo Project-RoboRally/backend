@@ -34,6 +34,14 @@ To automatically format the code, run:
 gradle spotlessApply
 ```
 
+## Database
+
+```bash
+docker compose up -d
+```
+
+Postgres on `localhost:5432` (`roborally` / `roborally`). Adminer UI: [http://localhost:8081](http://localhost:8081) (System: PostgreSQL, Server: `postgres`).
+
 ## Development
 
 ### Run project

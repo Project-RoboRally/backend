@@ -15,4 +15,11 @@ public interface LobbyRepository {
 	List<GameLobby> getAll();
 
 	void delete(String lobbyId);
+
+	/**
+	 * Persists the lobby, its members and its game id. In-memory storage keeps
+	 * the same instance, so the default does nothing.
+	 */
+	default void update(GameLobby lobby) {
+	}
 }
