@@ -15,6 +15,15 @@ public final class Damage {
 	private Damage() {
 	}
 
+	/** Same as take, but the cards go on top of the deck instead. */
+	public static void onTopOfDeck(Game game, Player player,
+			DamageInstruction type, int amount) {
+		for (int i = 0; i < amount; i++) {
+			game.getDamagePiles().take(type)
+					.ifPresent(player.getPlayerMat()::addToTopOfDeck);
+		}
+	}
+
 	public static void take(Game game, Player player, DamageInstruction type,
 			int amount) {
 		for (int i = 0; i < amount; i++) {
