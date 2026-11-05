@@ -12,6 +12,7 @@ import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.player.Player;
 
+import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 
@@ -33,6 +34,7 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 	public static final String UPGRADE_TURN = "UPGRADE_TURN";
 	public static final String PROGRAMMING_STARTED = "PROGRAMMING_STARTED";
 	public static final String CHOICE_REQUIRED = "CHOICE_REQUIRED";
+	public static final String TIMER_STARTED = "TIMER_STARTED";
 
 	/** The choice activation is waiting on, and who has to make it. */
 	public record ChoiceDTO(String username, ChoiceType type,
@@ -54,14 +56,20 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		}
 	}
 
+	/**
+	 * The phase and register of the round. programmingEndsAt is when the
+	 * programming timer runs out, in milliseconds since 1970, and null while it
+	 * is not running.
+	 */
 	public record RoundDTO(Phase phase, Integer currentRegisterIndex,
-			long programmingTimeLimitSeconds) {
-
+			long programmingTimeLimitSeconds, Long programmingEndsAt) {
 		public static RoundDTO from(Round round) {
 			// Convert the round to the corresponding DTO
 			return new RoundDTO(round.getCurrentPhase(),
 					round.getCurrentRegisterIndex().orElse(null),
-					ProgrammingTimer.getTIME_LIMIT().toSeconds());
+					ProgrammingTimer.getTIME_LIMIT().toSeconds(),
+					round.getTimer().getEndsAt().map(Instant::toEpochMilli)
+							.orElse(null));
 		}
 	}
 
