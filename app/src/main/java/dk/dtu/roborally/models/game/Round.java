@@ -1,5 +1,6 @@
 package dk.dtu.roborally.models.game;
 
+import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -55,6 +56,12 @@ public class Round {
 	private boolean turnDone;
 	/** A turn upgrade that was picked and still needs its direction. */
 	private UpgradeType pickedUpgrade;
+	/** Hack was used this turn, the card gets played twice. */
+	@Getter
+	@Setter
+	private boolean hacked;
+	/** Refresh changed this turn's card to this. */
+	private CommandInstruction refreshedTo;
 
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
@@ -170,6 +177,16 @@ public class Round {
 		activated++;
 		turnDone = false;
 		pickedUpgrade = null;
+		hacked = false;
+		refreshedTo = null;
+	}
+
+	public Optional<CommandInstruction> getRefreshedTo() {
+		return Optional.ofNullable(refreshedTo);
+	}
+
+	public void setRefreshedTo(CommandInstruction instruction) {
+		refreshedTo = instruction;
 	}
 
 	public Optional<UpgradeType> getPickedUpgrade() {
