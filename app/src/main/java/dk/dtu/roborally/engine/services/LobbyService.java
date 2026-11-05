@@ -1,7 +1,6 @@
 package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
-import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
@@ -172,7 +171,7 @@ public class LobbyService {
 	}
 
 	public boolean submitProgram(String lobbyId, String username,
-			List<CommandInstruction> registers) {
+			List<String> registers) {
 		return gameService.submitProgram(getLobby(lobbyId), username,
 				registers);
 	}

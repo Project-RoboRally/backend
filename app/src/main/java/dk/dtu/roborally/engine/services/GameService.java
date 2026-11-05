@@ -3,7 +3,6 @@ package dk.dtu.roborally.engine.services;
 import dk.dtu.roborally.engine.activation.Priority;
 import dk.dtu.roborally.engine.activation.RoundActivator;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
-import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -78,13 +77,13 @@ public class GameService {
 	}
 
 	/**
-	 * Stores this player's five-card program. When every player has submitted,
-	 * activation starts, see {@link #continueActivation}. A finished game
-	 * rejects further programs. Returns false while the round is still waiting
-	 * for programs.
+	 * Stores this player's five-card program, given as card names. When every
+	 * player has submitted, activation starts, see {@link #continueActivation}.
+	 * A finished game rejects further programs. Returns false while the round
+	 * is still waiting for programs.
 	 */
 	public boolean submitProgram(GameLobby lobby, String username,
-			List<CommandInstruction> registers) {
+			List<String> registers) {
 		if (!lobby.isGameStarted()) {
 			throw new IllegalStateException("The game has not been started.");
 		}
@@ -94,7 +93,7 @@ public class GameService {
 			throw new IllegalStateException("The game has already finished.");
 		}
 		requirePhase(game, Phase.PROGRAMMING);
-		findPlayer(game, username).getPlayerMat().program(registers);
+		findPlayer(game, username).getPlayerMat().programCards(registers);
 
 		boolean everyoneSubmitted = game.getPlayersInGame().stream()
 				.allMatch(player -> player.getPlayerMat().isSubmitted());

@@ -446,15 +446,15 @@ class GameServiceTest {
 		List<CommandInstruction> august = fromHand(named(started, "August"));
 		List<CommandInstruction> alice = fromHand(named(started, "Alice"));
 
-		assertFalse(gameService.submitProgram(lobby, "August", august));
+		assertFalse(gameService.submitProgram(lobby, "August", names(august)));
 		assertEquals(before, facings(started));
 		assertEquals(boardsBefore, boardLobbyIds.size());
 		assertTrue(roundStartedLobbyIds.isEmpty());
 		assertTrue(named(started, "August").getPlayerMat().isSubmitted());
-		assertThrows(IllegalStateException.class,
-				() -> gameService.submitProgram(lobby, "August", august));
+		assertThrows(IllegalStateException.class, () -> gameService
+				.submitProgram(lobby, "August", names(august)));
 
-		assertTrue(gameService.submitProgram(lobby, "Alice", alice));
+		assertTrue(gameService.submitProgram(lobby, "Alice", names(alice)));
 		assertEquals(boardsBefore + 1, boardLobbyIds.size());
 		assertEquals(lobby.getLobbyId(),
 				boardLobbyIds.get(boardLobbyIds.size() - 1));
@@ -473,7 +473,7 @@ class GameServiceTest {
 		}
 
 		assertFalse(gameService.submitProgram(lobby, "August",
-				fromHand(named(started, "August"))));
+				names(fromHand(named(started, "August")))));
 	}
 
 	@Test
@@ -486,7 +486,7 @@ class GameServiceTest {
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertThrows(IllegalStateException.class,
 				() -> gameService.submitProgram(lobby, "August",
-						five(CommandInstruction.MOVE_1)));
+						names(five(CommandInstruction.MOVE_1))));
 	}
 
 	@Test
@@ -643,5 +643,9 @@ class GameServiceTest {
 					player.getRobot().getOrientation());
 		}
 		return facings;
+	}
+
+	private static List<String> names(List<CommandInstruction> instructions) {
+		return instructions.stream().map(CommandInstruction::name).toList();
 	}
 }
