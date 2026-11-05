@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Converts a live game to JSON and back. The board itself is reloaded from the
@@ -194,8 +195,11 @@ public final class GameStateCodec {
 		stored.startY = player.getRobot().getStartSpace().y();
 		stored.energy = player.getEnergy();
 		stored.upgrades = names(player.getUpgrades().getAll());
+		stored.upgradesUsed = names(
+				List.copyOf(player.getUpgrades().getUsedThisRound()));
 		stored.checkpointsReached = player.getCheckpointsReached();
 		stored.submitted = player.getPlayerMat().isSubmitted();
+		stored.cardsToPutBack = player.getPlayerMat().getCardsToPutBack();
 		stored.drawPile = instructions(player.getPlayerMat().getDrawPile());
 		stored.hand = instructions(player.getPlayerMat().getHand());
 		stored.discard = instructions(player.getPlayerMat().getDiscardPile());
@@ -227,10 +231,12 @@ public final class GameStateCodec {
 		Player player = new Player(stored.id, user,
 				PlayerColor.valueOf(stored.color), robot);
 		player.restoreProgress(stored.energy, stored.checkpointsReached);
-		player.getUpgrades().restore(types(stored.upgrades));
+		player.getUpgrades().restore(types(stored.upgrades),
+				Set.copyOf(types(stored.upgradesUsed)));
 		player.getPlayerMat().restore(cards(stored.drawPile),
 				cards(stored.hand), cards(stored.discard),
 				cards(stored.registers), stored.submitted);
+		player.getPlayerMat().restoreCardsToPutBack(stored.cardsToPutBack);
 		if (stored.damagedRegisters != null) {
 			for (int index : stored.damagedRegisters) {
 				player.getPlayerMat().getRegisters().get(index)
@@ -335,8 +341,10 @@ public final class GameStateCodec {
 		private Integer startY;
 		private int energy;
 		private List<String> upgrades;
+		private List<String> upgradesUsed;
 		private int checkpointsReached;
 		private boolean submitted;
+		private int cardsToPutBack;
 		private List<String> drawPile;
 		private List<String> hand;
 		private List<String> discard;

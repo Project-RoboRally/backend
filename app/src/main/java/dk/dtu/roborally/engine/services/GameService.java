@@ -5,6 +5,7 @@ import dk.dtu.roborally.engine.SystemGameClock;
 import dk.dtu.roborally.engine.activation.Priority;
 import dk.dtu.roborally.engine.activation.RoundActivator;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
+import dk.dtu.roborally.engine.upgrades.ProgrammingUpgrades;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -257,6 +258,45 @@ public class GameService {
 		endUpgradeTurn(lobby, game);
 	}
 
+	/**
+	 * Uses one of the player's upgrades while they program. The player gets
+	 * their changed hand back in an UPGRADE_USED message.
+	 */
+	public synchronized void useUpgrade(GameLobby lobby, String username,
+			UpgradeType type, List<String> cards) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.PROGRAMMING);
+		Player player = findPlayer(game, username);
+		if (player.getPlayerMat().isSubmitted()) {
+			throw new IllegalStateException(
+					"Program has already been submitted");
+		}
+		ProgrammingUpgrades.use(game, player, type,
+				cards == null ? List.of() : cards);
+		gameRepository.update(game);
+		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
+	}
+
+	/** The cards owed after a Memory Swap go back on top of the deck. */
+	public synchronized void putBackCards(GameLobby lobby, String username,
+			List<String> cards) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.PROGRAMMING);
+		Player player = findPlayer(game, username);
+		if (player.getPlayerMat().getCardsToPutBack() == 0) {
+			throw new IllegalStateException("No cards to put back");
+		}
+		player.getPlayerMat().putOnTopOfDeck(cards);
+		gameRepository.update(game);
+		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
+	}
+
 	/** Passes on buying an upgrade this round. */
 	public synchronized void skipUpgrade(GameLobby lobby, String username) {
 		Game game = upgradeGame(lobby);
@@ -301,6 +341,8 @@ public class GameService {
 		List<Player> order = Priority.order(game);
 
 		game.getCurrentRound().setCurrentPhase(Phase.UPGRADE);
+		game.getPlayersInGame()
+				.forEach(player -> player.getUpgrades().newRound());
 		game.getUpgradeShop().refill(order.size());
 		game.setUpgradeOrder(order);
 	}
@@ -308,7 +350,8 @@ public class GameService {
 	private void startProgrammingPhase(Game game) {
 		game.getCurrentRound().setCurrentPhase(Phase.PROGRAMMING);
 		for (Player player : game.getPlayersInGame()) {
-			player.getPlayerMat().drawHand();
+			player.getPlayerMat()
+					.drawHand(ProgrammingUpgrades.handSize(player));
 		}
 	}
 
