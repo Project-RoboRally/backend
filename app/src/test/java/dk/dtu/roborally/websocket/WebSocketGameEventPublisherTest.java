@@ -134,6 +134,8 @@ class WebSocketGameEventPublisherTest {
 		assertEquals(1, sent.getValue().upgradeShop().size());
 		assertEquals(sent.getValue().upgradeShop().get(0).type().getCost(),
 				sent.getValue().upgradeShop().get(0).cost());
+		assertEquals(sent.getValue().upgradeShop().get(0).type().getKind(),
+				sent.getValue().upgradeShop().get(0).kind());
 		assertEquals("alice", sent.getValue().currentBuyer());
 	}
 

@@ -193,6 +193,7 @@ public final class GameStateCodec {
 		stored.startX = player.getRobot().getStartSpace().x();
 		stored.startY = player.getRobot().getStartSpace().y();
 		stored.energy = player.getEnergy();
+		stored.upgrades = names(player.getUpgrades().getAll());
 		stored.checkpointsReached = player.getCheckpointsReached();
 		stored.submitted = player.getPlayerMat().isSubmitted();
 		stored.drawPile = instructions(player.getPlayerMat().getDrawPile());
@@ -226,6 +227,7 @@ public final class GameStateCodec {
 		Player player = new Player(stored.id, user,
 				PlayerColor.valueOf(stored.color), robot);
 		player.restoreProgress(stored.energy, stored.checkpointsReached);
+		player.getUpgrades().restore(types(stored.upgrades));
 		player.getPlayerMat().restore(cards(stored.drawPile),
 				cards(stored.hand), cards(stored.discard),
 				cards(stored.registers), stored.submitted);
@@ -332,6 +334,7 @@ public final class GameStateCodec {
 		private Integer startX;
 		private Integer startY;
 		private int energy;
+		private List<String> upgrades;
 		private int checkpointsReached;
 		private boolean submitted;
 		private List<String> drawPile;
