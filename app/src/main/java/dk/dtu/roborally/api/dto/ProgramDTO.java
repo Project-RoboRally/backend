@@ -1,11 +1,9 @@
 package dk.dtu.roborally.api.dto;
 
-import dk.dtu.roborally.enums.CommandInstruction;
-
 import java.util.List;
 
 /**
- * Five register instructions submitted by one player.
+ * Five register cards submitted by one player, named like MOVE_1 or SPAM.
  */
-public record ProgramDTO(String username, List<CommandInstruction> registers) {
+public record ProgramDTO(String username, List<String> registers) {
 }

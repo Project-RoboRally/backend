@@ -1,6 +1,7 @@
 package dk.dtu.roborally.models.player;
 
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.models.cards.CardDeck;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
@@ -113,34 +114,42 @@ public class PlayerMat {
 		hand.add(Objects.requireNonNull(card));
 	}
 
+	/** Same as {@link #programCards(List)} for programs without damage. */
+	public void program(List<CommandInstruction> instructions) {
+		programCards(instructions == null
+				? null
+				: instructions.stream().map(CommandInstruction::name).toList());
+	}
+
 	/**
 	 * Moves the chosen cards from the hand to the five registers, discards the
-	 * rest of the hand and marks the mat submitted. A second program is
+	 * rest of the hand and marks the mat submitted. Cards are named like MOVE_1
+	 * or SPAM, so damage cards can be programmed too. A second program is
 	 * rejected until {@link #clearProgram()} runs.
 	 */
-	public void program(List<CommandInstruction> instructions) {
+	public void programCards(List<String> cards) {
 		if (submitted) {
 			throw new IllegalStateException(
 					"Program has already been submitted");
 		}
-		if (instructions == null || instructions.size() != REGISTER_COUNT) {
+		if (cards == null || cards.size() != REGISTER_COUNT) {
 			throw new IllegalArgumentException("A program must contain exactly "
 					+ REGISTER_COUNT + " instructions");
 		}
-		for (CommandInstruction instruction : instructions) {
-			if (!ALLOWED.contains(instruction)) {
+		for (String card : cards) {
+			if (!isAllowed(card)) {
 				throw new IllegalArgumentException(
-						"Instruction is not allowed: " + instruction);
+						"Instruction is not allowed: " + card);
 			}
 		}
-		if (instructions.get(0).repeatsPreviousRegister()) {
+		if (repeatsPreviousRegister(cards.get(0))) {
 			throw new IllegalArgumentException(
-					instructions.get(0) + " cannot be placed in register 1");
+					cards.get(0) + " cannot be placed in register 1");
 		}
 		List<ProgrammableCard> remaining = new ArrayList<>(hand);
 		List<ProgrammableCard> chosen = new ArrayList<>();
-		for (CommandInstruction instruction : instructions) {
-			chosen.add(takeCard(remaining, instruction));
+		for (String card : cards) {
+			chosen.add(takeCard(remaining, card));
 		}
 		for (int i = 0; i < REGISTER_COUNT; i++) {
 			registers[i].setCard(chosen.get(i));
@@ -150,17 +159,36 @@ public class PlayerMat {
 		submitted = true;
 	}
 
+	private static boolean isAllowed(String card) {
+		for (CommandInstruction instruction : ALLOWED) {
+			if (instruction.name().equals(card)) {
+				return true;
+			}
+		}
+		for (DamageInstruction instruction : DamageInstruction.values()) {
+			if (instruction.name().equals(card)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean repeatsPreviousRegister(String card) {
+		return ALLOWED.stream()
+				.anyMatch(instruction -> instruction.name().equals(card)
+						&& instruction.repeatsPreviousRegister());
+	}
+
 	private ProgrammableCard takeCard(List<ProgrammableCard> cards,
-			CommandInstruction instruction) {
+			String name) {
 		for (ProgrammableCard card : cards) {
-			if (card instanceof ProgrammingCard programmingCard
-					&& programmingCard.getInstruction() == instruction) {
+			if (card.getName().equals(name)) {
 				cards.remove(card);
 				return card;
 			}
 		}
 		throw new IllegalArgumentException(
-				"Instruction is not in the hand: " + instruction);
+				"Instruction is not in the hand: " + name);
 	}
 
 	/**
