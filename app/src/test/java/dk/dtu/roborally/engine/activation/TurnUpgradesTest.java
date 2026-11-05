@@ -11,6 +11,7 @@ import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
@@ -180,6 +181,27 @@ class TurnUpgradesTest {
 
 		assertEquals(new Vector2D(4, 2), ada.getRobot().getCurrentSpace());
 		assertFalse(game.getCurrentRound().isActivating());
+	}
+
+	@Test
+	void theTeleporterJumpsOverWallsAndSwapsWithARobot() {
+		ada.getUpgrades().install(UpgradeType.TELEPORTER, null);
+		game.getBoard().getSpace(2, 1)
+				.addBoardElement(new Wall(new Vector2D(2, 1), Direction.NORTH));
+		Player bob = new Player("bob", new User("bob"), PlayerColor.BLUE,
+				new Robot(new Vector2D(2, 0), Direction.EAST));
+		Game both = new Game("game", game.getBoard(), Set.of(ada, bob));
+		program(CommandInstruction.MOVE_2, CommandInstruction.POWER_UP);
+		int energy = ada.getEnergy();
+
+		activator.activate(both);
+		both.getCurrentRound().answer("ada", "YES");
+		activator.activate(both);
+
+		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(2, 2), bob.getRobot().getCurrentSpace());
+		// Paid 1, then four Power Ups
+		assertEquals(energy - 1 + 4, ada.getEnergy());
 	}
 
 	/** Runs activation to the given choice and answers it. */

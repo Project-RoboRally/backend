@@ -10,6 +10,7 @@ import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.Checkpoint;
+import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
@@ -189,8 +190,17 @@ public class RoundActivator {
 			}
 			instruction = chosen.get();
 		}
+		boolean teleport = false;
+		if (teleportTarget(game, player, instruction).isPresent()) {
+			Optional<String> answer = askThisTurn(round, new PendingChoice(
+					player.getId(), ChoiceType.TELEPORT, List.of("NO", "YES")));
+			if (answer.isEmpty()) {
+				return false;
+			}
+			teleport = answer.get().equals("YES");
+		}
 		String moveOne = null;
-		if (instruction == CommandInstruction.MOVE_1) {
+		if (!teleport && instruction == CommandInstruction.MOVE_1) {
 			List<String> options = moveOneOptions(player);
 			if (options.size() > 1) {
 				Optional<String> how = askThisTurn(round, new PendingChoice(
@@ -209,7 +219,11 @@ public class RoundActivator {
 				// Fell off the first time, the second one does not happen
 				break;
 			}
-			if (moveOne == null) {
+			if (teleport && player.getEnergy() >= 1
+					&& teleportTarget(game, player, instruction).isPresent()) {
+				teleport(game, player,
+						teleportTarget(game, player, instruction).get(), log);
+			} else if (moveOne == null) {
 				execute(instruction, player, game, log);
 			} else {
 				moveOne(player, game, moveOne, log);
@@ -218,6 +232,51 @@ public class RoundActivator {
 		log.addCard(register, new PlayedCard(player.getUser().getUsername(),
 				card, firstStep, log.stepCount() - firstStep));
 		return true;
+	}
+
+	/**
+	 * Where a Teleporter would take the robot for this move card, if it has one
+	 * and the energy to pay. It ignores walls, pits, the antenna and robots on
+	 * the way, but can not end on a pit, the antenna or off the board.
+	 */
+	private Optional<Vector2D> teleportTarget(Game game, Player player,
+			CommandInstruction instruction) {
+		if (!player.getUpgrades().has(UpgradeType.TELEPORTER)
+				|| player.getEnergy() < 1) {
+			return Optional.empty();
+		}
+		Direction facing = player.getRobot().getOrientation();
+		Vector2D target = switch (instruction) {
+			case MOVE_1, MOVE_2, MOVE_3, SPEED_ROUTINE -> {
+				Vector2D step = facing.step();
+				int steps = instruction.steps();
+				yield player.getRobot().getCurrentSpace().add(step.x() * steps,
+						step.y() * steps);
+			}
+			case MOVE_BACK ->
+				player.getRobot().getCurrentSpace().add(facing.uTurn().step());
+			default -> null;
+		};
+		if (target == null || !game.getBoard().isWithinBoard(target)) {
+			return Optional.empty();
+		}
+		Space space = game.getBoard().getSpace(target);
+		if (Movement.hasAntenna(space) || space.getBoardElements().stream()
+				.anyMatch(Pit.class::isInstance)) {
+			return Optional.empty();
+		}
+		return Optional.of(target);
+	}
+
+	/** Pays 1 energy and jumps, swapping places with a robot already there. */
+	private void teleport(Game game, Player player, Vector2D target,
+			ActivationLog log) {
+		player.spendEnergy(1);
+		Vector2D from = player.getRobot().getCurrentSpace();
+		Movement.robotAt(game, target).filter(other -> other != player)
+				.ifPresent(other -> other.getRobot().moveTo(from));
+		player.getRobot().moveTo(target);
+		log.addStep(snapshot(game));
 	}
 
 	/**
