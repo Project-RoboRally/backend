@@ -22,7 +22,8 @@ class UpgradeShopTest {
 		shop.refill(4);
 
 		assertEquals(4, shop.getCards().size());
-		assertEquals(14, shop.getDeckSize());
+		// Six copies of every upgrade, minus the four for sale
+		assertEquals(UpgradeType.values().length * 6 - 4, shop.getDeckSize());
 	}
 
 	@Test

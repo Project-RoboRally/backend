@@ -135,7 +135,8 @@ class WebSocketGameEventPublisherTest {
 				sent.capture());
 		assertEquals(PlayerGameStateDTO.UPGRADE_TURN, sent.getValue().type());
 		assertEquals(1, sent.getValue().upgradeShop().size());
-		assertEquals(3, sent.getValue().upgradeShop().get(0).cost());
+		assertEquals(sent.getValue().upgradeShop().get(0).type().getCost(),
+				sent.getValue().upgradeShop().get(0).cost());
 		assertEquals("alice", sent.getValue().currentBuyer());
 	}
 

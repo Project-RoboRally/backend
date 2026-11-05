@@ -1,0 +1,132 @@
+package dk.dtu.roborally.engine.activation;
+
+import dk.dtu.roborally.engine.publishers.GameEventPublisher;
+import dk.dtu.roborally.enums.ChoiceType;
+import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.Direction;
+import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.board.Space;
+import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.cards.ProgrammingCard;
+import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.PendingChoice;
+import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.Robot;
+import org.junit.jupiter.api.Test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+
+class RoundActivatorTest {
+
+	private final RoundActivator activator = new RoundActivator(
+			mock(GameEventPublisher.class));
+
+	@Test
+	void weaselRoutineWaitsForThePlayerToPickATurn() {
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Game game = game(ada);
+		program(ada, CommandInstruction.WEASEL_ROUTINE,
+				CommandInstruction.POWER_UP);
+
+		activator.activate(game);
+
+		PendingChoice choice = game.getCurrentRound().getPendingChoice()
+				.orElseThrow();
+		assertEquals(ChoiceType.WEASEL_ACTION, choice.type());
+		assertEquals(List.of("LEFT_TURN", "RIGHT_TURN", "U_TURN"),
+				choice.options());
+		assertTrue(game.getCurrentRound().isActivating());
+		assertEquals(Direction.NORTH, ada.getRobot().getOrientation());
+
+		game.getCurrentRound().answer("ada", "RIGHT_TURN");
+		activator.activate(game);
+
+		assertFalse(game.getCurrentRound().isActivating());
+		assertEquals(Direction.EAST, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void sandboxRoutineCanMoveAndTheRestOfTheRoundCarriesOn() {
+		Player ada = player("ada", 1, 2, Direction.NORTH);
+		Game game = game(ada);
+		program(ada, CommandInstruction.SANDBOX_ROUTINE,
+				CommandInstruction.MOVE_1);
+
+		activator.activate(game);
+		game.getCurrentRound().answer("ada", "MOVE_1");
+		activator.activate(game);
+
+		// Sandbox moved 1, then four more Move 1 cards until the board ends
+		assertEquals(new Vector2D(1, 0), ada.getRobot().getCurrentSpace());
+		assertTrue(game.getCurrentRound().getPendingChoice().isEmpty());
+	}
+
+	@Test
+	void stepsBeforeTheChoiceAreSentAndNotRepeated() {
+		Player ada = player("ada", 0, 1, Direction.EAST);
+		Game game = game(ada);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
+		for (int i = 1; i < 5; i++) {
+			ada.getPlayerMat().getRegisters().get(i).setCard(
+					new ProgrammingCard(CommandInstruction.WEASEL_ROUTINE));
+		}
+
+		assertEquals(1, activator.activate(game).steps().size());
+		game.getCurrentRound().answer("ada", "U_TURN");
+		assertEquals(1, activator.activate(game).steps().size());
+	}
+
+	@Test
+	void againAfterASandboxRoutineAsksAgain() {
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Game game = game(ada);
+		program(ada, CommandInstruction.SANDBOX_ROUTINE,
+				CommandInstruction.AGAIN);
+
+		activator.activate(game);
+		game.getCurrentRound().answer("ada", "LEFT_TURN");
+		activator.activate(game);
+
+		assertEquals(ChoiceType.SANDBOX_ACTION,
+				game.getCurrentRound().getPendingChoice().orElseThrow().type());
+		assertEquals(Direction.WEST, ada.getRobot().getOrientation());
+	}
+
+	/** First register gets the given card, the rest get the filler. */
+	private static void program(Player player, CommandInstruction first,
+			CommandInstruction rest) {
+		player.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(first));
+		for (int i = 1; i < 5; i++) {
+			player.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(rest));
+		}
+	}
+
+	private static Game game(Player... players) {
+		Map<Vector2D, Space> spaces = new HashMap<>();
+		for (int x = 0; x < 3; x++) {
+			for (int y = 0; y < 3; y++) {
+				spaces.put(new Vector2D(x, y), new Space(new Vector2D(x, y)));
+			}
+		}
+		return new Game("game", new Board(spaces), Set.of(players), Map.of());
+	}
+
+	private static Player player(String username, int x, int y,
+			Direction facing) {
+		return new Player(username, new User(username), PlayerColor.RED,
+				new Robot(new Vector2D(x, y), facing));
+	}
+}
