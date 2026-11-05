@@ -6,6 +6,7 @@ import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
@@ -44,6 +45,16 @@ class RebootTest {
 		assertEquals(List.of("SPAM", "SPAM"),
 				ada.getPlayerMat().getDiscardPile().stream()
 						.map(card -> card.getName()).toList());
+	}
+
+	@Test
+	void aFirewallMeansNoSpamWhenRebooting() {
+		Player ada = player("ada", 1, 1, new Vector2D(0, 4));
+		ada.getUpgrades().install(UpgradeType.FIREWALL, null);
+
+		Reboot.reboot(game(ada), ada, true, new Vector2D(2, 2));
+
+		assertTrue(ada.getPlayerMat().getDiscardPile().isEmpty());
 	}
 
 	@Test
