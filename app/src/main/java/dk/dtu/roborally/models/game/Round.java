@@ -82,6 +82,16 @@ public class Round {
 		return activated;
 	}
 
+	/** Puts back activation progress loaded from storage. */
+	public void restoreActivation(Integer register, RegisterStage stage,
+			List<String> order, int activated) {
+		this.currentRegisterIndex = register;
+		this.stage = stage;
+		activationOrder.clear();
+		activationOrder.addAll(order);
+		this.activated = activated;
+	}
+
 	public void finishActivation() {
 		currentRegisterIndex = null;
 		stage = null;
