@@ -225,21 +225,35 @@ public class GameService {
 	}
 
 	/**
+	 * Same as {@link #buyUpgrade(GameLobby, String, UpgradeType, UpgradeType)}
+	 * with a free slot.
+	 */
+	public void buyUpgrade(GameLobby lobby, String username, UpgradeType type) {
+		buyUpgrade(lobby, username, type, null);
+	}
+
+	/**
 	 * Buys an upgrade for the player whose turn it is. Routines go straight to
-	 * the player's discard pile.
+	 * the player's discard pile, anything else gets installed. With all three
+	 * slots of that kind taken, replacing names the installed upgrade it
+	 * replaces, which is gone after.
 	 */
 	public synchronized void buyUpgrade(GameLobby lobby, String username,
-			UpgradeType type) {
+			UpgradeType type, UpgradeType replacing) {
 		Game game = upgradeGame(lobby);
 		Player player = currentBuyer(game, username);
 
 		if (player.getEnergy() < type.getCost()) {
 			throw new IllegalArgumentException("Not enough energy for " + type);
 		}
+		if (type.isRoutine()) {
+			player.getPlayerMat()
+					.addToDiscardPile(new ProgrammingCard(type.getRoutine()));
+		} else {
+			player.getUpgrades().install(type, replacing);
+		}
 		game.getUpgradeShop().buy(type);
 		player.spendEnergy(type.getCost());
-		player.getPlayerMat()
-				.addToDiscardPile(new ProgrammingCard(type.getRoutine()));
 		endUpgradeTurn(lobby, game);
 	}
 
