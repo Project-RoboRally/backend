@@ -7,10 +7,13 @@ import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.LaserEmitter;
+import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.PlayerMat;
+import dk.dtu.roborally.models.player.Register;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -95,14 +98,14 @@ public final class Lasers {
 		}
 		List<UpgradeType> picks = game.getCurrentRound().getWeaponPicks();
 		for (Player target : targets) {
-			hit(game, target, damage);
+			hit(game, shooter, target, damage, picks);
 		}
 		if (first.isPresent()) {
 			weaponEffects(game, shooter, first.get(), picks);
 		}
 		if (shooter.getUpgrades().has(UpgradeType.REAR_LASER)) {
-			firstRobotHit(game, from, facing.uTurn())
-					.ifPresent(target -> hit(game, target, damage));
+			firstRobotHit(game, from, facing.uTurn()).ifPresent(
+					target -> hit(game, shooter, target, damage, List.of()));
 		}
 		return true;
 	}
@@ -142,8 +145,7 @@ public final class Lasers {
 
 	private static List<UpgradeType> usableWeapons(Game game, Player shooter,
 			Player target) {
-		boolean adjacent = shooter.getRobot().getCurrentSpace()
-				.distanceTo(target.getRobot().getCurrentSpace()) == 1;
+		boolean adjacent = adjacent(shooter, target);
 		List<UpgradeType> usable = new ArrayList<>();
 		if (shooter.getUpgrades().has(UpgradeType.MINI_HOWITZER)
 				&& shooter.getEnergy() >= 1) {
@@ -154,6 +156,13 @@ public final class Lasers {
 		}
 		if (shooter.getUpgrades().has(UpgradeType.TRACTOR_BEAM) && !adjacent) {
 			usable.add(UpgradeType.TRACTOR_BEAM);
+		}
+		if (shooter.getUpgrades().has(UpgradeType.CORRUPTION_WAVE)) {
+			usable.add(UpgradeType.CORRUPTION_WAVE);
+		}
+		if (shooter.getUpgrades().has(UpgradeType.BLUE_SCREEN_OF_DEATH)
+				&& adjacent) {
+			usable.add(UpgradeType.BLUE_SCREEN_OF_DEATH);
 		}
 		return usable;
 	}
@@ -180,11 +189,61 @@ public final class Lasers {
 		}
 	}
 
-	/** A Deflector Shield stops robot lasers. */
-	private static void hit(Game game, Player target, int damage) {
-		if (!game.getCurrentRound().isShielded(target.getId())) {
-			Damage.take(game, target, DamageInstruction.SPAM, damage);
+	/**
+	 * Deals a shot's damage. A Deflector Shield stops it all. Blue Screen of
+	 * Death makes one card a worm on an adjacent robot, otherwise a Trojan
+	 * Needler makes it a trojan horse. Corruption Wave puts the SPAM on top of
+	 * their deck, and a Scrambler swaps out the card in their next register.
+	 */
+	private static void hit(Game game, Player shooter, Player target,
+			int damage, List<UpgradeType> picks) {
+		if (game.getCurrentRound().isShielded(target.getId())) {
+			return;
 		}
+		int spam = damage;
+		if (picks.contains(UpgradeType.BLUE_SCREEN_OF_DEATH)
+				&& adjacent(shooter, target)) {
+			Damage.take(game, target, DamageInstruction.WORM, 1);
+			spam--;
+		} else if (shooter.getUpgrades().has(UpgradeType.TROJAN_NEEDLER)) {
+			Damage.take(game, target, DamageInstruction.TROJAN_HORSE, 1);
+			spam--;
+		}
+		if (picks.contains(UpgradeType.CORRUPTION_WAVE)) {
+			Damage.onTopOfDeck(game, target, DamageInstruction.SPAM, spam);
+		} else {
+			Damage.take(game, target, DamageInstruction.SPAM, spam);
+		}
+		if (shooter.getUpgrades().has(UpgradeType.SCRAMBLER)) {
+			scramble(game, target);
+		}
+	}
+
+	/**
+	 * The card in the target's next register is swapped for the top card of
+	 * their deck. Nothing happens in the last register.
+	 */
+	private static void scramble(Game game, Player target) {
+		int next = game.getCurrentRound().getCurrentRegisterIndex().orElse(0)
+				+ 1;
+		if (next >= PlayerMat.REGISTER_COUNT) {
+			return;
+		}
+		Register register = target.getPlayerMat().getRegisters().get(next);
+		if (register.getCard() == null) {
+			return;
+		}
+		if (register.getCard() instanceof DamageCard damage) {
+			game.getDamagePiles().giveBack(damage);
+		} else {
+			target.getPlayerMat().addToDiscardPile(register.getCard());
+		}
+		register.setCard(target.getPlayerMat().drawTop().orElse(null));
+	}
+
+	private static boolean adjacent(Player one, Player other) {
+		return one.getRobot().getCurrentSpace()
+				.distanceTo(other.getRobot().getCurrentSpace()) == 1;
 	}
 
 	/**

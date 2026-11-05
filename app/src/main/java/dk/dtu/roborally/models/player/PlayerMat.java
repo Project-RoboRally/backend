@@ -203,6 +203,11 @@ public class PlayerMat {
 		return Optional.empty();
 	}
 
+	/** Puts a card on top of the draw pile, it is drawn next. */
+	public void addToTopOfDeck(ProgrammableCard card) {
+		drawPile.addCard(Objects.requireNonNull(card));
+	}
+
 	/** Puts a card in the hand so it can be programmed. */
 	public void addToHand(ProgrammableCard card) {
 		hand.add(Objects.requireNonNull(card));
