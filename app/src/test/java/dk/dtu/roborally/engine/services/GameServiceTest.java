@@ -102,7 +102,7 @@ class GameServiceTest {
 		};
 		gameService = new GameService(repository, publisher);
 
-		game = new Game("game-1", null, Set.of(), Map.of());
+		game = new Game("game-1", null, Set.of());
 		repository.add(game);
 	}
 
@@ -138,7 +138,7 @@ class GameServiceTest {
 		GameLobby lobby = new GameLobby(JsonLoader.loadConfig(), "lobby",
 				new User("alice"));
 		lobby.addUserToLobby(new User("bob"));
-		Game newGame = new Game("game-2", board(), Set.of(), Map.of());
+		Game newGame = new Game("game-2", board(), Set.of());
 
 		gameService.startGame(lobby.getLobbyId(), newGame);
 
@@ -599,8 +599,7 @@ class GameServiceTest {
 	}
 
 	private static Game game(Board board, Player... players) {
-		return new Game("round", board, new HashSet<>(List.of(players)),
-				Map.of());
+		return new Game("round", board, new HashSet<>(List.of(players)));
 	}
 
 	private static Board board(Space... spaces) {
