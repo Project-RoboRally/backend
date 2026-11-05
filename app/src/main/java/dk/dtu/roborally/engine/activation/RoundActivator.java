@@ -1,6 +1,7 @@
 package dk.dtu.roborally.engine.activation;
 
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
@@ -15,6 +16,7 @@ import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.models.game.ActivationLog;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.player.PlayerMat;
 import dk.dtu.roborally.models.game.RoundResult;
@@ -40,9 +42,10 @@ public class RoundActivator {
 	}
 
 	/**
-	 * Runs the activation phase from wherever it got to and returns everything
-	 * that happened in it. Within a register, players go in priority order,
-	 * then the end of register effects happen.
+	 * Runs the activation phase from wherever it got to and returns what
+	 * happened since the last call. Within a register, players go in priority
+	 * order, then the end of register effects happen. Stops early when a player
+	 * has to choose something, the round then says what it is waiting for.
 	 */
 	public RoundResult activate(Game game) {
 		Round round = game.getCurrentRound();
@@ -53,14 +56,14 @@ public class RoundActivator {
 			round.startActivation();
 			startRegister(game, 0);
 		}
-		while (round.isActivating()) {
+		while (round.isActivating() && round.getPendingChoice().isEmpty()) {
 			if (game.getGameStatus() == GameStatus.FINISHED) {
 				round.finishActivation();
 				break;
 			}
 			step(game);
 		}
-		return round.getLog().toResult();
+		return round.takeLog().toResult();
 	}
 
 	/** Does the next bit of the current register. */
@@ -74,8 +77,10 @@ public class RoundActivator {
 					round.setStage(RegisterStage.END_OF_REGISTER);
 					return;
 				}
-				activateCard(game, findPlayer(game, next.get()), register);
-				round.markActivated();
+				if (activateCard(game, findPlayer(game, next.get()),
+						register)) {
+					round.markActivated();
+				}
 			}
 			case END_OF_REGISTER -> {
 				evaluateCheckpoints(game, playersInOrder(game));
@@ -93,15 +98,42 @@ public class RoundActivator {
 				Priority.order(game).stream().map(Player::getId).toList());
 	}
 
-	private void activateCard(Game game, Player player, int register) {
+	/**
+	 * Plays the player's card for this register. Returns false when the card
+	 * waits on the player choosing an action, nothing has happened yet then.
+	 */
+	private boolean activateCard(Game game, Player player, int register) {
+		CommandInstruction instruction = resolveInstruction(player, register);
+		if (!instruction.actionsToChooseFrom().isEmpty()) {
+			Optional<CommandInstruction> chosen = chooseAction(game, player,
+					instruction);
+			if (chosen.isEmpty()) {
+				return false;
+			}
+			instruction = chosen.get();
+		}
 		ActivationLog log = game.getCurrentRound().getLog();
 		int firstStep = log.stepCount();
-		execute(resolveInstruction(player, register), player, game, log);
+		execute(instruction, player, game, log);
 		log.addCard(register,
 				new PlayedCard(player.getUser().getUsername(),
 						player.getPlayerMat().getRegisters().get(register)
 								.getCard(),
 						firstStep, log.stepCount() - firstStep));
+		return true;
+	}
+
+	/** Sandbox and Weasel routines let the player pick what they do. */
+	private Optional<CommandInstruction> chooseAction(Game game, Player player,
+			CommandInstruction routine) {
+		ChoiceType type = routine == CommandInstruction.SANDBOX_ROUTINE
+				? ChoiceType.SANDBOX_ACTION
+				: ChoiceType.WEASEL_ACTION;
+		List<String> options = routine.actionsToChooseFrom().stream()
+				.map(CommandInstruction::name).toList();
+		return game.getCurrentRound()
+				.ask(new PendingChoice(player.getId(), type, options))
+				.map(CommandInstruction::valueOf);
 	}
 
 	/** Players in the order fixed at the start of this register. */

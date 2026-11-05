@@ -82,6 +82,11 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 				PlayerGameStateDTO.PROGRAMMING_STARTED);
 	}
 
+	@Override
+	public void publishChoiceRequired(String lobbyId, Game game) {
+		publishPlayerStates(lobbyId, game, PlayerGameStateDTO.CHOICE_REQUIRED);
+	}
+
 	private void publishPlayerStates(String lobbyId, Game game, String type) {
 		// Each player gets their own message since it holds their private mat
 		for (Player player : game.getPlayersInGame()) {

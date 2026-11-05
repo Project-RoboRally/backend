@@ -5,6 +5,7 @@ import dk.dtu.roborally.api.dto.BuyUpgradeDTO;
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.api.dto.KickUserDTO;
 import dk.dtu.roborally.api.dto.LobbyDTO;
+import dk.dtu.roborally.api.dto.MakeChoiceDTO;
 import dk.dtu.roborally.api.dto.ProgramDTO;
 import dk.dtu.roborally.api.dto.ProgramResultDTO;
 import dk.dtu.roborally.api.dto.RenameLobbyDTO;
@@ -135,6 +136,13 @@ public class LobbyController {
 	public ResponseEntity<Void> skipUpgrade(@PathVariable String id,
 			@RequestBody SkipUpgradeDTO payload) {
 		lobbyService.skipUpgrade(id, payload.username());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/choice")
+	public ResponseEntity<Void> makeChoice(@PathVariable String id,
+			@RequestBody MakeChoiceDTO payload) {
+		lobbyService.makeChoice(id, payload.username(), payload.choice());
 		return ResponseEntity.noContent().build();
 	}
 
