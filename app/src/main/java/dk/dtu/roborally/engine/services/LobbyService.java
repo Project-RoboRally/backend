@@ -69,6 +69,7 @@ public class LobbyService {
 
 		GameLobby lobby = getLobby(id);
 		lobby.addUserToLobby(user);
+		lobbyRepository.update(lobby);
 
 		return lobby;
 	}
@@ -93,6 +94,7 @@ public class LobbyService {
 			lobbyRepository.delete(lobby.getLobbyId());
 		} else {
 			lobby.removeUser(user.getId());
+			lobbyRepository.update(lobby);
 		}
 
 		return lobby;
@@ -103,6 +105,7 @@ public class LobbyService {
 
 		validateLobbyName(name);
 		lobby.setLobbyName(name);
+		lobbyRepository.update(lobby);
 		return lobby;
 	}
 
@@ -116,6 +119,7 @@ public class LobbyService {
 
 		Game game = lobby.startGame();
 		gameService.startGame(lobby.getLobbyId(), game);
+		lobbyRepository.update(lobby);
 		return lobby;
 	}
 
@@ -133,6 +137,7 @@ public class LobbyService {
 			throw new UserNotInLobby(userKicked);
 
 		lobby.removeUser(user.getId());
+		lobbyRepository.update(lobby);
 	}
 
 	public GameLobby setReady(String lobbyId, String username, boolean ready) {
@@ -145,6 +150,7 @@ public class LobbyService {
 			throw new UserNotInLobby(username);
 
 		lobby.setReady(user.getId(), ready);
+		lobbyRepository.update(lobby);
 
 		return lobby;
 	}
@@ -160,6 +166,7 @@ public class LobbyService {
 			throw new UserNotInLobby(username);
 
 		lobby.changeColor(user.getId(), color);
+		lobbyRepository.update(lobby);
 
 		return lobby;
 	}

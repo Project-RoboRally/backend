@@ -41,12 +41,16 @@ dependencies {
     // Lets the legacy JUnit 4 tests above keep running on the JUnit Platform
     // that spring-boot-starter-test pulls in (JUnit 5).
     testRuntimeOnly(libs.junit.vintage.engine)
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter:2.0.5")
+    testImplementation("org.testcontainers:testcontainers-postgresql:2.0.5")
 
     // This dependency is used by the application.
     implementation(libs.guava)
     implementation(libs.gson)
     implementation(libs.spring.boot.starter.web)
     implementation(libs.spring.boot.starter.websocket)
+    implementation("org.springframework.boot:spring-boot-starter-jdbc")
+    implementation("org.postgresql:postgresql")
 
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)

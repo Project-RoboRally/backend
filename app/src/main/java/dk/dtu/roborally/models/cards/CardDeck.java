@@ -11,7 +11,7 @@ import java.util.Optional;
  * or upgrade cards. It models the game necessary behavior of a physical
  * carddeck.
  *
- * @author August
+ * @author August, Elias
  */
 
 public class CardDeck<T extends Card> {
@@ -42,5 +42,14 @@ public class CardDeck<T extends Card> {
 
 	public boolean isEmpty() {
 		return cards.isEmpty();
+	}
+
+	/** Cards from bottom to top. The last card is drawn next. */
+	public List<T> getCards() {
+		return List.copyOf(cards);
+	}
+
+	public void clear() {
+		cards.clear();
 	}
 }

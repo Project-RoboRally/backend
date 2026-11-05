@@ -14,7 +14,7 @@ import java.util.Optional;
  * have a few upgrades so far, so unlike the rulebook used cards are shuffled
  * back in when the deck runs out, otherwise the shop would empty.
  *
- * @author Sebastian
+ * @author Sebastian, Elias
  */
 public class UpgradeShop {
 
@@ -69,6 +69,32 @@ public class UpgradeShop {
 
 	public List<UpgradeCard> getCards() {
 		return Collections.unmodifiableList(cards);
+	}
+
+	/** Deck from bottom to top. The last card is drawn next. */
+	public List<UpgradeType> getDeckTypes() {
+		return deck.getCards().stream().map(UpgradeCard::getType).toList();
+	}
+
+	public List<UpgradeType> getDiscardTypes() {
+		return discardPile.stream().map(UpgradeCard::getType).toList();
+	}
+
+	/** Replaces the deck, discard pile and cards for sale. */
+	public void restore(List<UpgradeType> deckTypes,
+			List<UpgradeType> discardTypes, List<UpgradeType> forSale) {
+		deck.clear();
+		for (UpgradeType type : deckTypes) {
+			deck.addCard(new UpgradeCard(type));
+		}
+		discardPile.clear();
+		for (UpgradeType type : discardTypes) {
+			discardPile.add(new UpgradeCard(type));
+		}
+		cards.clear();
+		for (UpgradeType type : forSale) {
+			cards.add(new UpgradeCard(type));
+		}
 	}
 
 	public int getDeckSize() {
