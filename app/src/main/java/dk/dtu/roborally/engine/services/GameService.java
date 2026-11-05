@@ -17,7 +17,9 @@ import dk.dtu.roborally.repository.GameRepository;
 import java.util.List;
 
 /**
- * Service for logic about a game
+ * Service for logic about a game. Everything that changes a game is
+ * synchronized, so two players acting at once, or the programming timer running
+ * out, can not change a game at the same time.
  *
  * @author Elias, Nicoleta, Matthias, Sebastian
  */
@@ -47,7 +49,7 @@ public class GameService {
 	 * Changes the status of a game and notifies subscribers. Does nothing if
 	 * the game already has the given status.
 	 */
-	public Game updateStatus(String gameId, GameStatus newStatus) {
+	public synchronized Game updateStatus(String gameId, GameStatus newStatus) {
 		Game game = getGame(gameId);
 
 		if (game.getGameStatus() == newStatus) {
@@ -69,7 +71,7 @@ public class GameService {
 	 * subscribers. The board message includes each robot on its starting space.
 	 * Validation already happened in GameLobby.startGame().
 	 */
-	public void startGame(String lobbyId, Game game) {
+	public synchronized void startGame(String lobbyId, Game game) {
 		startUpgradePhase(game);
 		gameRepository.add(game);
 		gameEventPublisher.publishBoard(lobbyId, game);
@@ -82,7 +84,7 @@ public class GameService {
 	 * A finished game rejects further programs. Returns false while the round
 	 * is still waiting for programs.
 	 */
-	public boolean submitProgram(GameLobby lobby, String username,
+	public synchronized boolean submitProgram(GameLobby lobby, String username,
 			List<String> registers) {
 		if (!lobby.isGameStarted()) {
 			throw new IllegalStateException("The game has not been started.");
@@ -111,7 +113,8 @@ public class GameService {
 	 * Answers the choice activation is waiting on, then carries on with the
 	 * round.
 	 */
-	public void makeChoice(GameLobby lobby, String username, String choice) {
+	public synchronized void makeChoice(GameLobby lobby, String username,
+			String choice) {
 		if (!lobby.isGameStarted()) {
 			throw new IllegalStateException("The game has not been started.");
 		}
@@ -153,7 +156,8 @@ public class GameService {
 	 * Buys an upgrade for the player whose turn it is. Routines go straight to
 	 * the player's discard pile.
 	 */
-	public void buyUpgrade(GameLobby lobby, String username, UpgradeType type) {
+	public synchronized void buyUpgrade(GameLobby lobby, String username,
+			UpgradeType type) {
 		Game game = upgradeGame(lobby);
 		Player player = currentBuyer(game, username);
 
@@ -168,7 +172,7 @@ public class GameService {
 	}
 
 	/** Passes on buying an upgrade this round. */
-	public void skipUpgrade(GameLobby lobby, String username) {
+	public synchronized void skipUpgrade(GameLobby lobby, String username) {
 		Game game = upgradeGame(lobby);
 		currentBuyer(game, username);
 		endUpgradeTurn(lobby, game);
