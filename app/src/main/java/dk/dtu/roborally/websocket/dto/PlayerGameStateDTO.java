@@ -3,6 +3,7 @@ package dk.dtu.roborally.websocket.dto;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
+import dk.dtu.roborally.enums.UpgradeKind;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
@@ -48,11 +49,12 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		}
 	}
 
-	public record UpgradeDTO(UpgradeType type, int cost) {
+	public record UpgradeDTO(UpgradeType type, int cost, UpgradeKind kind) {
 
 		public static UpgradeDTO from(UpgradeCard card) {
 			// Convert the upgrade card to the corresponding DTO
-			return new UpgradeDTO(card.getType(), card.getType().getCost());
+			return new UpgradeDTO(card.getType(), card.getType().getCost(),
+					card.getType().getKind());
 		}
 	}
 

@@ -4,6 +4,7 @@ import dk.dtu.roborally.engine.activation.Damage;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.RegisterStage;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.loaders.LevelLoader;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.User;
@@ -135,6 +136,20 @@ class GameStateCodecTest {
 
 		assertEquals(Optional.of(now.plusSeconds(30)),
 				reload().getCurrentRound().getTimer().getEndsAt());
+	}
+
+	@Test
+	void keepsInstalledUpgrades() {
+		Player player = game.getPlayersInGame().iterator().next();
+		player.getUpgrades().install(UpgradeType.RAIL_GUN, null);
+		player.getUpgrades().install(UpgradeType.ZOOP, null);
+
+		Player loaded = reload().getPlayersInGame().stream()
+				.filter(other -> other.getId().equals(player.getId()))
+				.findFirst().orElseThrow();
+
+		assertEquals(List.of(UpgradeType.RAIL_GUN, UpgradeType.ZOOP),
+				loaded.getUpgrades().getAll());
 	}
 
 	private Game reload() {
