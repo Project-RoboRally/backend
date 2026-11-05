@@ -14,6 +14,7 @@ import dk.dtu.roborally.models.player.Robot;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * Moves robots around the board one space at a time. Moving robots push the
@@ -44,7 +45,39 @@ public final class Movement {
 	 */
 	public static boolean step(Game game, Player player, Direction direction,
 			boolean hovering) {
+		return step(game, player, direction, hovering, pushed -> {
+		});
+	}
+
+	/**
+	 * Same as {@link #step(Game, Player, Direction, boolean)}, and tells onPush
+	 * about the robot this one pushed directly, if any.
+	 */
+	public static boolean step(Game game, Player player, Direction direction,
+			boolean hovering, Consumer<Player> onPush) {
+		return step(game, player, direction, hovering, direction, onPush);
+	}
+
+	/**
+	 * Same as {@link #step(Game, Player, Direction, boolean, Consumer)}, but a
+	 * robot right in front is pushed the given way instead, like with Side
+	 * Arms. If it can not go that way, the move stops.
+	 */
+	public static boolean step(Game game, Player player, Direction direction,
+			boolean hovering, Direction pushTo, Consumer<Player> onPush) {
 		Board board = game.getBoard();
+		Vector2D ahead = player.getRobot().getCurrentSpace()
+				.add(direction.step());
+		Optional<Player> inFront = board.isWithinBoard(ahead)
+				? robotAt(game, ahead)
+				: Optional.empty();
+		if (pushTo != direction && inFront.isPresent() && !blocked(board,
+				player.getRobot().getCurrentSpace(), ahead, direction)) {
+			if (!step(game, inFront.get(), pushTo)) {
+				return false;
+			}
+			onPush.accept(inFront.get());
+		}
 		List<Player> line = new ArrayList<>();
 		line.add(player);
 		Vector2D position = player.getRobot().getCurrentSpace();
@@ -61,6 +94,9 @@ public final class Movement {
 			}
 			line.add(inTheWay.get());
 			position = next;
+		}
+		if (line.size() > 1) {
+			onPush.accept(line.get(1));
 		}
 		boolean moverFell = false;
 		for (Player moving : line) {

@@ -204,6 +204,20 @@ class TurnUpgradesTest {
 		assertEquals(energy - 1 + 4, ada.getEnergy());
 	}
 
+	@Test
+	void sideArmsPushToTheSideInstead() {
+		ada.getUpgrades().install(UpgradeType.SIDE_ARMS, null);
+		Player bob = new Player("bob", new User("bob"), PlayerColor.BLUE,
+				new Robot(new Vector2D(2, 1), Direction.WEST));
+		game = new Game("game", game.getBoard(), Set.of(ada, bob));
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		answer(ChoiceType.SIDE_ARMS, "RIGHT");
+
+		assertEquals(new Vector2D(2, 1), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(3, 1), bob.getRobot().getCurrentSpace());
+	}
+
 	/** Runs activation to the given choice and answers it. */
 	private void answer(ChoiceType type, String answer) {
 		activator.activate(game);

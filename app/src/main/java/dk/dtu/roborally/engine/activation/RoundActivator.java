@@ -28,8 +28,10 @@ import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.RobotView;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Runs the activation phase of a round: the programmed registers, and the
@@ -71,7 +73,7 @@ public class RoundActivator {
 			startRegister(game, 0);
 		}
 		while (round.isActivating() && round.getPendingChoice().isEmpty()) {
-			if (!faceRebootedRobots(game)) {
+			if (!faceRebootedRobots(game) || !PushUpgrades.swapChassis(game)) {
 				break;
 			}
 			if (game.getGameStatus() == GameStatus.FINISHED) {
@@ -191,6 +193,23 @@ public class RoundActivator {
 			}
 			instruction = chosen.get();
 		}
+		Direction pushTo = null;
+		if (player.getUpgrades().has(UpgradeType.SIDE_ARMS)
+				&& robotWithinReach(game, player, instruction)) {
+			Optional<String> side = askThisTurn(round,
+					new PendingChoice(player.getId(), ChoiceType.SIDE_ARMS,
+							List.of("FORWARD", "LEFT", "RIGHT")));
+			if (side.isEmpty()) {
+				return false;
+			}
+			Direction facing = player.getRobot().getOrientation();
+			pushTo = switch (side.get()) {
+				case "LEFT" -> facing.turnLeft();
+				case "RIGHT" -> facing.turnRight();
+				default -> null;
+			};
+		}
+		round.setSidePush(pushTo);
 		boolean teleport = false;
 		if (teleportTarget(game, player, instruction).isPresent()) {
 			Optional<String> answer = askThisTurn(round, new PendingChoice(
@@ -278,6 +297,41 @@ public class RoundActivator {
 				.ifPresent(other -> other.getRobot().moveTo(from));
 		player.getRobot().moveTo(target);
 		log.addStep(snapshot(game));
+	}
+
+	/**
+	 * Whether a move card could push a robot, so Side Arms is worth asking
+	 * about: a robot within the move's reach, with no wall before it.
+	 */
+	private boolean robotWithinReach(Game game, Player player,
+			CommandInstruction instruction) {
+		Direction facing = player.getRobot().getOrientation();
+		int reach;
+		Direction direction = facing;
+		switch (instruction) {
+			case MOVE_1, MOVE_2, MOVE_3, SPEED_ROUTINE ->
+				reach = instruction.steps();
+			case MOVE_BACK -> {
+				reach = 1;
+				direction = facing.uTurn();
+			}
+			default -> {
+				return false;
+			}
+		}
+		Vector2D position = player.getRobot().getCurrentSpace();
+		for (int i = 0; i < reach; i++) {
+			Vector2D next = position.add(direction.step());
+			if (!game.getBoard().isWithinBoard(next) || Movement
+					.wallBlocks(game.getBoard(), position, next, direction)) {
+				return false;
+			}
+			if (Movement.robotAt(game, next).isPresent()) {
+				return true;
+			}
+			position = next;
+		}
+		return false;
 	}
 
 	/**
@@ -493,8 +547,13 @@ public class RoundActivator {
 	private void moveSteps(Player player, Game game, Direction direction,
 			int stepCount, ActivationLog log) {
 		boolean hovering = player.getUpgrades().has(UpgradeType.HOVER_UNIT);
+		// One push event per robot, however far this card pushes it
+		Set<Player> pushed = new LinkedHashSet<>();
+		Direction pushTo = game.getCurrentRound().getSidePush()
+				.orElse(direction);
 		for (int step = 0; step < stepCount; step++) {
-			if (!Movement.step(game, player, direction, hovering)) {
+			if (!Movement.step(game, player, direction, hovering, pushTo,
+					pushed::add)) {
 				break;
 			}
 			log.addStep(snapshot(game));
@@ -502,6 +561,7 @@ public class RoundActivator {
 		if (hovering) {
 			Movement.landOnPit(game, player);
 		}
+		pushed.forEach(target -> PushUpgrades.pushed(game, player, target));
 	}
 
 	private void moveBack(Player player, Game game, ActivationLog log) {

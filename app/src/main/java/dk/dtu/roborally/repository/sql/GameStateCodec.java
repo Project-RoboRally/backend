@@ -67,6 +67,7 @@ public final class GameStateCodec {
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
 		stored.rebootsToFace = round.getRebootsToFace();
+		stored.chassisSwaps = round.getChassisSwaps();
 		stored.usedAtRegisterStart = new HashMap<>();
 		round.getUsedAtRegisterStart().forEach((id,
 				types) -> stored.usedAtRegisterStart.put(id, names(types)));
@@ -165,6 +166,9 @@ public final class GameStateCodec {
 		if (stored.pickedUpgrade != null) {
 			game.getCurrentRound().setPickedUpgrade(
 					UpgradeType.valueOf(stored.pickedUpgrade));
+		}
+		if (stored.chassisSwaps != null) {
+			game.getCurrentRound().restoreChassisSwaps(stored.chassisSwaps);
 		}
 		if (stored.rebootsToFace != null) {
 			game.getCurrentRound().restoreRebootsToFace(stored.rebootsToFace);
@@ -356,6 +360,7 @@ public final class GameStateCodec {
 		private int activated;
 		private StoredChoice choice;
 		private List<String> rebootsToFace;
+		private List<List<String>> chassisSwaps;
 		private Map<String, List<String>> usedAtRegisterStart;
 		private List<String> startDone;
 		private boolean turnDone;

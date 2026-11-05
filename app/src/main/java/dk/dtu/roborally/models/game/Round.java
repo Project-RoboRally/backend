@@ -2,6 +2,7 @@ package dk.dtu.roborally.models.game;
 
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -77,9 +78,14 @@ public class Round {
 	private boolean hacked;
 	/** Refresh changed this turn's card to this. */
 	private CommandInstruction refreshedTo;
+	/** Side Arms pushes robots this way this turn, instead of straight. */
+	private Direction sidePush;
 	/** Answers about this turn's card, kept for when Hack plays it again. */
 	private final Map<ChoiceType, String> turnAnswers = new EnumMap<>(
 			ChoiceType.class);
+
+	/** Modular Chassis swaps to sort out, as pusher id and pushed id. */
+	private final List<List<String>> chassisSwaps = new ArrayList<>();
 
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
@@ -221,6 +227,7 @@ public class Round {
 		pickedUpgrade = null;
 		hacked = false;
 		refreshedTo = null;
+		sidePush = null;
 		turnAnswers.clear();
 	}
 
@@ -234,6 +241,14 @@ public class Round {
 
 	public Map<ChoiceType, String> getTurnAnswers() {
 		return Map.copyOf(turnAnswers);
+	}
+
+	public Optional<Direction> getSidePush() {
+		return Optional.ofNullable(sidePush);
+	}
+
+	public void setSidePush(Direction direction) {
+		sidePush = direction;
 	}
 
 	public Optional<CommandInstruction> getRefreshedTo() {
@@ -299,6 +314,24 @@ public class Round {
 	/** The choice an unused answer belongs to. */
 	public Optional<PendingChoice> getAnsweredChoice() {
 		return answer == null ? Optional.empty() : Optional.of(choice);
+	}
+
+	public void addChassisSwap(String pusherId, String targetId) {
+		chassisSwaps.add(List.of(pusherId, targetId));
+	}
+
+	public List<List<String>> getChassisSwaps() {
+		return List.copyOf(chassisSwaps);
+	}
+
+	public void removeChassisSwap(List<String> swap) {
+		chassisSwaps.remove(swap);
+	}
+
+	/** Puts back the swaps loaded from storage. */
+	public void restoreChassisSwaps(List<List<String>> swaps) {
+		chassisSwaps.clear();
+		swaps.forEach(swap -> chassisSwaps.add(List.copyOf(swap)));
 	}
 
 	public void addRebootToFace(String playerId) {
