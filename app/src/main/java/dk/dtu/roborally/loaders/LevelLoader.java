@@ -176,8 +176,12 @@ public class LevelLoader {
 
 	private static void createPriorityAntenna(LevelData.AntennaData antenna,
 			Map<Vector2D, Space> spaceMap) {
+		Direction facing = antenna.direction == null
+				? Direction.NORTH
+				: parse(Direction.class, antenna.direction,
+						"antenna direction");
 		getSpaceAt(spaceMap, new Vector2D(antenna.x, antenna.y))
-				.addBoardElement(new PriorityAntenna());
+				.addBoardElement(new PriorityAntenna(facing));
 	}
 
 	private static void createGear(LevelData.GearData gear,
