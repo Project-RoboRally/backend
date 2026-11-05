@@ -84,6 +84,9 @@ public class Round {
 	private final Map<ChoiceType, String> turnAnswers = new EnumMap<>(
 			ChoiceType.class);
 
+	/** Modular Chassis swaps to sort out, as pusher id and pushed id. */
+	private final List<List<String>> chassisSwaps = new ArrayList<>();
+
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
 
@@ -311,6 +314,24 @@ public class Round {
 	/** The choice an unused answer belongs to. */
 	public Optional<PendingChoice> getAnsweredChoice() {
 		return answer == null ? Optional.empty() : Optional.of(choice);
+	}
+
+	public void addChassisSwap(String pusherId, String targetId) {
+		chassisSwaps.add(List.of(pusherId, targetId));
+	}
+
+	public List<List<String>> getChassisSwaps() {
+		return List.copyOf(chassisSwaps);
+	}
+
+	public void removeChassisSwap(List<String> swap) {
+		chassisSwaps.remove(swap);
+	}
+
+	/** Puts back the swaps loaded from storage. */
+	public void restoreChassisSwaps(List<List<String>> swaps) {
+		chassisSwaps.clear();
+		swaps.forEach(swap -> chassisSwaps.add(List.copyOf(swap)));
 	}
 
 	public void addRebootToFace(String playerId) {

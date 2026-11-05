@@ -234,6 +234,31 @@ class RoundActivatorTest {
 		assertEquals(1, count(bob, "VIRUS"));
 	}
 
+	@Test
+	void modularChassisSwapsForAnUpgradeOfTheRobotYouPush() {
+		Player ada = player("ada", 0, 0, Direction.SOUTH);
+		Player bob = player("bob", 0, 1, Direction.EAST);
+		Game game = game(ada, bob);
+		ada.getUpgrades().install(UpgradeType.MODULAR_CHASSIS, null);
+		bob.getUpgrades().install(UpgradeType.RAIL_GUN, null);
+		bob.getUpgrades().install(UpgradeType.FIREWALL, null);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
+
+		activator.activate(game);
+		PendingChoice choice = game.getCurrentRound().getPendingChoice()
+				.orElseThrow();
+		assertEquals(ChoiceType.MODULAR_CHASSIS, choice.type());
+		assertEquals(List.of("RAIL_GUN", "FIREWALL"), choice.options());
+
+		game.getCurrentRound().answer("ada", "RAIL_GUN");
+		activator.activate(game);
+
+		assertEquals(List.of(UpgradeType.RAIL_GUN), ada.getUpgrades().getAll());
+		assertEquals(List.of(UpgradeType.FIREWALL, UpgradeType.MODULAR_CHASSIS),
+				bob.getUpgrades().getAll());
+	}
+
 	private static long count(Player player, String card) {
 		return player.getPlayerMat().getDiscardPile().stream()
 				.filter(discarded -> discarded.getName().equals(card)).count();
