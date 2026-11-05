@@ -5,6 +5,7 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
+import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -53,11 +54,20 @@ public final class Movement {
 		return true;
 	}
 
-	/** Whether a robot can not go from one space to the next. */
+	/**
+	 * Whether a robot can not go from one space to the next. The priority
+	 * antenna works like a wall, nothing can stand on it.
+	 */
 	private static boolean blocked(Board board, Vector2D from, Vector2D to,
 			Direction direction) {
 		return !board.isWithinBoard(to)
-				|| wallBlocks(board, from, to, direction);
+				|| wallBlocks(board, from, to, direction)
+				|| hasAntenna(board.getSpace(to));
+	}
+
+	public static boolean hasAntenna(Space space) {
+		return space != null && space.getBoardElements().stream()
+				.anyMatch(PriorityAntenna.class::isInstance);
 	}
 
 	public static Optional<Player> robotAt(Game game, Vector2D position) {
