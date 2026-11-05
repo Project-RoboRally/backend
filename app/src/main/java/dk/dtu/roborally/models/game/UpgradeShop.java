@@ -3,49 +3,40 @@ package dk.dtu.roborally.models.game;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.cards.CardDeck;
 import dk.dtu.roborally.models.cards.UpgradeCard;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 /**
- * The cards for sale in the upgrade phase. Holds one card per player. We only
- * have a few upgrades so far, so unlike the rulebook used cards are shuffled
- * back in when the deck runs out, otherwise the shop would empty.
+ * The cards for sale in the upgrade phase. Holds one card per player, from a
+ * deck with one copy of every upgrade. Cards nobody bought are removed from
+ * play when the shop is replaced, so the deck can run out.
  *
  * @author Sebastian, Elias
  */
 public class UpgradeShop {
 
-	private static final int COPIES_OF_EACH_UPGRADE = 6;
-
 	private final CardDeck<UpgradeCard> deck = new CardDeck<>();
-	private final List<UpgradeCard> discardPile = new ArrayList<>();
 	private final List<UpgradeCard> cards = new ArrayList<>();
 
 	public UpgradeShop() {
 		for (UpgradeType type : UpgradeType.values()) {
-			for (int i = 0; i < COPIES_OF_EACH_UPGRADE; i++) {
-				deck.addCard(new UpgradeCard(type));
-			}
+			deck.addCard(new UpgradeCard(type));
 		}
 		deck.shuffle();
 	}
 
 	/**
 	 * Fills the shop up to the given size. A shop that is already full means
-	 * nobody bought anything last round, so all of it is replaced.
+	 * nobody bought anything last round, so all of it is removed from play and
+	 * replaced. With the deck empty the shop just holds fewer cards.
 	 */
 	public void refill(int size) {
 		if (cards.size() == size) {
-			discardPile.addAll(cards);
 			cards.clear();
 		}
 		while (cards.size() < size) {
-			if (deck.isEmpty()) {
-				shuffleDiscardPileIntoDeck();
-			}
 			Optional<UpgradeCard> card = deck.drawCard();
 			if (card.isEmpty()) {
 				return;
@@ -59,7 +50,6 @@ public class UpgradeShop {
 		for (UpgradeCard card : cards) {
 			if (card.getType() == type) {
 				cards.remove(card);
-				discardPile.add(card);
 				return card;
 			}
 		}
@@ -76,20 +66,12 @@ public class UpgradeShop {
 		return deck.getCards().stream().map(UpgradeCard::getType).toList();
 	}
 
-	public List<UpgradeType> getDiscardTypes() {
-		return discardPile.stream().map(UpgradeCard::getType).toList();
-	}
-
-	/** Replaces the deck, discard pile and cards for sale. */
+	/** Replaces the deck and the cards for sale. */
 	public void restore(List<UpgradeType> deckTypes,
-			List<UpgradeType> discardTypes, List<UpgradeType> forSale) {
+			List<UpgradeType> forSale) {
 		deck.clear();
 		for (UpgradeType type : deckTypes) {
 			deck.addCard(new UpgradeCard(type));
-		}
-		discardPile.clear();
-		for (UpgradeType type : discardTypes) {
-			discardPile.add(new UpgradeCard(type));
 		}
 		cards.clear();
 		for (UpgradeType type : forSale) {
@@ -99,11 +81,5 @@ public class UpgradeShop {
 
 	public int getDeckSize() {
 		return deck.size();
-	}
-
-	private void shuffleDiscardPileIntoDeck() {
-		discardPile.forEach(deck::addCard);
-		discardPile.clear();
-		deck.shuffle();
 	}
 }

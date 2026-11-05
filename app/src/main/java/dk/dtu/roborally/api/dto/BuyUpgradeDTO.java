@@ -3,7 +3,10 @@ package dk.dtu.roborally.api.dto;
 import dk.dtu.roborally.enums.UpgradeType;
 
 /**
- * The upgrade a player wants to buy from the shop.
+ * The upgrade a player wants to buy from the shop. replace is only needed when
+ * all three slots of that kind are taken, and names the installed upgrade to
+ * throw out.
  */
-public record BuyUpgradeDTO(String username, UpgradeType upgrade) {
+public record BuyUpgradeDTO(String username, UpgradeType upgrade,
+		UpgradeType replace) {
 }
