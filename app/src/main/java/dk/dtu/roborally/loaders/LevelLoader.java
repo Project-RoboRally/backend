@@ -14,6 +14,7 @@ import dk.dtu.roborally.models.board.elements.LaserEmitter;
 import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.PushPanel;
+import dk.dtu.roborally.models.board.elements.RebootPoint;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import dk.dtu.roborally.models.board.elements.Wall;
 
@@ -60,6 +61,7 @@ public class LevelLoader {
 		each(level.pits, pit -> createPits(pit, spaceMap));
 		each(level.energy_spaces,
 				energySpace -> createEnergySpace(energySpace, spaceMap));
+		each(level.reboot_points, point -> createRebootPoint(point, spaceMap));
 		if (level.antenna != null) {
 			createPriorityAntenna(level.antenna, spaceMap);
 		}
@@ -182,6 +184,15 @@ public class LevelLoader {
 						"antenna direction");
 		getSpaceAt(spaceMap, new Vector2D(antenna.x, antenna.y))
 				.addBoardElement(new PriorityAntenna(facing));
+	}
+
+	private static void createRebootPoint(LevelData.RebootPointData point,
+			Map<Vector2D, Space> spaceMap) {
+		Vector2D position = new Vector2D(point.x, point.y);
+		getSpaceAt(spaceMap, position).addBoardElement(new RebootPoint(position,
+				parse(Direction.class, point.direction, "reboot direction"),
+				new Vector2D(point.x1, point.y1),
+				new Vector2D(point.x2, point.y2)));
 	}
 
 	private static void createGear(LevelData.GearData gear,
