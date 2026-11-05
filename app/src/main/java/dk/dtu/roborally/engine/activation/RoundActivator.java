@@ -101,6 +101,10 @@ public class RoundActivator {
 		Round round = game.getCurrentRound();
 		int register = round.getCurrentRegisterIndex().orElseThrow();
 		switch (round.getStage()) {
+			case START -> {
+				// Sets the order and moves on to the cards once all answered
+				RegisterUpgrades.ask(game);
+			}
 			case CARDS -> {
 				Optional<String> next = round.getNextToActivate();
 				if (next.isEmpty()) {
@@ -133,8 +137,7 @@ public class RoundActivator {
 	}
 
 	private void startRegister(Game game, int register) {
-		game.getCurrentRound().startRegister(register,
-				Priority.order(game).stream().map(Player::getId).toList());
+		game.getCurrentRound().beginRegister(register);
 	}
 
 	/**

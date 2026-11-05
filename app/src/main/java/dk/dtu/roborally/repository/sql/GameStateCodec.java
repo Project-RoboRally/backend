@@ -66,6 +66,10 @@ public final class GameStateCodec {
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
 		stored.rebootsToFace = round.getRebootsToFace();
+		stored.usedAtRegisterStart = new HashMap<>();
+		round.getUsedAtRegisterStart().forEach((id,
+				types) -> stored.usedAtRegisterStart.put(id, names(types)));
+		stored.startDone = List.copyOf(round.getStartDone());
 		stored.programmingEndsAt = round.getTimer().getEndsAt()
 				.map(Instant::toEpochMilli).orElse(null);
 		stored.energyCubes = new HashMap<>();
@@ -119,6 +123,15 @@ public final class GameStateCodec {
 		if (stored.programmingEndsAt != null) {
 			game.getCurrentRound().getTimer()
 					.restore(Instant.ofEpochMilli(stored.programmingEndsAt));
+		}
+		if (stored.usedAtRegisterStart != null) {
+			Map<String, List<UpgradeType>> used = new HashMap<>();
+			stored.usedAtRegisterStart
+					.forEach((id, names) -> used.put(id, types(names)));
+			game.getCurrentRound().restoreRegisterStart(used,
+					stored.startDone == null
+							? Set.of()
+							: Set.copyOf(stored.startDone));
 		}
 		if (stored.rebootsToFace != null) {
 			game.getCurrentRound().restoreRebootsToFace(stored.rebootsToFace);
@@ -310,6 +323,8 @@ public final class GameStateCodec {
 		private int activated;
 		private StoredChoice choice;
 		private List<String> rebootsToFace;
+		private Map<String, List<String>> usedAtRegisterStart;
+		private List<String> startDone;
 		private Long programmingEndsAt;
 		private Map<String, Integer> damagePiles;
 		private Map<String, Integer> energyCubes;
