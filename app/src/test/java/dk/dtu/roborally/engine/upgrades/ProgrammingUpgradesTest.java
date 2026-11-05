@@ -23,6 +23,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ProgrammingUpgradesTest {
 
@@ -71,6 +72,44 @@ class ProgrammingUpgradesTest {
 		assertEquals(List.of("MOVE_1", "RIGHT_TURN", "LEFT_TURN"),
 				names(ada.getPlayerMat().getHand()));
 		assertEquals(40, game.getDamagePiles().size(DamageInstruction.SPAM));
+	}
+
+	@Test
+	void memorySwapDrawsThreeAndThreeHaveToGoBack() {
+		ada.getUpgrades().install(UpgradeType.MEMORY_SWAP, null);
+		mat(List.of("MOVE_1"), "U_TURN", "LEFT_TURN", "RIGHT_TURN");
+
+		ProgrammingUpgrades.use(game, ada, UpgradeType.MEMORY_SWAP, List.of());
+
+		assertEquals(4, ada.getPlayerMat().getHand().size());
+		assertEquals(3, ada.getPlayerMat().getCardsToPutBack());
+		assertThrows(IllegalStateException.class,
+				() -> ada.getPlayerMat().programCards(List.of("MOVE_1",
+						"U_TURN", "LEFT_TURN", "RIGHT_TURN", "MOVE_1")));
+
+		ada.getPlayerMat()
+				.putOnTopOfDeck(List.of("MOVE_1", "U_TURN", "LEFT_TURN"));
+
+		assertEquals(List.of("RIGHT_TURN"),
+				names(ada.getPlayerMat().getHand()));
+		assertEquals(0, ada.getPlayerMat().getCardsToPutBack());
+		assertEquals("MOVE_1",
+				ada.getPlayerMat().drawTop().orElseThrow().getName());
+	}
+
+	@Test
+	void cacheMemoryPutsHandCardsOnTheDeckWithoutNewOnes() {
+		ada.getUpgrades().install(UpgradeType.CACHE_MEMORY, null);
+		mat(List.of("MOVE_3", "U_TURN", "MOVE_1"), "LEFT_TURN");
+
+		ProgrammingUpgrades.use(game, ada, UpgradeType.CACHE_MEMORY,
+				List.of("MOVE_3"));
+
+		assertEquals(List.of("U_TURN", "MOVE_1"),
+				names(ada.getPlayerMat().getHand()));
+		assertEquals("MOVE_3",
+				ada.getPlayerMat().drawTop().orElseThrow().getName());
+		assertTrue(ada.getUpgrades().has(UpgradeType.CACHE_MEMORY));
 	}
 
 	@Test

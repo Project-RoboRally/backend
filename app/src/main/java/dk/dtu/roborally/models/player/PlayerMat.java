@@ -46,6 +46,12 @@ public class PlayerMat {
 	@Getter
 	private boolean submitted;
 
+	/**
+	 * How many hand cards still have to go back on the deck, see Memory Swap.
+	 */
+	@Getter
+	private int cardsToPutBack;
+
 	public PlayerMat() {
 		this(startingDeck());
 	}
@@ -146,6 +152,40 @@ public class PlayerMat {
 		}
 	}
 
+	/**
+	 * Moves the named cards from the hand to the top of the draw pile, the
+	 * first one ends up on top. If cards are owed from a Memory Swap, exactly
+	 * that many have to go back.
+	 */
+	public void putOnTopOfDeck(List<String> names) {
+		if (cardsToPutBack > 0 && names.size() != cardsToPutBack) {
+			throw new IllegalArgumentException(
+					"Put back exactly " + cardsToPutBack + " cards");
+		}
+		List<ProgrammableCard> remaining = new ArrayList<>(hand);
+		List<ProgrammableCard> chosen = new ArrayList<>();
+		for (String name : names) {
+			chosen.add(takeCard(remaining, name));
+		}
+		hand.clear();
+		hand.addAll(remaining);
+		for (int i = chosen.size() - 1; i >= 0; i--) {
+			drawPile.addCard(chosen.get(i));
+		}
+		cardsToPutBack = 0;
+	}
+
+	/** Draws the cards for a Memory Swap, the same amount has to go back. */
+	public void swapCards(int amount) {
+		drawCards(amount);
+		cardsToPutBack = amount;
+	}
+
+	/** Puts back how many cards are owed, loaded from storage. */
+	public void restoreCardsToPutBack(int amount) {
+		cardsToPutBack = amount;
+	}
+
 	/** Every card in the hand goes to the discard pile. */
 	public void discardHand() {
 		discardPile.addAll(hand);
@@ -185,6 +225,10 @@ public class PlayerMat {
 		if (submitted) {
 			throw new IllegalStateException(
 					"Program has already been submitted");
+		}
+		if (cardsToPutBack > 0) {
+			throw new IllegalStateException(
+					"Put " + cardsToPutBack + " cards back on the deck first");
 		}
 		if (cards == null || cards.size() != REGISTER_COUNT) {
 			throw new IllegalArgumentException("A program must contain exactly "

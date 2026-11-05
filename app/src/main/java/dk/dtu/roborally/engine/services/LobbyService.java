@@ -190,6 +190,11 @@ public class LobbyService {
 		gameService.useUpgrade(getLobby(lobbyId), username, type, cards);
 	}
 
+	public void putBackCards(String lobbyId, String username,
+			List<String> cards) {
+		gameService.putBackCards(getLobby(lobbyId), username, cards);
+	}
+
 	public void makeChoice(String lobbyId, String username, String choice) {
 		gameService.makeChoice(getLobby(lobbyId), username, choice);
 	}

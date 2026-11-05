@@ -12,7 +12,7 @@ import java.util.List;
  * @author Elias, Nicoleta
  */
 public record PlayerMatDTO(List<CardDTO> hand, List<RegisterDTO> registers,
-		int drawPileSize, List<CardDTO> discardPile) {
+		int drawPileSize, List<CardDTO> discardPile, int cardsToPutBack) {
 
 	public record RegisterDTO(int index, CardDTO card) {
 
@@ -31,6 +31,7 @@ public record PlayerMatDTO(List<CardDTO> hand, List<RegisterDTO> registers,
 				mat.getHand().stream().map(CardDTO::from).toList(),
 				mat.getRegisters().stream().map(RegisterDTO::from).toList(),
 				mat.getDrawPileSize(),
-				mat.getDiscardPile().stream().map(CardDTO::from).toList());
+				mat.getDiscardPile().stream().map(CardDTO::from).toList(),
+				mat.getCardsToPutBack());
 	}
 }

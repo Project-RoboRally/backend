@@ -152,6 +152,18 @@ class GameStateCodecTest {
 				loaded.getUpgrades().getAll());
 	}
 
+	@Test
+	void keepsCardsOwedFromAMemorySwap() {
+		Player player = game.getPlayersInGame().iterator().next();
+		player.getPlayerMat().swapCards(3);
+
+		Player loaded = reload().getPlayersInGame().stream()
+				.filter(other -> other.getId().equals(player.getId()))
+				.findFirst().orElseThrow();
+
+		assertEquals(3, loaded.getPlayerMat().getCardsToPutBack());
+	}
+
 	private Game reload() {
 		return codec.toGame(codec.toJson(game), lobby.getLevel(), lobby);
 	}
