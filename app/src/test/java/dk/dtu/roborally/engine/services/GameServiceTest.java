@@ -249,8 +249,9 @@ class GameServiceTest {
 		load(far, registers);
 		gameService.activateRound(round);
 
-		assertEquals(new Vector2D(2, 0), near.getRobot().getCurrentSpace());
-		assertEquals(new Vector2D(3, 0), far.getRobot().getCurrentSpace());
+		// near moves to 2 first, then far moves in and pushes it back to 1
+		assertEquals(new Vector2D(1, 0), near.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(2, 0), far.getRobot().getCurrentSpace());
 	}
 
 	@Test
