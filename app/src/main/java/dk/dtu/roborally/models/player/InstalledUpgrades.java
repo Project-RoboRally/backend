@@ -61,6 +61,14 @@ public class InstalledUpgrades {
 		upgrades.add(type);
 	}
 
+	/**
+	 * Puts an upgrade on without checking for a free slot. Used when Modular
+	 * Chassis swaps upgrades, which can go over the limit.
+	 */
+	public void give(UpgradeType type) {
+		upgrades.add(Objects.requireNonNull(type));
+	}
+
 	/** Takes an upgrade off, like a used temporary one. */
 	public void remove(UpgradeType type) {
 		if (!upgrades.remove(type)) {
