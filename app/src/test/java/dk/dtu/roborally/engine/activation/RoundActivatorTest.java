@@ -65,14 +65,14 @@ class RoundActivatorTest {
 		Player ada = player("ada", 1, 2, Direction.NORTH);
 		Game game = game(ada);
 		program(ada, CommandInstruction.SANDBOX_ROUTINE,
-				CommandInstruction.MOVE_1);
+				CommandInstruction.POWER_UP);
 
 		activator.activate(game);
 		game.getCurrentRound().answer("ada", "MOVE_1");
 		activator.activate(game);
 
-		// Sandbox moved 1, then four more Move 1 cards until the board ends
-		assertEquals(new Vector2D(1, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(1, 1), ada.getRobot().getCurrentSpace());
+		assertEquals(9, ada.getEnergy());
 		assertTrue(game.getCurrentRound().getPendingChoice().isEmpty());
 	}
 
