@@ -39,6 +39,9 @@ public class Round {
 	private PendingChoice choice;
 	private String answer;
 
+	/** Player ids of rebooted robots that still have to pick a facing. */
+	private final List<String> rebootsToFace = new ArrayList<>();
+
 	/** The register being activated, empty outside the activation phase. */
 	public Optional<Integer> getCurrentRegisterIndex() {
 		return Optional.ofNullable(currentRegisterIndex);
@@ -137,6 +140,18 @@ public class Round {
 		return answer == null ? Optional.empty() : Optional.of(choice);
 	}
 
+	public void addRebootToFace(String playerId) {
+		rebootsToFace.add(playerId);
+	}
+
+	public List<String> getRebootsToFace() {
+		return List.copyOf(rebootsToFace);
+	}
+
+	public void removeRebootToFace(String playerId) {
+		rebootsToFace.remove(playerId);
+	}
+
 	/** Puts back a choice loaded from storage. */
 	public void restoreChoice(PendingChoice choice, String answer) {
 		this.choice = choice;
@@ -151,6 +166,12 @@ public class Round {
 		activationOrder.clear();
 		activationOrder.addAll(order);
 		this.activated = activated;
+	}
+
+	/** Puts back the robots waiting to pick a facing, loaded from storage. */
+	public void restoreRebootsToFace(List<String> playerIds) {
+		rebootsToFace.clear();
+		rebootsToFace.addAll(playerIds);
 	}
 
 	public void finishActivation() {

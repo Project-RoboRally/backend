@@ -5,6 +5,7 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
+import dk.dtu.roborally.models.board.elements.RebootPoint;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import org.junit.jupiter.api.Test;
 
@@ -77,5 +78,17 @@ class LevelLoaderTest {
 				IllegalArgumentException.class,
 				() -> LevelLoader.load("levels/level_with_bad_direction.json"));
 		assertEquals("Invalid wall direction: up", thrown.getMessage());
+	}
+
+	@Test
+	void loadsTheRebootTokenAndTheAreaItCovers() {
+		Board board = LevelLoader.load("levels/level_0.json");
+
+		RebootPoint reboot = board.getElements(RebootPoint.class).get(0);
+
+		assertEquals(new Vector2D(17, 15), reboot.getPosition());
+		assertEquals(Direction.NORTH, reboot.getDirection());
+		assertTrue(reboot.covers(new Vector2D(0, 16)));
+		assertFalse(reboot.covers(new Vector2D(5, 18)));
 	}
 }

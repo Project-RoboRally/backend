@@ -6,6 +6,7 @@ import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
@@ -91,6 +92,20 @@ class GameStateCodecTest {
 				same.getPlayerMat().getDiscardPile().stream()
 						.map(ProgrammableCard::getName).toList());
 		assertEquals(16, loaded.getDamagePiles().size(DamageInstruction.VIRUS));
+	}
+
+	@Test
+	void robotsRememberWhereTheyStarted() {
+		Player player = game.getPlayersInGame().iterator().next();
+		Vector2D start = player.getRobot().getStartSpace();
+		player.getRobot().moveTo(new Vector2D(3, 3));
+
+		Player loaded = reload().getPlayersInGame().stream()
+				.filter(other -> other.getId().equals(player.getId()))
+				.findFirst().orElseThrow();
+
+		assertEquals(start, loaded.getRobot().getStartSpace());
+		assertEquals(new Vector2D(3, 3), loaded.getRobot().getCurrentSpace());
 	}
 
 	private Game reload() {

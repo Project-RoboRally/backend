@@ -76,6 +76,9 @@
         { "x": 5, "y": 3, "number": 3 }
     ],
     "antenna": { "x": 10, "y": 17, "direction": "north" },
+    "reboot_points": [
+        { "x": 17, "y": 15, "direction": "north", "x1": 0, "y1": 0, "x2": 19, "y2": 16 }
+    ],
     "gears": [
         { "x": 9, "y": 10, "rotation_direction": "clockwise" },
         { "x": 10, "y": 9, "rotation_direction": "counterclockwise" },

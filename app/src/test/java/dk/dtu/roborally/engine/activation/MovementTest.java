@@ -6,6 +6,7 @@ import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.Game;
@@ -79,6 +80,51 @@ class MovementTest {
 		assertFalse(Movement.step(game, ada, Direction.EAST));
 
 		assertEquals(new Vector2D(1, 0), bob.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void movingOffTheBoardRebootsAndEndsTheMove() {
+		row(2);
+		Player ada = player("ada", 1, Direction.EAST);
+		Game game = game(ada);
+
+		assertFalse(Movement.step(game, ada, Direction.EAST));
+
+		assertTrue(ada.getRobot().isRebootedThisRound());
+		assertEquals(new Vector2D(1, 0), ada.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void aRobotPushedIntoAPitRebootsAndThePusherCarriesOn() {
+		row(3);
+		spaces.get(new Vector2D(2, 0))
+				.addBoardElement(new Pit(new Vector2D(2, 0)));
+		Player ada = player("ada", 0, Direction.EAST);
+		// Started somewhere else, so rebooting does not land on ada
+		Player bob = new Player("bob", new User("bob"), PlayerColor.BLUE,
+				new Robot(new Vector2D(1, 0), Direction.EAST,
+						new Vector2D(5, 5)));
+		Game game = game(ada, bob);
+
+		assertTrue(Movement.step(game, ada, Direction.EAST));
+
+		assertEquals(new Vector2D(1, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(5, 5), bob.getRobot().getCurrentSpace());
+		assertTrue(bob.getRobot().isRebootedThisRound());
+		assertEquals(2, bob.getPlayerMat().getDiscardPile().size());
+	}
+
+	@Test
+	void aWallOnTheEdgeKeepsTheRobotOnTheBoard() {
+		row(2);
+		spaces.get(new Vector2D(1, 0))
+				.addBoardElement(new Wall(new Vector2D(1, 0), Direction.EAST));
+		Player ada = player("ada", 1, Direction.EAST);
+		Game game = game(ada);
+
+		assertFalse(Movement.step(game, ada, Direction.EAST));
+
+		assertFalse(ada.getRobot().isRebootedThisRound());
 	}
 
 	private void row(int length) {

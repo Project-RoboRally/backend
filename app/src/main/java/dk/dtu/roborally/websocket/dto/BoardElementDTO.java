@@ -50,6 +50,10 @@ public sealed interface BoardElementDTO {
 			int cubeAmount) implements BoardElementDTO {
 	}
 
+	record RebootPointDTO(String type,
+			Direction direction) implements BoardElementDTO {
+	}
+
 	record SimpleElementDTO(String type) implements BoardElementDTO {
 	}
 
@@ -71,7 +75,8 @@ public sealed interface BoardElementDTO {
 			case Pit ignored -> new SimpleElementDTO("PIT");
 			case StartingPoint ignored ->
 				new SimpleElementDTO("STARTING_POINT");
-			case RebootPoint ignored -> new SimpleElementDTO("REBOOT_POINT");
+			case RebootPoint reboot ->
+				new RebootPointDTO("REBOOT_POINT", reboot.getDirection());
 			case PriorityAntenna ignored ->
 				new SimpleElementDTO("PRIORITY_ANTENNA");
 			default -> throw new IllegalArgumentException(
