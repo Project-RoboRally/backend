@@ -26,6 +26,7 @@ import java.util.Random;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GameStateCodecTest {
 
@@ -162,6 +163,21 @@ class GameStateCodecTest {
 				.findFirst().orElseThrow();
 
 		assertEquals(3, loaded.getPlayerMat().getCardsToPutBack());
+	}
+
+	@Test
+	void keepsUpgradesUsedAtTheStartOfTheRegister() {
+		String playerId = game.getPlayersInGame().iterator().next().getId();
+		game.getCurrentRound().beginRegister(1);
+		game.getCurrentRound().useAtRegisterStart(playerId,
+				UpgradeType.DEFLECTOR_SHIELD);
+		game.getCurrentRound().markStartDone(playerId);
+
+		Round loaded = reload().getCurrentRound();
+
+		assertEquals(RegisterStage.START, loaded.getStage());
+		assertTrue(loaded.isShielded(playerId));
+		assertTrue(loaded.isStartDone(playerId));
 	}
 
 	private Game reload() {
