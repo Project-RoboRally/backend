@@ -157,9 +157,12 @@ class CheckpointWinningTest {
 		for (String username : List.of("alice", "bob")) {
 			ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 					.forClass(PlayerGameStateDTO.class);
-			verify(messages).convertAndSend(
+			// Timer started, then the round itself
+			verify(messages, times(2)).convertAndSend(
 					eq("/game/lobby/test-lobby/player/" + username),
 					sent.capture());
+			assertEquals(PlayerGameStateDTO.TIMER_STARTED,
+					sent.getAllValues().get(0).type());
 			PlayerGameStateDTO state = sent.getValue();
 			assertEquals(username, state.you());
 			assertEquals(PlayerGameStateDTO.CURRENT_STATE, state.type());
