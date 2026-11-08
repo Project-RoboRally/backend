@@ -33,12 +33,13 @@ import java.util.List;
 /**
  * Service for logic about a game
  *
- * @author Elias, Nicoleta, Matthias, Sebastian
+ * @author Elias, Nicoleta, Matthias, Sebastian, Victor
  */
 public class GameService {
 
 	private final GameRepository gameRepository;
 	private final GameEventPublisher gameEventPublisher;
+	private final BoardActivationService boardActivationService = new BoardActivationService();
 
 	public GameService(GameRepository gameRepository,
 			GameEventPublisher gameEventPublisher) {
@@ -232,6 +233,8 @@ public class GameService {
 								.getCard(),
 						firstStep, steps.size() - firstStep));
 			}
+			steps.addAll(boardActivationService.activateRegister(register,
+					order, game.getBoard()));
 			reveals.add(new RegisterReveal(register, cards));
 			evaluateCheckpoints(game, order);
 
