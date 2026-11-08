@@ -1,6 +1,7 @@
 package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
+import dk.dtu.roborally.engine.activation.Priority;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
@@ -249,12 +250,13 @@ class GameServiceTest {
 		load(far, registers);
 		gameService.activateRound(round);
 
-		assertEquals(new Vector2D(2, 0), near.getRobot().getCurrentSpace());
-		assertEquals(new Vector2D(3, 0), far.getRobot().getCurrentSpace());
+		// near moves to 2 first, then far moves in and pushes it back to 1
+		assertEquals(new Vector2D(1, 0), near.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(2, 0), far.getRobot().getCurrentSpace());
 	}
 
 	@Test
-	void usernameBreaksTiesForAntennaDistance() {
+	void robotsJustAsCloseGoClockwiseFromTheDish() {
 		Player alice = player("alice", 0, 1, Direction.EAST, PlayerColor.RED);
 		Player carol = player("carol", 1, 0, Direction.SOUTH, PlayerColor.BLUE);
 		List<CommandInstruction> registers = List.of(CommandInstruction.MOVE_1,
@@ -267,8 +269,20 @@ class GameServiceTest {
 		load(carol, registers);
 		gameService.activateRound(round);
 
-		assertEquals(new Vector2D(1, 1), alice.getRobot().getCurrentSpace());
-		assertEquals(new Vector2D(1, 0), carol.getRobot().getCurrentSpace());
+		// The dish points north, so carol to the east comes before alice to
+		// the south. Carol moves to 1,1 and alice can not push her off
+		assertEquals(new Vector2D(1, 1), carol.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(0, 1), alice.getRobot().getCurrentSpace());
+	}
+
+	@Test
+	void usernameDecidesWithoutAnAntenna() {
+		Player bob = player("bob", 0, 0, Direction.EAST, PlayerColor.RED);
+		Player ada = player("ada", 1, 1, Direction.NORTH, PlayerColor.BLUE);
+		Game round = game(board(space(0, 0), space(1, 0), space(1, 1)), bob,
+				ada);
+
+		assertEquals(List.of(ada, bob), Priority.order(round));
 	}
 
 	@Test
