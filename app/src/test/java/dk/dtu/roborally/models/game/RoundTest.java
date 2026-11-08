@@ -1,5 +1,6 @@
 package dk.dtu.roborally.models.game;
 
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.RegisterStage;
 import org.junit.jupiter.api.Test;
 
@@ -8,6 +9,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RoundTest {
@@ -37,5 +39,39 @@ class RoundTest {
 		assertFalse(round.isActivating());
 		assertEquals(Optional.empty(), round.getCurrentRegisterIndex());
 		assertEquals(List.of(), round.getActivationOrder());
+	}
+
+	@Test
+	void waitsForAChoiceUntilItIsAnswered() {
+		Round round = new Round();
+		PendingChoice choice = new PendingChoice("a", ChoiceType.WEASEL_ACTION,
+				List.of("LEFT_TURN", "RIGHT_TURN"));
+
+		assertEquals(Optional.empty(), round.ask(choice));
+		assertEquals(Optional.of(choice), round.getPendingChoice());
+
+		round.answer("a", "RIGHT_TURN");
+
+		assertEquals(Optional.empty(), round.getPendingChoice());
+		assertEquals(Optional.of("RIGHT_TURN"), round.ask(choice));
+		assertEquals(Optional.empty(), round.getPendingChoice());
+	}
+
+	@Test
+	void onlyTheAskedPlayerCanAnswerWithAnOption() {
+		Round round = new Round();
+		round.ask(new PendingChoice("a", ChoiceType.WEASEL_ACTION,
+				List.of("LEFT_TURN")));
+
+		assertThrows(IllegalStateException.class,
+				() -> round.answer("b", "LEFT_TURN"));
+		assertThrows(IllegalArgumentException.class,
+				() -> round.answer("a", "MOVE_3"));
+	}
+
+	@Test
+	void answeringWithNothingPendingFails() {
+		assertThrows(IllegalStateException.class,
+				() -> new Round().answer("a", "LEFT_TURN"));
 	}
 }
