@@ -47,4 +47,13 @@ public class Player {
 	public void reachNextCheckpoint() {
 		checkpointsReached++;
 	}
+
+	/** Restores energy and checkpoints loaded from storage. */
+	public void restoreProgress(int energy, int checkpointsReached) {
+		if (energy < 0 || checkpointsReached < 0) {
+			throw new IllegalArgumentException("Progress cannot be negative");
+		}
+		this.energy = energy;
+		this.checkpointsReached = checkpointsReached;
+	}
 }
