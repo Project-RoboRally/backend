@@ -18,7 +18,7 @@ class BoardTest {
 	void listsAnElementCoveringSeveralSpacesOnce() {
 		Map<Vector2D, Space> spaces = new HashMap<>();
 		ConveyorBelt belt = new ConveyorBelt(new Vector2D(0, 0), 2,
-				Direction.EAST, ConveyorBeltType.GREEN);
+				Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		Checkpoint checkpoint = new Checkpoint(new Vector2D(0, 1), 1);
 		for (int x = 0; x < 2; x++) {
 			for (int y = 0; y < 2; y++) {
