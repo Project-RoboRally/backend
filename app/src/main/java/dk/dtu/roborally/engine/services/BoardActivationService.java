@@ -24,7 +24,7 @@ import dk.dtu.roborally.models.player.RobotView;
 /**
  * Activates board elements for a register after all players have executed their
  * programming cards.
- * 
+ *
  * @author Victor
  */
 public class BoardActivationService {
