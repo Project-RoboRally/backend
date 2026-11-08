@@ -1,13 +1,17 @@
 package dk.dtu.roborally.repository.sql;
 
+import dk.dtu.roborally.engine.activation.Damage;
 import dk.dtu.roborally.enums.ChoiceType;
+import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.lobby.GameLobby;
+import dk.dtu.roborally.models.player.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -70,6 +74,23 @@ class GameStateCodecTest {
 
 		assertEquals(Optional.of("U_TURN"),
 				reload().getCurrentRound().ask(choice));
+	}
+
+	@Test
+	void keepsDamageCardsAndPileSizes() {
+		Player player = game.getPlayersInGame().iterator().next();
+		Damage.take(game, player, DamageInstruction.VIRUS, 2);
+		player.getPlayerMat().getRegisters().get(2).setDamaged(true);
+
+		Game loaded = reload();
+		Player same = loaded.getPlayersInGame().stream()
+				.filter(other -> other.getId().equals(player.getId()))
+				.findFirst().orElseThrow();
+
+		assertEquals(List.of("VIRUS", "VIRUS"),
+				same.getPlayerMat().getDiscardPile().stream()
+						.map(ProgrammableCard::getName).toList());
+		assertEquals(16, loaded.getDamagePiles().size(DamageInstruction.VIRUS));
 	}
 
 	private Game reload() {
