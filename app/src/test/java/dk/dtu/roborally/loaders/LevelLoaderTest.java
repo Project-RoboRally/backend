@@ -68,4 +68,12 @@ class LevelLoaderTest {
 		assertTrue(thrown.getMessage()
 				.contains("Level must contain at least one square"));
 	}
+
+	@Test
+	void rejectsUnknownDirection() {
+		IllegalArgumentException thrown = assertThrows(
+				IllegalArgumentException.class,
+				() -> LevelLoader.load("levels/level_with_bad_direction.json"));
+		assertEquals("Invalid wall direction: up", thrown.getMessage());
+	}
 }
