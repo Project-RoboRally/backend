@@ -57,6 +57,11 @@ public class Game {
 		upgradeOrder.addAll(players);
 	}
 
+	/** Buyers still waiting, current buyer first. */
+	public List<Player> getUpgradeOrder() {
+		return List.copyOf(upgradeOrder);
+	}
+
 	/** The player whose turn it is to buy, if the upgrade phase is running. */
 	public Optional<Player> getCurrentBuyer() {
 		return Optional.ofNullable(upgradeOrder.peekFirst());
@@ -64,9 +69,5 @@ public class Game {
 
 	public void endUpgradeTurn() {
 		upgradeOrder.pollFirst();
-	}
-
-	public boolean start() {
-		return true;
 	}
 }

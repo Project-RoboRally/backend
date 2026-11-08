@@ -68,6 +68,7 @@ public class GameService {
 		}
 
 		game.setGameStatus(newStatus);
+		gameRepository.update(game);
 		gameEventPublisher.publishStatus(game);
 		return game;
 	}
@@ -82,8 +83,8 @@ public class GameService {
 	 * Validation already happened in GameLobby.startGame().
 	 */
 	public void startGame(String lobbyId, Game game) {
-		gameRepository.add(game);
 		startUpgradePhase(game);
+		gameRepository.add(game);
 		gameEventPublisher.publishBoard(lobbyId, game);
 		gameEventPublisher.publishGameStarted(lobbyId, game);
 	}
@@ -110,6 +111,7 @@ public class GameService {
 		boolean everyoneSubmitted = game.getPlayersInGame().stream()
 				.allMatch(player -> player.getPlayerMat().isSubmitted());
 		if (!everyoneSubmitted) {
+			gameRepository.update(game);
 			return false;
 		}
 
@@ -119,10 +121,12 @@ public class GameService {
 		}
 		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
 		if (game.getGameStatus() == GameStatus.FINISHED) {
+			gameRepository.update(game);
 			return true;
 		}
 		startUpgradePhase(game);
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
+		gameRepository.update(game);
 		return true;
 	}
 
@@ -172,10 +176,12 @@ public class GameService {
 	private void endUpgradeTurn(GameLobby lobby, Game game) {
 		game.endUpgradeTurn();
 		if (game.getCurrentBuyer().isPresent()) {
+			gameRepository.update(game);
 			gameEventPublisher.publishUpgradeTurn(lobby.getLobbyId(), game);
 			return;
 		}
 		startProgrammingPhase(game);
+		gameRepository.update(game);
 		gameEventPublisher.publishProgrammingStarted(lobby.getLobbyId(), game);
 	}
 
@@ -352,10 +358,10 @@ public class GameService {
 
 	private boolean wallBlocks(Board board, Vector2D from, Vector2D to,
 			Direction direction) {
-		if (hasWall(board.getSpace(from.x(), from.y()), direction)) {
+		if (hasWall(board.getSpace(from), direction)) {
 			return true;
 		}
-		return hasWall(board.getSpace(to.x(), to.y()), direction.uTurn());
+		return hasWall(board.getSpace(to), direction.uTurn());
 	}
 
 	private boolean hasWall(Space space, Direction side) {
@@ -381,14 +387,10 @@ public class GameService {
 	}
 
 	private Vector2D antennaPosition(Board board) {
-		for (Space space : board.getSpaceMap().values()) {
-			for (BoardElement element : space.getBoardElements()) {
-				if (element instanceof PriorityAntenna) {
-					return space.getPosition();
-				}
-			}
-		}
-		return null;
+		return board.getSpaceMap().values().stream()
+				.filter(space -> space.getBoardElements().stream()
+						.anyMatch(PriorityAntenna.class::isInstance))
+				.map(Space::getPosition).findFirst().orElse(null);
 	}
 
 	/**
@@ -399,18 +401,7 @@ public class GameService {
 		if (antenna == null) {
 			return 0;
 		}
-		Vector2D position = player.getRobot().getCurrentSpace();
-		return Math.abs(position.x() - antenna.x())
-				+ Math.abs(position.y() - antenna.y());
-	}
-
-	/**
-	 * Counts the checkpoints on the board.
-	 */
-	private int checkpointCount(Board board) {
-		return (int) board.getSpaceMap().values().stream()
-				.flatMap(space -> space.getBoardElements().stream())
-				.filter(element -> element instanceof Checkpoint).count();
+		return player.getRobot().getCurrentSpace().distanceTo(antenna);
 	}
 
 	/**
@@ -419,7 +410,7 @@ public class GameService {
 	 * the game, and publishes the updated status.
 	 */
 	private void evaluateCheckpoints(Game game, List<Player> players) {
-		int total = checkpointCount(game.getBoard());
+		int total = game.getBoard().getElements(Checkpoint.class).size();
 
 		if (total == 0) {
 			return;
@@ -427,7 +418,7 @@ public class GameService {
 
 		for (Player player : players) {
 			Vector2D position = player.getRobot().getCurrentSpace();
-			Space space = game.getBoard().getSpace(position.x(), position.y());
+			Space space = game.getBoard().getSpace(position);
 
 			if (space == null) {
 				continue;

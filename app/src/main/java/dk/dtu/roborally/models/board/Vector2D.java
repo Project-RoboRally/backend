@@ -1,10 +1,9 @@
 package dk.dtu.roborally.models.board;
 
 /**
- * Represents an immutable two-dimensional integer coordinate. Now with a
- * hashcode based on the x and y position.
+ * Represents an immutable two-dimensional integer coordinate.
  *
- * @author Matthias, Victor
+ * @author Matthias, Victor, Sebastian
  */
 
 public record Vector2D(int x, int y) {
@@ -24,5 +23,10 @@ public record Vector2D(int x, int y) {
 		int a2 = 31; // prime
 		int m = 997; // prime
 		return (a1 * x + a2 * y) % m;
+	}
+
+	/** Spaces between the two positions, counting only straight moves. */
+	public int distanceTo(Vector2D other) {
+		return Math.abs(x - other.x) + Math.abs(y - other.y);
 	}
 }

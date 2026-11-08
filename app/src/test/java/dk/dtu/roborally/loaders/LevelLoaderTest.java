@@ -4,6 +4,7 @@ import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
+import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import org.junit.jupiter.api.Test;
 
@@ -43,5 +44,36 @@ class LevelLoaderTest {
 		assertEquals(List.of(new Vector2D(2, 18), new Vector2D(5, 18),
 				new Vector2D(8, 18), new Vector2D(11, 18), new Vector2D(14, 18),
 				new Vector2D(17, 18)), positions);
+	}
+
+	@Test
+	void loadsPriorityAntenna() {
+		Board board = LevelLoader.load("levels/level_0.json");
+
+		assertTrue(board.getSpace(10, 17).getBoardElements().stream()
+				.anyMatch(PriorityAntenna.class::isInstance));
+	}
+
+	@Test
+	void loadAllowsMissingOptionalLevelObjects() {
+		assertNotNull(assertDoesNotThrow(() -> LevelLoader
+				.load("levels/level_without_optional_objects.json")));
+	}
+
+	@Test
+	void loadRejectsMissingSquares() {
+		IllegalArgumentException thrown = assertThrows(
+				IllegalArgumentException.class,
+				() -> LevelLoader.load("levels/level_without_squares.json"));
+		assertTrue(thrown.getMessage()
+				.contains("Level must contain at least one square"));
+	}
+
+	@Test
+	void rejectsUnknownDirection() {
+		IllegalArgumentException thrown = assertThrows(
+				IllegalArgumentException.class,
+				() -> LevelLoader.load("levels/level_with_bad_direction.json"));
+		assertEquals("Invalid wall direction: up", thrown.getMessage());
 	}
 }
