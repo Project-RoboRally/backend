@@ -37,10 +37,12 @@ class LobbyServiceTest {
 
 		userRepository.add(new User("August"));
 		userRepository.add(new User("Alice"));
+		userRepository.add(new User("Bob"));
 		userRepository.add(new User("Outsider"));
 
 		lobby = lobbyService.createLobby(new CreateLobbyDTO("Lobby", "August"));
 		lobbyService.joinLobby(lobby.getLobbyId(), "Alice");
+		lobbyService.joinLobby(lobby.getLobbyId(), "Bob");
 	}
 
 	@Test
@@ -54,6 +56,7 @@ class LobbyServiceTest {
 	@Test
 	void startingTheGamePersistsItAndNotifiesTheLobby() {
 		lobbyService.setReady(lobby.getLobbyId(), "Alice", true);
+		lobbyService.setReady(lobby.getLobbyId(), "Bob", true);
 
 		lobbyService.startGame(lobby.getLobbyId(), "August");
 		String gameId = lobby.getGameId();
@@ -91,5 +94,61 @@ class LobbyServiceTest {
 	void settingColorForUserOutsideTheLobbyThrows() {
 		assertThrows(UserNotInLobby.class, () -> lobbyService
 				.setColor(lobby.getLobbyId(), "Outsider", PlayerColor.PURPLE));
+	}
+
+	@Test
+	void kickedUserIsRemovedAndCannotJoinAgain() {
+		lobbyService.kickUser(lobby.getLobbyId(), "August", "Alice");
+
+		assertFalse(isInLobby("Alice"));
+		assertThrows(IllegalStateException.class,
+				() -> lobbyService.joinLobby(lobby.getLobbyId(), "Alice"));
+		assertFalse(isInLobby("Alice"));
+	}
+
+	@Test
+	void unkickedUserCanJoinAgain() {
+		lobbyService.kickUser(lobby.getLobbyId(), "August", "Alice");
+
+		lobbyService.unKickUser(lobby.getLobbyId(), "August", "Alice");
+
+		assertDoesNotThrow(
+				() -> lobbyService.joinLobby(lobby.getLobbyId(), "Alice"));
+		assertTrue(isInLobby("Alice"));
+	}
+
+	@Test
+	void onlyTheOwnerCanKick() {
+		assertThrows(NotAuthorizedException.class, () -> lobbyService
+				.kickUser(lobby.getLobbyId(), "Alice", "August"));
+		assertTrue(isInLobby("Bob"));
+	}
+
+	@Test
+	void onlyTheOwnerCanUnkick() {
+		lobbyService.kickUser(lobby.getLobbyId(), "August", "Alice");
+
+		assertThrows(NotAuthorizedException.class, () -> lobbyService
+				.unKickUser(lobby.getLobbyId(), "Bob", "Alice"));
+		assertThrows(IllegalStateException.class,
+				() -> lobbyService.joinLobby(lobby.getLobbyId(), "Alice"));
+	}
+
+	@Test
+	void ownerCannotKickThemself() {
+		assertThrows(IllegalStateException.class, () -> lobbyService
+				.kickUser(lobby.getLobbyId(), "August", "August"));
+		assertTrue(isInLobby("August"));
+	}
+
+	@Test
+	void kickingUserOutsideTheLobbyThrows() {
+		assertThrows(UserNotInLobby.class, () -> lobbyService
+				.kickUser(lobby.getLobbyId(), "August", "Outsider"));
+	}
+
+	private boolean isInLobby(String username) {
+		return lobby.getUsersInLobby().stream()
+				.anyMatch(user -> user.getUsername().equals(username));
 	}
 }

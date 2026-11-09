@@ -300,6 +300,69 @@ class GameLobbyTest {
 		assertSame(lobby.getLevel(), game.getBoard());
 	}
 
+	@Test
+	void kickedUserCannotRejoin() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+
+		lobby.kickUser(alice.getId());
+		lobby.removeUser(alice.getId());
+
+		assertThrows(IllegalStateException.class,
+				() -> lobby.addUserToLobby(alice));
+		assertFalse(lobby.getUsersInLobby().contains(alice));
+	}
+
+	@Test
+	void unkickedUserCanRejoin() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.kickUser(alice.getId());
+		lobby.removeUser(alice.getId());
+		lobby.unKickUser(alice.getId());
+
+		assertDoesNotThrow(() -> lobby.addUserToLobby(alice));
+		assertTrue(lobby.getUsersInLobby().contains(alice));
+	}
+
+	@Test
+	void kickingOneUserDoesNotBlockOthers() {
+		User alice = new User("Alice");
+		User bob = new User("Bob");
+		lobby.addUserToLobby(alice);
+		lobby.kickUser(alice.getId());
+		lobby.removeUser(alice.getId());
+
+		assertDoesNotThrow(() -> lobby.addUserToLobby(bob));
+		assertTrue(lobby.getUsersInLobby().contains(bob));
+	}
+
+	@Test
+	void ownerCannotBeKicked() {
+		String ownerIdCopy = new String(owner.getId());
+
+		assertThrows(IllegalStateException.class,
+				() -> lobby.kickUser(ownerIdCopy));
+		assertTrue(lobby.getUsersInLobby().contains(owner));
+	}
+
+	@Test
+	void cannotKickUserWhoIsNotInTheLobby() {
+		User outsider = new User("Outsider");
+
+		assertThrows(IllegalStateException.class,
+				() -> lobby.kickUser(outsider.getId()));
+	}
+
+	@Test
+	void unkickingUserWhoIsNotKickedThrows() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+
+		assertThrows(IllegalStateException.class,
+				() -> lobby.unKickUser(alice.getId()));
+	}
+
 	private boolean readyOf(User user) {
 		return lobby.getMembers().stream()
 				.filter(member -> member.user().getId().equals(user.getId()))

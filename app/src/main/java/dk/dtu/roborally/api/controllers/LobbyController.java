@@ -96,6 +96,13 @@ public class LobbyController {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
 	}
 
+	@PostMapping("/{id}/unkick")
+	public ResponseEntity<LobbyDTO> unKickUser(@PathVariable String id,
+			@RequestBody KickUserDTO payload) {
+		lobbyService.unKickUser(id, payload.kickedBy(), payload.userKicked());
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
+	}
+
 	@PostMapping("/{id}/ready")
 	public ResponseEntity<LobbyDTO> setReady(@PathVariable String id,
 			@RequestBody SetReadyDTO payload) {
