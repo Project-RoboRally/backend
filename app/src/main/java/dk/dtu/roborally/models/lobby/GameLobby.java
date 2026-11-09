@@ -37,6 +37,7 @@ public class GameLobby {
 	private final Map<String, LobbyMember> lobbyUsers = new HashMap<>(); // string
 																			// =
 																			// userId
+	private final Set<String> kickedUsers = new HashSet<>();
 	private static final int MIN_USERS = 2;
 	private static final int MAX_USERS = 6;
 
@@ -105,6 +106,11 @@ public class GameLobby {
 					"Game lobby is full. Cannot add more users.");
 		}
 
+		if (kickedUsers.contains(userId)) {
+			throw new IllegalStateException(
+					"This user is kicked from this lobby");
+		}
+
 		PlayerColor color = findAvailableColor();
 		lobbyUsers.put(userId, new LobbyMember(user, color));
 	}
@@ -147,6 +153,28 @@ public class GameLobby {
 			throw new IllegalStateException(
 					"This chosen board does not have enough starting points.");
 		}
+	}
+
+	public void kickUser(String userId) {
+		Objects.requireNonNull(userId);
+
+		if (!lobbyUsers.containsKey(userId)) {
+			throw new IllegalStateException("Cannot kick users not in lobby");
+		}
+		if (userId.equals(lobbyOwner.getId())) {
+			throw new IllegalStateException("Cannot kick a lobby owner");
+		}
+		kickedUsers.add(userId);
+	}
+
+	public void unKickUser(String userId) {
+		Objects.requireNonNull(userId);
+
+		if (!kickedUsers.contains(userId)) {
+			throw new IllegalStateException(
+					"Cannot unkick users that are not kicked");
+		}
+		kickedUsers.remove(userId);
 	}
 
 	public void removeUser(String userId) {

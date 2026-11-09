@@ -123,8 +123,8 @@ public class LobbyService {
 		return lobby;
 	}
 
-	public void kickUser(String id, String kickedBy, String userKicked) {
-		User user = userRepository.getByUsername(userKicked)
+	public void kickUser(String id, String kickedBy, String toKickUsername) {
+		User userToKick = userRepository.getByUsername(toKickUsername)
 				.orElseThrow(UserNotFound::new);
 
 		GameLobby lobby = getLobby(id);
@@ -133,11 +133,30 @@ public class LobbyService {
 				|| !lobby.getLobbyOwner().getUsername().equals(kickedBy))
 			throw new NotAuthorizedException(kickedBy);
 
-		if (!userInLobby(lobby, user.getUsername()))
-			throw new UserNotInLobby(userKicked);
+		if (!userInLobby(lobby, userToKick.getUsername()))
+			throw new UserNotInLobby(toKickUsername);
 
-		lobby.removeUser(user.getId());
+		lobby.kickUser(userToKick.getId());
+
+		lobby.removeUser(userToKick.getId());
 		lobbyRepository.update(lobby);
+	}
+
+	public void unKickUser(String id, String lobbyOwnerUsername,
+			String kickedUsername) {
+
+		User userToUnKick = userRepository.getByUsername(kickedUsername)
+				.orElseThrow(UserNotFound::new);
+
+		GameLobby lobby = getLobby(id);
+
+		if (lobby.getLobbyOwner() == null || !lobby.getLobbyOwner()
+				.getUsername().equals(lobbyOwnerUsername))
+			throw new NotAuthorizedException(lobbyOwnerUsername);
+
+		lobby.unKickUser(userToUnKick.getId());
+		lobbyRepository.update(lobby);
+
 	}
 
 	public GameLobby setReady(String lobbyId, String username, boolean ready) {
