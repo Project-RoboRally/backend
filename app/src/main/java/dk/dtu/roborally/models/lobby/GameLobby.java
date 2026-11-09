@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -37,7 +38,11 @@ public class GameLobby {
 	private final Map<String, LobbyMember> lobbyUsers = new HashMap<>(); // string
 																			// =
 																			// userId
-	private final Set<String> kickedUsers = new HashSet<>();
+	private final Map<String, User> kickedUsers = new LinkedHashMap<>(); // userId,
+																			// user
+																			// in
+																			// kick
+																			// order
 	private static final int MIN_USERS = 2;
 	private static final int MAX_USERS = 6;
 
@@ -106,7 +111,7 @@ public class GameLobby {
 					"Game lobby is full. Cannot add more users.");
 		}
 
-		if (kickedUsers.contains(userId)) {
+		if (kickedUsers.containsKey(userId)) {
 			throw new IllegalStateException(
 					"This user is kicked from this lobby");
 		}
@@ -164,13 +169,13 @@ public class GameLobby {
 		if (userId.equals(lobbyOwner.getId())) {
 			throw new IllegalStateException("Cannot kick a lobby owner");
 		}
-		kickedUsers.add(userId);
+		kickedUsers.put(userId, lobbyUsers.get(userId).user());
 	}
 
 	public void unKickUser(String userId) {
 		Objects.requireNonNull(userId);
 
-		if (!kickedUsers.contains(userId)) {
+		if (!kickedUsers.containsKey(userId)) {
 			throw new IllegalStateException(
 					"Cannot unkick users that are not kicked");
 		}
@@ -282,6 +287,10 @@ public class GameLobby {
 
 	public List<LobbyMember> getMembers() {
 		return List.copyOf(lobbyUsers.values());
+	}
+
+	public List<User> getKickedUsers() {
+		return List.copyOf(kickedUsers.values());
 	}
 
 	public Set<User> getUsersInLobby() {

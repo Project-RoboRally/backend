@@ -15,8 +15,8 @@ import java.util.List;
 
 // TODO: update once we've talked about boards creation
 public record LobbyDTO(String id, String name, List<String> users,
-		String createdBy, List<LobbyMemberDTO> members, String gameId,
-		boolean started) {
+		String createdBy, List<LobbyMemberDTO> members,
+		List<String> kickedUsers, String gameId, boolean started) {
 
 	public static LobbyDTO from(GameLobby lobby) {
 		List<String> usernames = lobby.getUsersInLobby().stream()
@@ -29,7 +29,10 @@ public record LobbyDTO(String id, String name, List<String> users,
 				: lobby.getLobbyOwner().getId();
 		List<LobbyMemberDTO> members = lobby.getMembers().stream()
 				.map(member -> LobbyMemberDTO.from(member, ownerId)).toList();
+		List<String> kickedUsers = lobby.getKickedUsers().stream()
+				.map(User::getUsername).toList();
 		return new LobbyDTO(lobby.getLobbyId(), lobby.getLobbyName(), usernames,
-				createdBy, members, lobby.getGameId(), lobby.isGameStarted());
+				createdBy, members, kickedUsers, lobby.getGameId(),
+				lobby.isGameStarted());
 	}
 }
