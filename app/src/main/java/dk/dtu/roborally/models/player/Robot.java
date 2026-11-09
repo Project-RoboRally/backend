@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * Represents a player's robot and its current state on the board.
  *
- * @author Elias, Matthias, August
+ * @author Elias, Matthias, August, Victor
  */
 public class Robot {
 
@@ -40,4 +40,5 @@ public class Robot {
 	public void moveTo(Vector2D space) {
 		currentSpace = space;
 	}
+
 }
