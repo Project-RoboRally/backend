@@ -52,7 +52,6 @@ public final class GameStateCodec {
 		}
 		stored.shop = new StoredShop();
 		stored.shop.deck = names(game.getUpgradeShop().getDeckTypes());
-		stored.shop.discard = names(game.getUpgradeShop().getDiscardTypes());
 		stored.shop.forSale = new ArrayList<>();
 		for (UpgradeCard card : game.getUpgradeShop().getCards()) {
 			stored.shop.forSale.add(card.getType().name());
@@ -147,7 +146,7 @@ public final class GameStateCodec {
 			game.getDamagePiles().restore(sizes);
 		}
 		game.getUpgradeShop().restore(types(stored.shop.deck),
-				types(stored.shop.discard), types(stored.shop.forSale));
+				types(stored.shop.forSale));
 
 		List<Player> order = new ArrayList<>();
 		if (stored.upgradeOrder != null) {
@@ -194,6 +193,7 @@ public final class GameStateCodec {
 		stored.startX = player.getRobot().getStartSpace().x();
 		stored.startY = player.getRobot().getStartSpace().y();
 		stored.energy = player.getEnergy();
+		stored.upgrades = names(player.getUpgrades().getAll());
 		stored.checkpointsReached = player.getCheckpointsReached();
 		stored.submitted = player.getPlayerMat().isSubmitted();
 		stored.drawPile = instructions(player.getPlayerMat().getDrawPile());
@@ -227,6 +227,7 @@ public final class GameStateCodec {
 		Player player = new Player(stored.id, user,
 				PlayerColor.valueOf(stored.color), robot);
 		player.restoreProgress(stored.energy, stored.checkpointsReached);
+		player.getUpgrades().restore(types(stored.upgrades));
 		player.getPlayerMat().restore(cards(stored.drawPile),
 				cards(stored.hand), cards(stored.discard),
 				cards(stored.registers), stored.submitted);
@@ -319,7 +320,6 @@ public final class GameStateCodec {
 
 	private static final class StoredShop {
 		private List<String> deck;
-		private List<String> discard;
 		private List<String> forSale;
 	}
 
@@ -334,6 +334,7 @@ public final class GameStateCodec {
 		private Integer startX;
 		private Integer startY;
 		private int energy;
+		private List<String> upgrades;
 		private int checkpointsReached;
 		private boolean submitted;
 		private List<String> drawPile;

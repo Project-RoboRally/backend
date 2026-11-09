@@ -533,7 +533,9 @@ class GameServiceTest {
 		Player first = started.getCurrentBuyer().orElseThrow();
 		String firstName = first.getUser().getUsername();
 		String secondName = firstName.equals("August") ? "Alice" : "August";
-		UpgradeType type = started.getUpgradeShop().getCards().get(0).getType();
+		started.getUpgradeShop().restore(List.of(),
+				List.of(UpgradeType.SPEED_ROUTINE, UpgradeType.BRAKES));
+		UpgradeType type = UpgradeType.SPEED_ROUTINE;
 
 		assertThrows(IllegalStateException.class,
 				() -> gameService.skipUpgrade(lobby, secondName));
@@ -566,8 +568,9 @@ class GameServiceTest {
 		GameLobby lobby = startedLobby();
 		Game started = gameService.getGame(lobby.getGameId());
 		Player buyer = started.getCurrentBuyer().orElseThrow();
-		UpgradeType type = started.getUpgradeShop().getCards().get(0).getType();
-		// One short of the price, whatever card ended up first in the shop
+		started.getUpgradeShop().restore(List.of(),
+				List.of(UpgradeType.BRAKES, UpgradeType.ZOOP));
+		UpgradeType type = UpgradeType.BRAKES;
 		buyer.spendEnergy(buyer.getEnergy() - type.getCost() + 1);
 
 		assertThrows(IllegalArgumentException.class, () -> gameService
@@ -577,6 +580,21 @@ class GameServiceTest {
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertTrue(buyer.getPlayerMat().getDiscardPile().isEmpty());
 		assertEquals(buyer, started.getCurrentBuyer().orElseThrow());
+	}
+
+	@Test
+	void boughtPermanentUpgradesAreInstalled() {
+		GameLobby lobby = startedLobby();
+		Game started = gameService.getGame(lobby.getGameId());
+		Player buyer = started.getCurrentBuyer().orElseThrow();
+		started.getUpgradeShop().restore(List.of(),
+				List.of(UpgradeType.BRAKES, UpgradeType.ZOOP));
+
+		gameService.buyUpgrade(lobby, buyer.getUser().getUsername(),
+				UpgradeType.BRAKES);
+
+		assertEquals(List.of(UpgradeType.BRAKES), buyer.getUpgrades().getAll());
+		assertTrue(buyer.getPlayerMat().getDiscardPile().isEmpty());
 	}
 
 	@Test
