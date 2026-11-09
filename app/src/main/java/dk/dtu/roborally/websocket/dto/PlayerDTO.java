@@ -1,16 +1,19 @@
 package dk.dtu.roborally.websocket.dto;
 
 import dk.dtu.roborally.enums.Direction;
+import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
+import java.util.List;
 
 /**
- * Public information about a player that every player in the game may see.
+ * Public information about a player that every player in the game may see,
+ * installed upgrades included.
  *
  * @author Elias, Nicoleta, Sebastian
  */
 public record PlayerDTO(String username, RobotDTO robot, int checkpointsReached,
-		int energy, boolean programSubmitted) {
+		int energy, boolean programSubmitted, List<UpgradeType> upgrades) {
 
 	public record RobotDTO(int x, int y, Direction orientation,
 			boolean rebootedThisRound) {
@@ -28,6 +31,7 @@ public record PlayerDTO(String username, RobotDTO robot, int checkpointsReached,
 		return new PlayerDTO(player.getUser().getUsername(),
 				RobotDTO.from(player.getRobot()),
 				player.getCheckpointsReached(), player.getEnergy(),
-				player.getPlayerMat().isSubmitted());
+				player.getPlayerMat().isSubmitted(),
+				player.getUpgrades().getAll());
 	}
 }

@@ -1,37 +1,32 @@
 package dk.dtu.roborally.engine.services;
 
+import dk.dtu.roborally.engine.GameClock;
+import dk.dtu.roborally.engine.SystemGameClock;
+import dk.dtu.roborally.engine.activation.Priority;
+import dk.dtu.roborally.engine.activation.RoundActivator;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
-import dk.dtu.roborally.enums.CommandInstruction;
-import dk.dtu.roborally.enums.Direction;
+import dk.dtu.roborally.engine.upgrades.ProgrammingUpgrades;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
-import dk.dtu.roborally.models.board.Board;
-import dk.dtu.roborally.models.board.Space;
-import dk.dtu.roborally.models.board.Vector2D;
-import dk.dtu.roborally.models.board.elements.BoardElement;
-import dk.dtu.roborally.models.board.elements.Checkpoint;
-import dk.dtu.roborally.models.board.elements.PriorityAntenna;
-import dk.dtu.roborally.models.board.elements.Wall;
-import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.ProgrammingTimer;
+import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.game.RoundResult;
-import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
-import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
-import dk.dtu.roborally.models.player.Robot;
-import dk.dtu.roborally.models.player.RobotView;
 import dk.dtu.roborally.repository.GameRepository;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * Service for logic about a game
+ * Service for logic about a game. Everything that changes a game is
+ * synchronized, so two players acting at once, or the programming timer running
+ * out, can not change a game at the same time.
  *
  * @author Elias, Nicoleta, Matthias, Sebastian, Victor
  */
@@ -39,12 +34,20 @@ public class GameService {
 
 	private final GameRepository gameRepository;
 	private final GameEventPublisher gameEventPublisher;
-	private final BoardActivationService boardActivationService = new BoardActivationService();
+	private final RoundActivator roundActivator;
+	private final GameClock clock;
 
 	public GameService(GameRepository gameRepository,
 			GameEventPublisher gameEventPublisher) {
+		this(gameRepository, gameEventPublisher, new SystemGameClock());
+	}
+
+	public GameService(GameRepository gameRepository,
+			GameEventPublisher gameEventPublisher, GameClock clock) {
 		this.gameRepository = gameRepository;
 		this.gameEventPublisher = gameEventPublisher;
+		this.roundActivator = new RoundActivator(gameEventPublisher);
+		this.clock = clock;
 	}
 
 	public Game getGame(String gameId) {
@@ -60,7 +63,7 @@ public class GameService {
 	 * Changes the status of a game and notifies subscribers. Does nothing if
 	 * the game already has the given status.
 	 */
-	public Game updateStatus(String gameId, GameStatus newStatus) {
+	public synchronized Game updateStatus(String gameId, GameStatus newStatus) {
 		Game game = getGame(gameId);
 
 		if (game.getGameStatus() == newStatus) {
@@ -82,7 +85,7 @@ public class GameService {
 	 * subscribers. The board message includes each robot on its starting space.
 	 * Validation already happened in GameLobby.startGame().
 	 */
-	public void startGame(String lobbyId, Game game) {
+	public synchronized void startGame(String lobbyId, Game game) {
 		startUpgradePhase(game);
 		gameRepository.add(game);
 		gameEventPublisher.publishBoard(lobbyId, game);
@@ -90,13 +93,13 @@ public class GameService {
 	}
 
 	/**
-	 * Stores this player's five-card program. When every player has submitted,
-	 * resolves the round, clears the mats and republishes the board. A finished
-	 * game rejects further programs and does not start another upgrade phase.
-	 * Returns false while the round is still waiting.
+	 * Stores this player's five-card program, given as card names. When every
+	 * player has submitted, activation starts, see {@link #continueActivation}.
+	 * A finished game rejects further programs. Returns false while the round
+	 * is still waiting for programs.
 	 */
-	public boolean submitProgram(GameLobby lobby, String username,
-			List<CommandInstruction> registers) {
+	public synchronized boolean submitProgram(GameLobby lobby, String username,
+			List<String> registers) {
 		if (!lobby.isGameStarted()) {
 			throw new IllegalStateException("The game has not been started.");
 		}
@@ -106,50 +109,196 @@ public class GameService {
 			throw new IllegalStateException("The game has already finished.");
 		}
 		requirePhase(game, Phase.PROGRAMMING);
-		findPlayer(game, username).getPlayerMat().program(registers);
+		findPlayer(game, username).getPlayerMat().programCards(registers);
 
 		boolean everyoneSubmitted = game.getPlayersInGame().stream()
 				.allMatch(player -> player.getPlayerMat().isSubmitted());
 		if (!everyoneSubmitted) {
+			startTimer(lobby, game);
 			gameRepository.update(game);
 			return false;
 		}
 
+		startActivation(lobby, game);
+		return true;
+	}
+
+	/**
+	 * The first program in starts the 30 second timer for everyone else. When
+	 * it runs out, see {@link #programmingTimeUp}.
+	 */
+	private void startTimer(GameLobby lobby, Game game) {
+		ProgrammingTimer timer = game.getCurrentRound().getTimer();
+		if (!timer.start(clock.now())) {
+			return;
+		}
+		Instant endsAt = timer.getEndsAt().orElseThrow();
+		clock.schedule(endsAt, () -> programmingTimeUp(lobby, endsAt));
+		gameEventPublisher.publishTimerStarted(lobby.getLobbyId(), game);
+	}
+
+	/**
+	 * Programming time is up. Anyone still programming has their hand discarded
+	 * and their registers filled from the top of their deck, then the round
+	 * runs. Does nothing if this timer is not the running one anymore, like
+	 * when everyone submitted in time.
+	 */
+	public synchronized void programmingTimeUp(GameLobby lobby,
+			Instant endsAt) {
+		Game game = getGame(lobby.getGameId());
+		Round round = game.getCurrentRound();
+		if (round.getCurrentPhase() != Phase.PROGRAMMING
+				|| !round.getTimer().getEndsAt().equals(Optional.of(endsAt))) {
+			return;
+		}
+		for (Player player : game.getPlayersInGame()) {
+			if (!player.getPlayerMat().isSubmitted()) {
+				player.getPlayerMat().fillRegistersFromDeck();
+			}
+		}
+		startActivation(lobby, game);
+	}
+
+	/**
+	 * After a restart the saved deadlines are still there but nothing is
+	 * waiting for them, so this schedules them again. A deadline that already
+	 * passed runs right away.
+	 */
+	public void resumeTimers(List<GameLobby> lobbies) {
+		for (GameLobby lobby : lobbies) {
+			if (!lobby.isGameStarted()) {
+				continue;
+			}
+			gameRepository.getById(lobby.getGameId()).flatMap(
+					game -> game.getCurrentRound().getTimer().getEndsAt())
+					.ifPresent(endsAt -> clock.schedule(endsAt,
+							() -> programmingTimeUp(lobby, endsAt)));
+		}
+	}
+
+	private void startActivation(GameLobby lobby, Game game) {
+		game.getCurrentRound().getTimer().stop();
+		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
+		continueActivation(lobby, game);
+	}
+
+	/**
+	 * Answers the choice activation is waiting on, then carries on with the
+	 * round.
+	 */
+	public synchronized void makeChoice(GameLobby lobby, String username,
+			String choice) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.ACTIVATION);
+		game.getCurrentRound().answer(findPlayer(game, username).getId(),
+				choice);
+		continueActivation(lobby, game);
+	}
+
+	/**
+	 * Runs activation until it is done or waits on a choice. Once the round is
+	 * over the mats are cleared and the next round starts, unless someone won.
+	 */
+	private void continueActivation(GameLobby lobby, Game game) {
 		RoundResult result = activateRound(game);
+		if (game.getCurrentRound().isActivating()) {
+			gameRepository.update(game);
+			gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
+			gameEventPublisher.publishChoiceRequired(lobby.getLobbyId(), game);
+			return;
+		}
+
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
 		}
 		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
 		if (game.getGameStatus() == GameStatus.FINISHED) {
+			game.getCurrentRound().setCurrentPhase(Phase.ENDED);
 			gameRepository.update(game);
-			return true;
+			return;
 		}
 		startUpgradePhase(game);
 		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
 		gameRepository.update(game);
-		return true;
+	}
+
+	/**
+	 * Same as {@link #buyUpgrade(GameLobby, String, UpgradeType, UpgradeType)}
+	 * with a free slot.
+	 */
+	public void buyUpgrade(GameLobby lobby, String username, UpgradeType type) {
+		buyUpgrade(lobby, username, type, null);
 	}
 
 	/**
 	 * Buys an upgrade for the player whose turn it is. Routines go straight to
-	 * the player's discard pile.
+	 * the player's discard pile, anything else gets installed. With all three
+	 * slots of that kind taken, replacing names the installed upgrade it
+	 * replaces, which is gone after.
 	 */
-	public void buyUpgrade(GameLobby lobby, String username, UpgradeType type) {
+	public synchronized void buyUpgrade(GameLobby lobby, String username,
+			UpgradeType type, UpgradeType replacing) {
 		Game game = upgradeGame(lobby);
 		Player player = currentBuyer(game, username);
 
 		if (player.getEnergy() < type.getCost()) {
 			throw new IllegalArgumentException("Not enough energy for " + type);
 		}
+		if (type.isRoutine()) {
+			player.getPlayerMat()
+					.addToDiscardPile(new ProgrammingCard(type.getRoutine()));
+		} else {
+			player.getUpgrades().install(type, replacing);
+		}
 		game.getUpgradeShop().buy(type);
 		player.spendEnergy(type.getCost());
-		player.getPlayerMat()
-				.addToDiscardPile(new ProgrammingCard(type.getRoutine()));
 		endUpgradeTurn(lobby, game);
 	}
 
+	/**
+	 * Uses one of the player's upgrades while they program. The player gets
+	 * their changed hand back in an UPGRADE_USED message.
+	 */
+	public synchronized void useUpgrade(GameLobby lobby, String username,
+			UpgradeType type, List<String> cards) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.PROGRAMMING);
+		Player player = findPlayer(game, username);
+		if (player.getPlayerMat().isSubmitted()) {
+			throw new IllegalStateException(
+					"Program has already been submitted");
+		}
+		ProgrammingUpgrades.use(game, player, type,
+				cards == null ? List.of() : cards);
+		gameRepository.update(game);
+		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
+	}
+
+	/** The cards owed after a Memory Swap go back on top of the deck. */
+	public synchronized void putBackCards(GameLobby lobby, String username,
+			List<String> cards) {
+		if (!lobby.isGameStarted()) {
+			throw new IllegalStateException("The game has not been started.");
+		}
+		Game game = getGame(lobby.getGameId());
+		requirePhase(game, Phase.PROGRAMMING);
+		Player player = findPlayer(game, username);
+		if (player.getPlayerMat().getCardsToPutBack() == 0) {
+			throw new IllegalStateException("No cards to put back");
+		}
+		player.getPlayerMat().putOnTopOfDeck(cards);
+		gameRepository.update(game);
+		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
+	}
+
 	/** Passes on buying an upgrade this round. */
-	public void skipUpgrade(GameLobby lobby, String username) {
+	public synchronized void skipUpgrade(GameLobby lobby, String username) {
 		Game game = upgradeGame(lobby);
 		currentBuyer(game, username);
 		endUpgradeTurn(lobby, game);
@@ -189,10 +338,11 @@ public class GameService {
 	 * Refills the shop and lets players buy in priority antenna order.
 	 */
 	private void startUpgradePhase(Game game) {
-		List<Player> order = new ArrayList<>(game.getPlayersInGame());
-		order.sort(activationOrder(antennaPosition(game.getBoard())));
+		List<Player> order = Priority.order(game);
 
 		game.getCurrentRound().setCurrentPhase(Phase.UPGRADE);
+		game.getPlayersInGame()
+				.forEach(player -> player.getUpgrades().newRound());
 		game.getUpgradeShop().refill(order.size());
 		game.setUpgradeOrder(order);
 	}
@@ -200,7 +350,8 @@ public class GameService {
 	private void startProgrammingPhase(Game game) {
 		game.getCurrentRound().setCurrentPhase(Phase.PROGRAMMING);
 		for (Player player : game.getPlayersInGame()) {
-			player.getPlayerMat().drawHand();
+			player.getPlayerMat()
+					.drawHand(ProgrammingUpgrades.handSize(player));
 		}
 	}
 
@@ -211,51 +362,9 @@ public class GameService {
 		}
 	}
 
-	/**
-	 * Runs registers 1 through 5. Within a register, the robot closest to the
-	 * priority antenna moves first, with username breaking ties.
-	 */
+	/** Runs the activation phase of the round. */
 	RoundResult activateRound(Game game) {
-		List<List<RobotView>> steps = new ArrayList<>();
-		List<RegisterReveal> reveals = new ArrayList<>();
-		Vector2D antenna = antennaPosition(game.getBoard());
-		List<Player> players = new ArrayList<>(game.getPlayersInGame());
-		if (players.isEmpty()) {
-			return RoundResult.NONE;
-		}
-		int registerCount = players.get(0).getPlayerMat().getRegisters().size();
-
-		for (int register = 0; register < registerCount; register++) {
-			List<Player> order = new ArrayList<>(players);
-			order.sort(activationOrder(antenna));
-
-			List<PlayedCard> cards = new ArrayList<>();
-			for (Player player : order) {
-				int firstStep = steps.size();
-				execute(resolveInstruction(player, register), player, game,
-						steps);
-				cards.add(new PlayedCard(player.getUser().getUsername(),
-						player.getPlayerMat().getRegisters().get(register)
-								.getCard(),
-						firstStep, steps.size() - firstStep));
-			}
-			steps.addAll(boardActivationService.activateRegister(register,
-					order, game.getBoard()));
-			reveals.add(new RegisterReveal(register, cards));
-			evaluateCheckpoints(game, order);
-
-			if (game.getGameStatus() == GameStatus.FINISHED) {
-				break;
-			}
-		}
-		return new RoundResult(steps, reveals);
-	}
-
-	private Comparator<Player> activationOrder(Vector2D antenna) {
-		return Comparator
-				.comparingInt(
-						(Player player) -> distanceToAntenna(player, antenna))
-				.thenComparing(player -> player.getUser().getUsername());
+		return roundActivator.activate(game);
 	}
 
 	private Player findPlayer(Game game, String username) {
@@ -268,184 +377,4 @@ public class GameService {
 				"Player is not in this game: " + username);
 	}
 
-	/**
-	 * The instruction a register performs. Again and Repeat Routine repeat the
-	 * nearest earlier register that does not repeat anything itself.
-	 */
-	private CommandInstruction resolveInstruction(Player player, int register) {
-		for (int index = register; index >= 0; index--) {
-			CommandInstruction instruction = instructionAt(player, index);
-			if (!instruction.repeatsPreviousRegister()) {
-				return instruction;
-			}
-		}
-		throw new IllegalStateException("Again has no register to repeat");
-	}
-
-	private CommandInstruction instructionAt(Player player, int register) {
-		ProgrammableCard card = player.getPlayerMat().getRegisters()
-				.get(register).getCard();
-		if (card instanceof ProgrammingCard programmingCard) {
-			return programmingCard.getInstruction();
-		}
-		throw new IllegalStateException(
-				"Register " + (register + 1) + " has no programming card");
-	}
-
-	private void execute(CommandInstruction instruction, Player player,
-			Game game, List<List<RobotView>> steps) {
-		switch (instruction) {
-			case LEFT_TURN -> {
-				player.getRobot().turnLeft();
-				steps.add(snapshot(game));
-			}
-			case RIGHT_TURN -> {
-				player.getRobot().turnRight();
-				steps.add(snapshot(game));
-			}
-			case U_TURN -> {
-				player.getRobot().uTurn();
-				steps.add(snapshot(game));
-			}
-			case MOVE_1, MOVE_2, MOVE_3, SPEED_ROUTINE ->
-				move(player, game, instruction.steps(), steps);
-			case MOVE_BACK -> moveBack(player, game, steps);
-			case POWER_UP, ENERGY_ROUTINE -> player.addEnergy(1);
-			default -> throw new IllegalArgumentException(
-					"Cannot activate " + instruction);
-		}
-	}
-
-	private void move(Player player, Game game, int stepCount,
-			List<List<RobotView>> steps) {
-		for (int step = 0; step < stepCount; step++) {
-			if (!step(player, game, player.getRobot().getOrientation())) {
-				return;
-			}
-			steps.add(snapshot(game));
-		}
-	}
-
-	private void moveBack(Player player, Game game,
-			List<List<RobotView>> steps) {
-		if (step(player, game, player.getRobot().getOrientation().uTurn())) {
-			steps.add(snapshot(game));
-		}
-	}
-
-	private List<RobotView> snapshot(Game game) {
-		return game.getPlayersInGame().stream().map(RobotView::from).toList();
-	}
-
-	/**
-	 * One space along the given direction. Off the board, a wall on the crossed
-	 * edge, or another robot blocks the step.
-	 */
-	private boolean step(Player player, Game game, Direction direction) {
-		Robot robot = player.getRobot();
-		Vector2D from = robot.getCurrentSpace();
-		Vector2D to = from.add(direction.step());
-		Board board = game.getBoard();
-
-		if (!board.isWithinBoard(to) || wallBlocks(board, from, to, direction)
-				|| occupied(game, to, player)) {
-			return false;
-		}
-
-		robot.moveTo(to);
-		return true;
-	}
-
-	private boolean wallBlocks(Board board, Vector2D from, Vector2D to,
-			Direction direction) {
-		if (hasWall(board.getSpace(from), direction)) {
-			return true;
-		}
-		return hasWall(board.getSpace(to), direction.uTurn());
-	}
-
-	private boolean hasWall(Space space, Direction side) {
-		if (space == null) {
-			return false;
-		}
-		for (BoardElement element : space.getBoardElements()) {
-			if (element instanceof Wall wall && wall.getSide() == side) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private boolean occupied(Game game, Vector2D position, Player moving) {
-		for (Player other : game.getPlayersInGame()) {
-			if (other != moving
-					&& position.equals(other.getRobot().getCurrentSpace())) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private Vector2D antennaPosition(Board board) {
-		return board.getSpaceMap().values().stream()
-				.filter(space -> space.getBoardElements().stream()
-						.anyMatch(PriorityAntenna.class::isInstance))
-				.map(Space::getPosition).findFirst().orElse(null);
-	}
-
-	/**
-	 * Manhattan distance to the antenna. With no antenna on the board every
-	 * robot is equally close, so username decides the order.
-	 */
-	private int distanceToAntenna(Player player, Vector2D antenna) {
-		if (antenna == null) {
-			return 0;
-		}
-		return player.getRobot().getCurrentSpace().distanceTo(antenna);
-	}
-
-	/**
-	 * Awards checkpoints in numbered order based on robot positions after a
-	 * register. Records the first winner in the supplied player order, finishes
-	 * the game, and publishes the updated status.
-	 */
-	private void evaluateCheckpoints(Game game, List<Player> players) {
-		int total = game.getBoard().getElements(Checkpoint.class).size();
-
-		if (total == 0) {
-			return;
-		}
-
-		for (Player player : players) {
-			Vector2D position = player.getRobot().getCurrentSpace();
-			Space space = game.getBoard().getSpace(position);
-
-			if (space == null) {
-				continue;
-			}
-
-			int nextCheckpoint = player.getCheckpointsReached() + 1;
-
-			for (BoardElement element : space.getBoardElements()) {
-				if (!(element instanceof Checkpoint checkpoint)) {
-					continue;
-				}
-
-				if (checkpoint.getNumber() != nextCheckpoint) {
-					continue;
-				}
-
-				player.reachNextCheckpoint();
-
-				if (player.getCheckpointsReached() == total) {
-					game.setWinner(player);
-					game.setGameStatus(GameStatus.FINISHED);
-					gameEventPublisher.publishStatus(game);
-					return;
-				}
-
-				break;
-			}
-		}
-	}
 }
