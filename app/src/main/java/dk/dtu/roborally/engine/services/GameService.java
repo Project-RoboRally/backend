@@ -28,7 +28,7 @@ import java.util.Optional;
  * synchronized, so two players acting at once, or the programming timer running
  * out, can not change a game at the same time.
  *
- * @author Elias, Nicoleta, Matthias, Sebastian
+ * @author Elias, Nicoleta, Matthias, Sebastian, Victor
  */
 public class GameService {
 
@@ -36,6 +36,7 @@ public class GameService {
 	private final GameEventPublisher gameEventPublisher;
 	private final RoundActivator roundActivator;
 	private final GameClock clock;
+	private final BoardActivationService boardActivationService = new BoardActivationService();
 
 	public GameService(GameRepository gameRepository,
 			GameEventPublisher gameEventPublisher) {

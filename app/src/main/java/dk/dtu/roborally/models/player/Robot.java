@@ -7,7 +7,7 @@ import lombok.Getter;
 /**
  * Represents a player's robot and its current state on the board.
  *
- * @author Elias, Matthias, August, Sebastian
+ * @author Elias, Matthias, August, Victor, Sebastian
  */
 public class Robot {
 
