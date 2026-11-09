@@ -61,8 +61,8 @@ class BoardElementsTest {
 
 	@Test
 	void greenBeltsMoveOneSpaceAndBlueBeltsTwo() {
-		belt(0, 0, 4, Direction.EAST, ConveyorBeltType.BLUE);
-		belt(0, 2, 4, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(0, 0, 4, Direction.EAST, ConveyorBeltType.BLUE_STRAIGHT);
+		belt(0, 2, 4, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		Player blue = player("blue", 0, 0, Direction.NORTH);
 		Player green = player("green", 0, 2, Direction.NORTH);
 
@@ -75,7 +75,7 @@ class BoardElementsTest {
 
 	@Test
 	void blueBeltStopsCarryingOnceTheRobotIsOffIt() {
-		belt(0, 0, 1, Direction.EAST, ConveyorBeltType.BLUE);
+		belt(0, 0, 1, Direction.EAST, ConveyorBeltType.BLUE_STRAIGHT);
 		Player ada = player("ada", 0, 0, Direction.NORTH);
 
 		BoardElements.activate(game(ada), 0, log);
@@ -85,8 +85,8 @@ class BoardElementsTest {
 
 	@Test
 	void blueOntoGreenGetsThreeSpaces() {
-		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.BLUE);
-		belt(2, 0, 3, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.BLUE_STRAIGHT);
+		belt(2, 0, 3, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		Player ada = player("ada", 0, 0, Direction.NORTH);
 
 		BoardElements.activate(game(ada), 0, log);
@@ -96,7 +96,7 @@ class BoardElementsTest {
 
 	@Test
 	void beltsDoNotPushRobotsOffTheBelt() {
-		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		Player ada = player("ada", 1, 0, Direction.NORTH);
 		Player bob = player("bob", 2, 0, Direction.NORTH);
 
@@ -108,7 +108,7 @@ class BoardElementsTest {
 
 	@Test
 	void robotsOnTheSameBeltMoveTogether() {
-		belt(0, 0, 4, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(0, 0, 4, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		Player ada = player("ada", 0, 0, Direction.NORTH);
 		Player bob = player("bob", 1, 0, Direction.NORTH);
 
@@ -120,8 +120,8 @@ class BoardElementsTest {
 
 	@Test
 	void twoRobotsHeadingForTheSameSpaceBothStay() {
-		belt(0, 1, 1, Direction.EAST, ConveyorBeltType.GREEN);
-		belt(1, 0, 1, Direction.SOUTH, ConveyorBeltType.GREEN);
+		belt(0, 1, 1, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
+		belt(1, 0, 1, Direction.SOUTH, ConveyorBeltType.GREEN_STRAIGHT);
 		Player ada = player("ada", 0, 1, Direction.NORTH);
 		Player bob = player("bob", 1, 0, Direction.NORTH);
 
@@ -133,8 +133,8 @@ class BoardElementsTest {
 
 	@Test
 	void aBeltTurningACornerTurnsTheRobot() {
-		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN);
-		belt(2, 0, 2, Direction.SOUTH, ConveyorBeltType.GREEN);
+		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
+		belt(2, 0, 2, Direction.SOUTH, ConveyorBeltType.GREEN_STRAIGHT);
 		Player ada = player("ada", 1, 0, Direction.EAST);
 
 		BoardElements.activate(game(ada), 0, log);
@@ -145,7 +145,7 @@ class BoardElementsTest {
 
 	@Test
 	void aBeltCanCarryARobotOffTheBoard() {
-		belt(5, 0, 1, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(5, 0, 1, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		Player ada = player("ada", 5, 0, Direction.NORTH);
 
 		BoardElements.activate(game(ada), 0, log);
@@ -156,7 +156,7 @@ class BoardElementsTest {
 
 	@Test
 	void wallsStopBelts() {
-		belt(0, 0, 3, Direction.EAST, ConveyorBeltType.GREEN);
+		belt(0, 0, 3, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		put(0, 0, new Wall(new Vector2D(0, 0), Direction.EAST));
 		Player ada = player("ada", 0, 0, Direction.NORTH);
 

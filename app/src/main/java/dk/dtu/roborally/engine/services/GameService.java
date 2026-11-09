@@ -36,7 +36,6 @@ public class GameService {
 	private final GameEventPublisher gameEventPublisher;
 	private final RoundActivator roundActivator;
 	private final GameClock clock;
-	private final BoardActivationService boardActivationService = new BoardActivationService();
 
 	public GameService(GameRepository gameRepository,
 			GameEventPublisher gameEventPublisher) {
