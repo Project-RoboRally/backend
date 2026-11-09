@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -103,8 +104,8 @@ class BoardActivationServiceTest {
 	@Test
 	void pushPanelPushesRobotChain() {
 		Map<Vector2D, Space> spaces = horizontalSpaces(3);
-		spaces.get(new Vector2D(0, 0)).addBoardElement(
-				new PushPanel(new Vector2D(0, 0), Direction.EAST));
+		spaces.get(new Vector2D(0, 0)).addBoardElement(new PushPanel(
+				new Vector2D(0, 0), Direction.EAST, Set.of(1, 2, 3, 4, 5)));
 		Player panelRobot = player("panel", new Vector2D(0, 0),
 				Direction.NORTH);
 		Player pushedRobot = player("pushed", new Vector2D(1, 0),

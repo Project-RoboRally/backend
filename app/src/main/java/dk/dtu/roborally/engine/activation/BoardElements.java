@@ -1,6 +1,5 @@
 package dk.dtu.roborally.engine.activation;
 
-import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
 import dk.dtu.roborally.models.board.Space;
@@ -36,11 +35,10 @@ public final class BoardElements {
 	}
 
 	public static void activate(Game game, int register, ActivationLog log) {
-		List<Player> onBlue = convey(game, ConveyorBeltType.BLUE,
-				game.getPlayersInGame(), log);
+		List<Player> onBlue = convey(game, true, game.getPlayersInGame(), log);
 		// Blue belts carry robots a second space if they are still on one
-		convey(game, ConveyorBeltType.BLUE, onBlue, log);
-		convey(game, ConveyorBeltType.GREEN, game.getPlayersInGame(), log);
+		convey(game, true, onBlue, log);
+		convey(game, false, game.getPlayersInGame(), log);
 		pushFromPanels(game, register, log);
 		rotateOnGears(game, log);
 	}
@@ -50,14 +48,14 @@ public final class BoardElements {
 	 * same time. Belts never push: a robot stays put if the space ahead has a
 	 * robot that is not moving away, if another robot is heading for the same
 	 * space, or if a wall is in the way. Returns the robots that were on a belt
-	 * of that colour.
+	 * of that colour (blue or green).
 	 */
-	private static List<Player> convey(Game game, ConveyorBeltType colour,
+	private static List<Player> convey(Game game, boolean blue,
 			Collection<Player> candidates, ActivationLog log) {
 		Map<Player, ConveyorBelt> riding = new LinkedHashMap<>();
 		for (Player player : candidates) {
 			element(game, player, ConveyorBelt.class)
-					.filter(belt -> belt.getType() == colour)
+					.filter(belt -> isBlue(belt) == blue)
 					.ifPresent(belt -> riding.put(player, belt));
 		}
 		Map<Player, Vector2D> targets = new HashMap<>();
@@ -114,6 +112,13 @@ public final class BoardElements {
 			log.addStep(snapshot(game));
 		}
 		return List.copyOf(riding.keySet());
+	}
+
+	private static boolean isBlue(ConveyorBelt belt) {
+		return switch (belt.getType()) {
+			case BLUE_STRAIGHT, BLUE_LEFT_CURVE, BLUE_RIGHT_CURVE -> true;
+			case GREEN_STRAIGHT, GREEN_LEFT_CURVE, GREEN_RIGHT_CURVE -> false;
+		};
 	}
 
 	/**
