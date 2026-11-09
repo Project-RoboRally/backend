@@ -10,7 +10,7 @@ import java.util.Objects;
  * Represents a user's participation in a specific Robo Rally game. Holds the
  * user's game-specific robot, player mat and progress.
  *
- * @author Elias, Matthias, August, Sebastian
+ * @author Elias, Matthias, August, Victor, Sebastian
  */
 @Getter
 public class Player {

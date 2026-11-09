@@ -23,4 +23,8 @@ public class EnergySpace extends BoardElement {
 		this.position = position;
 		this.cubeAmount = cubeAmount;
 	}
+
+	public void addCubeAmount(int cubeAmount) {
+		this.cubeAmount += cubeAmount;
+	}
 }

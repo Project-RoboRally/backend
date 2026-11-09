@@ -8,6 +8,7 @@ import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.PlayerColor;
+import dk.dtu.roborally.enums.RotationDirection;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.loaders.JsonLoader;
@@ -16,6 +17,7 @@ import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
+import dk.dtu.roborally.models.board.elements.Gear;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
@@ -69,6 +71,20 @@ class GameServiceTest {
 			@Override
 			public void publishStatus(Game game) {
 				published.add(game);
+			}
+
+			@Test
+			void registerActivatesBoardElementsAfterProgrammingCards() {
+				Player mover = player("ada", 0, 0, Direction.NORTH,
+						PlayerColor.RED);
+				Space gearSpace = space(0, 0, new Gear(new Vector2D(0, 0),
+						RotationDirection.CLOCKWISE));
+				Game round = game(board(gearSpace), mover);
+				load(mover, five(CommandInstruction.POWER_UP));
+
+				gameService.activateRound(round);
+
+				assertEquals(Direction.EAST, mover.getRobot().getOrientation());
 			}
 
 			@Override
