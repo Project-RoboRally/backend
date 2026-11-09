@@ -20,6 +20,7 @@ public class Player {
 	private final String id;
 	private final User user;
 	private final PlayerMat playerMat;
+	private final InstalledUpgrades upgrades = new InstalledUpgrades();
 	private final Robot robot;
 	private final PlayerColor color;
 	private int checkpointsReached = 0;

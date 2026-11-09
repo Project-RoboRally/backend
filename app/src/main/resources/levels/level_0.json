@@ -111,7 +111,10 @@
             "number": 3
         }
     ],
-    "antenna": { "x": 10, "y": 17 },
+    "antenna": { "x": 10, "y": 17, "direction": "north" },
+    "reboot_points": [
+        { "x": 17, "y": 15, "direction": "north", "x1": 0, "y1": 0, "x2": 19, "y2": 16 }
+    ],
     "gears": [
         {
             "x": 9,
@@ -138,17 +141,20 @@
         {
             "x": 0,
             "y": 10,
-            "push_direction": "east"
+            "push_direction": "east",
+            "registers": [1, 3, 5]
         },
         {
             "x": 19,
             "y": 8,
-            "push_direction": "west"
+            "push_direction": "west",
+            "registers": [2, 4]
         },
         {
             "x": 11,
             "y": 1,
-            "push_direction": "south"
+            "push_direction": "south",
+            "registers": [1, 3, 5]
         }
     ],
     "walls": [

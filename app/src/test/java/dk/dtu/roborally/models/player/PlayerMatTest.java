@@ -1,6 +1,8 @@
 package dk.dtu.roborally.models.player;
 
 import dk.dtu.roborally.enums.CommandInstruction;
+import dk.dtu.roborally.enums.DamageInstruction;
+import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import org.junit.jupiter.api.Test;
@@ -164,6 +166,25 @@ class PlayerMatTest {
 
 		assertEquals(9, mat.getHand().size());
 		assertTrue(mat.getDiscardPile().isEmpty());
+	}
+
+	@Test
+	void damageCardsInTheHandCanBeProgrammed() {
+		PlayerMat mat = stacked();
+		mat.addToHand(new DamageCard(DamageInstruction.SPAM));
+
+		mat.programCards(
+				List.of("SPAM", "MOVE_1", "MOVE_2", "RIGHT_TURN", "MOVE_1"));
+
+		assertInstanceOf(DamageCard.class, mat.getRegisters().get(0).getCard());
+	}
+
+	@Test
+	void unknownCardNamesAreRejected() {
+		PlayerMat mat = stacked();
+
+		assertThrows(IllegalArgumentException.class, () -> mat.programCards(
+				List.of("MOVE_9", "MOVE_1", "MOVE_2", "RIGHT_TURN", "MOVE_1")));
 	}
 
 	private static ProgrammingCard card(PlayerMat mat, int register) {

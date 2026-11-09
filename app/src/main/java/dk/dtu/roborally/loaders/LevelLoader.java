@@ -14,14 +14,18 @@ import dk.dtu.roborally.models.board.elements.LaserEmitter;
 import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.PushPanel;
+import dk.dtu.roborally.models.board.elements.RebootPoint;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import dk.dtu.roborally.models.board.elements.Wall;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Builds a board from a level file, placing every board element on the spaces
@@ -60,6 +64,7 @@ public class LevelLoader {
 		each(level.pits, pit -> createPits(pit, spaceMap));
 		each(level.energy_spaces,
 				energySpace -> createEnergySpace(energySpace, spaceMap));
+		each(level.reboot_points, point -> createRebootPoint(point, spaceMap));
 		if (level.antenna != null) {
 			createPriorityAntenna(level.antenna, spaceMap);
 		}
@@ -176,8 +181,21 @@ public class LevelLoader {
 
 	private static void createPriorityAntenna(LevelData.AntennaData antenna,
 			Map<Vector2D, Space> spaceMap) {
+		Direction facing = antenna.direction == null
+				? Direction.NORTH
+				: parse(Direction.class, antenna.direction,
+						"antenna direction");
 		getSpaceAt(spaceMap, new Vector2D(antenna.x, antenna.y))
-				.addBoardElement(new PriorityAntenna());
+				.addBoardElement(new PriorityAntenna(facing));
+	}
+
+	private static void createRebootPoint(LevelData.RebootPointData point,
+			Map<Vector2D, Space> spaceMap) {
+		Vector2D position = new Vector2D(point.x, point.y);
+		getSpaceAt(spaceMap, position).addBoardElement(new RebootPoint(position,
+				parse(Direction.class, point.direction, "reboot direction"),
+				new Vector2D(point.x1, point.y1),
+				new Vector2D(point.x2, point.y2)));
 	}
 
 	private static void createGear(LevelData.GearData gear,
@@ -192,7 +210,13 @@ public class LevelLoader {
 			Map<Vector2D, Space> spaceMap) {
 		Direction dir = parse(Direction.class, pPanel.push_direction,
 				"push panel push direction");
-		PushPanel pp = new PushPanel(new Vector2D(pPanel.x, pPanel.y), dir);
+		// A panel without numbers pushes in every register
+		Set<Integer> registers = pPanel.registers == null
+				? Set.of(1, 2, 3, 4, 5)
+				: Arrays.stream(pPanel.registers).boxed()
+						.collect(Collectors.toSet());
+		PushPanel pp = new PushPanel(new Vector2D(pPanel.x, pPanel.y), dir,
+				registers);
 		getSpaceAt(spaceMap, pp.getPosition()).addBoardElement(pp);
 	}
 
