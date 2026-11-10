@@ -60,15 +60,16 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 	}
 
 	/**
-	 * The phase and register of the round. programmingEndsAt is when the
+	 * The round number, phase and register. programmingEndsAt is when the
 	 * programming timer runs out, in milliseconds since 1970, and null while it
 	 * is not running.
 	 */
-	public record RoundDTO(Phase phase, Integer currentRegisterIndex,
-			long programmingTimeLimitSeconds, Long programmingEndsAt) {
+	public record RoundDTO(int number, Phase phase,
+			Integer currentRegisterIndex, long programmingTimeLimitSeconds,
+			Long programmingEndsAt) {
 		public static RoundDTO from(Round round) {
 			// Convert the round to the corresponding DTO
-			return new RoundDTO(round.getCurrentPhase(),
+			return new RoundDTO(round.getNumber(), round.getCurrentPhase(),
 					round.getCurrentRegisterIndex().orElse(null),
 					ProgrammingTimer.getTIME_LIMIT().toSeconds(),
 					round.getTimer().getEndsAt().map(Instant::toEpochMilli)

@@ -74,4 +74,15 @@ class RoundTest {
 		assertThrows(IllegalStateException.class,
 				() -> new Round().answer("a", "LEFT_TURN"));
 	}
+
+	@Test
+	void beginNextCountsEachRoundOfTheGame() {
+		Round round = new Round();
+
+		assertEquals(0, round.getNumber());
+		round.beginNext();
+		assertEquals(1, round.getNumber());
+		round.beginNext();
+		assertEquals(2, round.getNumber());
+	}
 }
