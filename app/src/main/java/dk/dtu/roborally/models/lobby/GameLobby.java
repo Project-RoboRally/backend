@@ -4,7 +4,6 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -16,7 +15,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.loaders.Config;
 import dk.dtu.roborally.loaders.LevelLoader;
@@ -278,8 +276,7 @@ public class GameLobby {
 					member.color(), robot));
 		}
 		// setup game
-		Game game = new Game(UUID.randomUUID().toString(), level, players,
-				new EnumMap<>(DamageInstruction.class));
+		Game game = new Game(UUID.randomUUID().toString(), level, players);
 		this.gameId = game.getGameID();
 
 		return game;

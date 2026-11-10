@@ -10,7 +10,7 @@ import java.util.Objects;
  * Represents a user's participation in a specific Robo Rally game. Holds the
  * user's game-specific robot, player mat and progress.
  *
- * @author Elias, Matthias, August, Sebastian
+ * @author Elias, Matthias, August, Victor, Sebastian
  */
 @Getter
 public class Player {
@@ -20,6 +20,7 @@ public class Player {
 	private final String id;
 	private final User user;
 	private final PlayerMat playerMat;
+	private final InstalledUpgrades upgrades = new InstalledUpgrades();
 	private final Robot robot;
 	private final PlayerColor color;
 	private int checkpointsReached = 0;

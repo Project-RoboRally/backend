@@ -4,6 +4,7 @@ import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
+import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.loaders.LevelLoader;
@@ -14,6 +15,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.PendingChoice;
 import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.game.RoundResult.PlayedCard;
 import dk.dtu.roborally.models.game.RoundResult.RegisterReveal;
@@ -48,7 +50,7 @@ class WebSocketGameEventPublisherTest {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
-		Game game = new Game("game-1", boardWithWall(), Set.of(), Map.of());
+		Game game = new Game("game-1", boardWithWall(), Set.of());
 		game.setGameStatus(GameStatus.FINISHED);
 
 		publisher.publishStatus(game);
@@ -64,8 +66,7 @@ class WebSocketGameEventPublisherTest {
 				template);
 		Game game = new Game("game-1", boardWithWall(),
 				Set.of(player("alice", PlayerColor.RED, 0, 0),
-						player("bob", PlayerColor.BLUE, 1, 0)),
-				Map.of());
+						player("bob", PlayerColor.BLUE, 1, 0)));
 
 		publisher.publishGameStarted("lobby-1", game);
 
@@ -99,8 +100,7 @@ class WebSocketGameEventPublisherTest {
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Player alice = player("alice", PlayerColor.RED, 0, 0);
-		Game game = new Game("game-1", boardWithWall(), Set.of(alice),
-				Map.of());
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice));
 		alice.getPlayerMat().drawHand();
 
 		publisher.publishProgrammingStarted("lobby-1", game);
@@ -120,8 +120,7 @@ class WebSocketGameEventPublisherTest {
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Player alice = player("alice", PlayerColor.RED, 0, 0);
-		Game game = new Game("game-1", boardWithWall(), Set.of(alice),
-				Map.of());
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice));
 		game.getUpgradeShop().refill(1);
 		game.setUpgradeOrder(List.of(alice));
 
@@ -133,8 +132,35 @@ class WebSocketGameEventPublisherTest {
 				sent.capture());
 		assertEquals(PlayerGameStateDTO.UPGRADE_TURN, sent.getValue().type());
 		assertEquals(1, sent.getValue().upgradeShop().size());
-		assertEquals(3, sent.getValue().upgradeShop().get(0).cost());
+		assertEquals(sent.getValue().upgradeShop().get(0).type().getCost(),
+				sent.getValue().upgradeShop().get(0).cost());
+		assertEquals(sent.getValue().upgradeShop().get(0).type().getKind(),
+				sent.getValue().upgradeShop().get(0).kind());
 		assertEquals("alice", sent.getValue().currentBuyer());
+	}
+
+	@Test
+	void publishesWhoHasToChooseAndTheirOptions() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice));
+		game.getCurrentRound().ask(new PendingChoice(alice.getId(),
+				ChoiceType.WEASEL_ACTION, List.of("LEFT_TURN", "U_TURN")));
+
+		publisher.publishChoiceRequired("lobby-1", game);
+
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+				sent.capture());
+		assertEquals(PlayerGameStateDTO.CHOICE_REQUIRED,
+				sent.getValue().type());
+		assertEquals("alice", sent.getValue().choice().username());
+		assertEquals(ChoiceType.WEASEL_ACTION, sent.getValue().choice().type());
+		assertEquals(List.of("LEFT_TURN", "U_TURN"),
+				sent.getValue().choice().options());
 	}
 
 	@Test
@@ -143,7 +169,7 @@ class WebSocketGameEventPublisherTest {
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Board level = LevelLoader.load(JsonLoader.loadConfig().levels.level_0);
-		Game game = new Game("game-1", level, Set.of(), Map.of());
+		Game game = new Game("game-1", level, Set.of());
 
 		publisher.publishBoard("lobby-1", game);
 
@@ -164,8 +190,7 @@ class WebSocketGameEventPublisherTest {
 				template);
 		Game game = new Game("game-1", boardWithWall(),
 				Set.of(player("alice", PlayerColor.RED, 0, 0),
-						player("bob", PlayerColor.BLUE, 1, 0)),
-				Map.of());
+						player("bob", PlayerColor.BLUE, 1, 0)));
 
 		publisher.publishBoard("lobby-1", game);
 
@@ -188,7 +213,7 @@ class WebSocketGameEventPublisherTest {
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Game game = new Game("game-1", boardWithWall(),
-				Set.of(player("alice", PlayerColor.RED, 1, 0)), Map.of());
+				Set.of(player("alice", PlayerColor.RED, 1, 0)));
 
 		ProgrammingCard card = new ProgrammingCard(CommandInstruction.MOVE_1);
 		publisher.publishRound("lobby-1", game, new RoundResult(
@@ -217,8 +242,7 @@ class WebSocketGameEventPublisherTest {
 				template);
 		Player alice = player("alice", PlayerColor.RED, 0, 0);
 		Player bob = player("bob", PlayerColor.BLUE, 1, 0);
-		Game game = new Game("game-1", boardWithWall(), Set.of(alice, bob),
-				Map.of());
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice, bob));
 		bob.getPlayerMat().getRegisters().get(0)
 				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
 

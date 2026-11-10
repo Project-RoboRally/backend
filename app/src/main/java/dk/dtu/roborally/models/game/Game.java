@@ -1,10 +1,7 @@
 package dk.dtu.roborally.models.game;
 
-import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.models.board.Board;
-import dk.dtu.roborally.models.cards.CardDeck;
-import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.player.Player;
 import lombok.Getter;
 import lombok.Setter;
@@ -12,7 +9,6 @@ import lombok.Setter;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -40,15 +36,14 @@ public class Game {
 	private Round currentRound = new Round();
 	@Getter
 	private final UpgradeShop upgradeShop = new UpgradeShop();
-	private final Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies;
+	@Getter
+	private final DamagePiles damagePiles = new DamagePiles();
 	private final Deque<Player> upgradeOrder = new ArrayDeque<>();
 
-	public Game(String gameID, Board board, Set<Player> players,
-			Map<DamageInstruction, CardDeck<DamageCard>> damageSupplies) {
+	public Game(String gameID, Board board, Set<Player> players) {
 		this.gameID = gameID;
 		this.board = board;
 		this.playersInGame = players;
-		this.damageSupplies = damageSupplies;
 	}
 
 	/** Sets who gets to buy an upgrade this round, first buyer first. */
