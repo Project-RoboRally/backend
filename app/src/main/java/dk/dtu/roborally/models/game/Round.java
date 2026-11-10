@@ -21,13 +21,20 @@ import java.util.Set;
 /**
  * Represents an active or ended round
  *
- * @author August, Sebastian
+ * @author August, Sebastian, Elias
  */
 
 public class Round {
 	@Getter
 	@Setter
 	private Phase currentPhase = Phase.UPGRADE;
+
+	/**
+	 * Which round of the game this is. Starts at 0 and becomes 1 when the first
+	 * upgrade phase begins.
+	 */
+	@Getter
+	private int number;
 
 	@Getter
 	private final ProgrammingTimer timer = new ProgrammingTimer();
@@ -89,6 +96,16 @@ public class Round {
 
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
+
+	/** Moves on to the next round of the game. */
+	public void beginNext() {
+		number++;
+	}
+
+	/** Puts back the round number loaded from storage. */
+	public void restoreNumber(int number) {
+		this.number = number;
+	}
 
 	/** The register being activated, empty outside the activation phase. */
 	public Optional<Integer> getCurrentRegisterIndex() {
