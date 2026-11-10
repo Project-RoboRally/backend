@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * Creates the Postgres tables used to resume a game after a restart.
+ *
+ * @author Elias
  */
 public final class SqlSchema {
 
@@ -45,9 +47,25 @@ public final class SqlSchema {
 	}
 
 	public static synchronized void ensure(DataSource dataSource) {
-		JdbcTemplate jdbc = new JdbcTemplate(dataSource);
-		for (String statement : STATEMENTS) {
-			jdbc.execute(statement);
+		try {
+			JdbcTemplate jdbc = new JdbcTemplate(dataSource);
+			for (String statement : STATEMENTS) {
+				jdbc.execute(statement);
+			}
+		} catch (RuntimeException failure) {
+			System.err.println("Could not connect to the database: "
+					+ rootMessage(failure));
+			throw failure;
 		}
+	}
+
+	private static String rootMessage(Throwable failure) {
+		Throwable current = failure;
+		while (current.getCause() != null) {
+			current = current.getCause();
+		}
+		return current.getMessage() == null
+				? current.toString()
+				: current.getMessage();
 	}
 }
