@@ -516,6 +516,7 @@ class GameServiceTest {
 		assertEquals(List.of(lobby.getLobbyId()), roundStartedLobbyIds);
 		assertEquals(Phase.UPGRADE,
 				started.getCurrentRound().getCurrentPhase());
+		assertEquals(2, started.getCurrentRound().getNumber());
 		skipUpgrades(lobby, started);
 		for (Player player : started.getPlayersInGame()) {
 			assertFalse(player.getPlayerMat().isSubmitted());
@@ -540,6 +541,7 @@ class GameServiceTest {
 
 		assertEquals(Phase.UPGRADE,
 				started.getCurrentRound().getCurrentPhase());
+		assertEquals(1, started.getCurrentRound().getNumber());
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertThrows(IllegalStateException.class,
 				() -> gameService.submitProgram(lobby, "August",

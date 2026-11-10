@@ -140,6 +140,14 @@ class GameStateCodecTest {
 	}
 
 	@Test
+	void keepsTheRoundNumber() {
+		game.getCurrentRound().beginNext();
+		game.getCurrentRound().beginNext();
+
+		assertEquals(2, reload().getCurrentRound().getNumber());
+	}
+
+	@Test
 	void keepsInstalledUpgrades() {
 		Player player = game.getPlayersInGame().iterator().next();
 		player.getUpgrades().install(UpgradeType.RAIL_GUN, null);
