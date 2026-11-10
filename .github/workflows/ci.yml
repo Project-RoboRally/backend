@@ -3,11 +3,20 @@ name: Backend CI
 on:
   push:
     branches: ['main']
+  # Every pull request, also the ones based on another branch
   pull_request:
-    branches: ['main']
+
+permissions:
+  contents: read
+
+# A new push to a pull request cancels the run that is still going
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
+    name: Format, test and build
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +36,17 @@ jobs:
 
       - name: Test
         run: ./gradlew test
+
+      - name: Check that tests ran and passed
+        if: ${{ !cancelled() }}
+        run: python3 .github/scripts/test_summary.py
+
+      - name: Upload test report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: app/build/reports/tests/test
 
       - name: Build
         run: ./gradlew build -x test

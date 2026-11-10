@@ -22,7 +22,8 @@ class UpgradeShopTest {
 		shop.refill(4);
 
 		assertEquals(4, shop.getCards().size());
-		assertEquals(14, shop.getDeckSize());
+		// One of every upgrade, minus the four for sale
+		assertEquals(UpgradeType.values().length - 4, shop.getDeckSize());
 	}
 
 	@Test
@@ -56,13 +57,16 @@ class UpgradeShopTest {
 	}
 
 	@Test
-	void usedCardsComeBackWhenTheDeckRunsOut() {
+	void theShopShrinksOnceTheDeckRunsOut() {
 		UpgradeShop shop = new UpgradeShop();
 
-		for (int round = 0; round < 20; round++) {
+		for (int round = 0; round < 10; round++) {
 			shop.refill(6);
-			assertEquals(6, shop.getCards().size());
 		}
+
+		// 40 cards go 6 at a time, the last refill only had 4 left
+		assertEquals(4, shop.getCards().size());
+		assertEquals(0, shop.getDeckSize());
 	}
 
 	@Test

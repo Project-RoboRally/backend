@@ -19,6 +19,7 @@ public class LevelData {
 	public GearData[] gears;
 	public CheckpointData[] checkpoints;
 	public AntennaData antenna;
+	public RebootPointData[] reboot_points;
 
 	public static class SquareData {
 		public int x1;
@@ -79,6 +80,7 @@ public class LevelData {
 		public int x;
 		public int y;
 		public String push_direction;
+		public int[] registers;
 	}
 
 	public static class GearData {
@@ -90,6 +92,17 @@ public class LevelData {
 	public static class AntennaData {
 		public int x;
 		public int y;
+		public String direction;
 	}
 
+	/** A reboot token and the rectangle of the board it covers. */
+	public static class RebootPointData {
+		public int x;
+		public int y;
+		public String direction;
+		public int x1;
+		public int y1;
+		public int x2;
+		public int y2;
+	}
 }

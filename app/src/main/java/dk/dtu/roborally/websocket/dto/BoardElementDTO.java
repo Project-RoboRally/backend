@@ -16,6 +16,8 @@ import dk.dtu.roborally.models.board.elements.RebootPoint;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import dk.dtu.roborally.models.board.elements.Wall;
 
+import java.util.List;
+
 /**
  * A board element placed on a space. Every variant carries a {@code type} field
  * so clients can tell them apart.
@@ -39,8 +41,8 @@ public sealed interface BoardElementDTO {
 			int damage) implements BoardElementDTO {
 	}
 
-	record PushPanelDTO(String type,
-			Direction pushDirection) implements BoardElementDTO {
+	record PushPanelDTO(String type, Direction pushDirection,
+			List<Integer> registers) implements BoardElementDTO {
 	}
 
 	record CheckpointDTO(String type, int number) implements BoardElementDTO {
@@ -48,6 +50,10 @@ public sealed interface BoardElementDTO {
 
 	record EnergySpaceDTO(String type,
 			int cubeAmount) implements BoardElementDTO {
+	}
+
+	record RebootPointDTO(String type,
+			Direction direction) implements BoardElementDTO {
 	}
 
 	record SimpleElementDTO(String type) implements BoardElementDTO {
@@ -63,7 +69,8 @@ public sealed interface BoardElementDTO {
 			case LaserEmitter laser -> new LaserEmitterDTO("LASER_EMITTER",
 					laser.getDirection(), laser.getDamage());
 			case PushPanel panel ->
-				new PushPanelDTO("PUSH_PANEL", panel.getPushDirection());
+				new PushPanelDTO("PUSH_PANEL", panel.getPushDirection(),
+						panel.getRegisters().stream().sorted().toList());
 			case Checkpoint checkpoint ->
 				new CheckpointDTO("CHECKPOINT", checkpoint.getNumber());
 			case EnergySpace energy ->
@@ -71,7 +78,8 @@ public sealed interface BoardElementDTO {
 			case Pit ignored -> new SimpleElementDTO("PIT");
 			case StartingPoint ignored ->
 				new SimpleElementDTO("STARTING_POINT");
-			case RebootPoint ignored -> new SimpleElementDTO("REBOOT_POINT");
+			case RebootPoint reboot ->
+				new RebootPointDTO("REBOOT_POINT", reboot.getDirection());
 			case PriorityAntenna ignored ->
 				new SimpleElementDTO("PRIORITY_ANTENNA");
 			default -> throw new IllegalArgumentException(

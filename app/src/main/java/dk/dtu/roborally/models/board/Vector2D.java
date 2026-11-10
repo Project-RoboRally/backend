@@ -16,6 +16,15 @@ public record Vector2D(int x, int y) {
 		return new Vector2D(x + dx, y + dy);
 	}
 
+	@Override
+	public int hashCode() {
+		// Dot Product Hashing
+		int a1 = 17; // prime
+		int a2 = 31; // prime
+		int m = 997; // prime
+		return (a1 * x + a2 * y) % m;
+	}
+
 	/** Spaces between the two positions, counting only straight moves. */
 	public int distanceTo(Vector2D other) {
 		return Math.abs(x - other.x) + Math.abs(y - other.y);
