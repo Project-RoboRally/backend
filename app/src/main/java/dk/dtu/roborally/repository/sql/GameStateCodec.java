@@ -36,6 +36,8 @@ import java.util.Set;
 /**
  * Converts a live game to JSON and back. The board itself is reloaded from the
  * level file; this stores everything that changes during play.
+ *
+ * @author Elias
  */
 public final class GameStateCodec {
 
@@ -45,6 +47,7 @@ public final class GameStateCodec {
 		StoredGame stored = new StoredGame();
 		stored.status = game.getGameStatus().name();
 		stored.phase = game.getCurrentRound().getCurrentPhase().name();
+		stored.roundNumber = game.getCurrentRound().getNumber();
 		stored.winnerPlayerId = game.getWinner() == null
 				? null
 				: game.getWinner().getId();
@@ -124,6 +127,7 @@ public final class GameStateCodec {
 				new HashSet<>(playersById.values()));
 		game.setGameStatus(GameStatus.valueOf(stored.status));
 		game.getCurrentRound().setCurrentPhase(Phase.valueOf(stored.phase));
+		game.getCurrentRound().restoreNumber(stored.roundNumber);
 		if (stored.winnerPlayerId != null) {
 			game.setWinner(requirePlayer(playersById, stored.winnerPlayerId));
 		}
@@ -352,6 +356,7 @@ public final class GameStateCodec {
 	private static final class StoredGame {
 		private String status;
 		private String phase;
+		private int roundNumber;
 		private String winnerPlayerId;
 		private List<String> upgradeOrder;
 		private Integer register;

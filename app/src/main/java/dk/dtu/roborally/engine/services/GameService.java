@@ -340,6 +340,7 @@ public class GameService {
 	private void startUpgradePhase(Game game) {
 		List<Player> order = Priority.order(game);
 
+		game.getCurrentRound().beginNext();
 		game.getCurrentRound().setCurrentPhase(Phase.UPGRADE);
 		game.getPlayersInGame()
 				.forEach(player -> player.getUpgrades().newRound());
