@@ -1,6 +1,7 @@
 package dk.dtu.roborally.api;
 
 import dk.dtu.roborally.api.controllers.AuthController;
+import dk.dtu.roborally.engine.services.LoginAttemptService;
 import dk.dtu.roborally.engine.services.UserService;
 import dk.dtu.roborally.repository.inmemory.InMemoryUserRepository;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,11 @@ class AuthControllerTest {
 		@Bean
 		SessionService sessionService(UserRepository userRepository) {
 			return new SessionService(userRepository);
+		}
+
+		@Bean
+		LoginAttemptService loginAttemptService() {
+			return new LoginAttemptService();
 		}
 	}
 
@@ -136,5 +142,17 @@ class AuthControllerTest {
 		mockMvc.perform(
 				get("/api/session").header("Authorization", "Bearer " + token))
 				.andExpect(status().isUnauthorized());
+	}
+
+	@Test
+	void tooManyWrongPasswordsGive429EvenWithTheRightPassword()
+			throws Exception {
+		login("alice", "password123");
+		for (int i = 0; i < 5; i++) {
+			login("alice", "wrong-password")
+					.andExpect(status().isUnauthorized());
+		}
+
+		login("alice", "password123").andExpect(status().isTooManyRequests());
 	}
 }

@@ -13,8 +13,13 @@ import dk.dtu.roborally.engine.SystemGameClock;
 import java.time.Duration;
 import java.time.Instant;
 
-// Keeps track of who is logged in. Logging in creates token client send with
-// later requests. Sessions live in memory and expire after 24 hours
+/**
+ * Keeps track of who is logged in. Logging in creates token client send with
+ * later requests. Sessions live in memory and expire after 24 hours
+ *
+ * @author Nicoleta
+ */
+
 public class SessionService {
 	private static final Duration DEFAULT_LIFETIME = Duration.ofHours(24);
 

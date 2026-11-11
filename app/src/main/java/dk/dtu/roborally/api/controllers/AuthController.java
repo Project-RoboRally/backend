@@ -10,18 +10,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.*;
+import dk.dtu.roborally.engine.services.LoginAttemptService;
+import dk.dtu.roborally.exceptions.auth.TooManyLoginAttemptsException;
 
 import java.util.Map;
+
+/**
+ * Login, logout and session checks. Issues the session tokens that the rest of
+ * the API uses to know who is calling.
+ *
+ * @author Nicoleta
+ */
 
 @RestController
 public class AuthController {
 	private final UserService userService;
 	private final SessionService sessionService;
+	private final LoginAttemptService loginAttemptService;
 
 	public AuthController(UserService userService,
-			SessionService sessionService) {
+			SessionService sessionService,
+			LoginAttemptService loginAttemptService) {
 		this.userService = userService;
 		this.sessionService = sessionService;
+		this.loginAttemptService = loginAttemptService;
 
 	}
 
@@ -39,14 +51,24 @@ public class AuthController {
 	@PostMapping("/api/login")
 	public ResponseEntity<LoginResponseDTO> login(
 			@RequestBody LoginDTO payload) {
+		String username = payload.username();
+		if (loginAttemptService.isBlocked(username)) {
+			throw new TooManyLoginAttemptsException();
+		}
+
 		User user;
 
 		// create user if does not exist
-		if (userService.findByUsername(payload.username()).isPresent()) {
-			user = userService.authenticate(payload.username(),
-					payload.password());
+		if (userService.findByUsername(username).isPresent()) {
+			try {
+				user = userService.authenticate(username, payload.password());
+			} catch (LoginException ex) {
+				loginAttemptService.recordFailure(username);
+				throw ex;
+			}
+			loginAttemptService.recordSuccess(username);
 		} else {
-			user = userService.addUser(payload.username(), payload.password());
+			user = userService.addUser(username, payload.password());
 		}
 
 		String token = sessionService.createSession(user);
@@ -66,6 +88,13 @@ public class AuthController {
 	public ResponseEntity<Map<String, String>> handleLoginException(
 			LoginException ex) {
 		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", ex.getMessage()));
+	}
+
+	@ExceptionHandler(TooManyLoginAttemptsException.class)
+	public ResponseEntity<Map<String, String>> handleTooManyAttempts(
+			TooManyLoginAttemptsException ex) {
+		return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
 				.body(Map.of("error", ex.getMessage()));
 	}
 
