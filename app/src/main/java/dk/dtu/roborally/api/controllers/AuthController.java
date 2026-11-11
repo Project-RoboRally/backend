@@ -28,7 +28,7 @@ public class AuthController {
 	@GetMapping("/api/session")
 	public ResponseEntity<LoginResponseDTO> session(
 			@RequestHeader(value = "Authorization", required = false) String authorization) {
-		String token = bearerToken(authorization);
+		String token = SessionService.tokenFromHeader(authorization);
 		User user = sessionService.findUser(token)
 				.orElseThrow(() -> new LoginException("Not logged in"));
 		return ResponseEntity
@@ -54,17 +54,11 @@ public class AuthController {
 				.ok(new LoginResponseDTO(user.getUsername(), token));
 	}
 
-	private static String bearerToken(String authorization) {
-		if (authorization == null || !authorization.startsWith("Bearer ")) {
-			return null;
-		}
-		return authorization.substring("Bearer ".length());
-	}
-
 	@PostMapping("/api/logout")
 	public ResponseEntity<Void> logout(
 			@RequestHeader(value = "Authorization", required = false) String authorization) {
-		sessionService.endSession(bearerToken(authorization));
+		sessionService
+				.endSession(SessionService.tokenFromHeader(authorization));
 		return ResponseEntity.noContent().build();
 	}
 
