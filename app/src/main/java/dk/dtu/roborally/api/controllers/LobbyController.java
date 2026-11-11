@@ -1,38 +1,15 @@
 package dk.dtu.roborally.api.controllers;
 
-import dk.dtu.roborally.api.dto.AddToRemoveFromLobbyDTO;
-import dk.dtu.roborally.api.dto.BuyUpgradeDTO;
-import dk.dtu.roborally.api.dto.CreateLobbyDTO;
-import dk.dtu.roborally.api.dto.KickUserDTO;
-import dk.dtu.roborally.api.dto.LobbyDTO;
-import dk.dtu.roborally.api.dto.MakeChoiceDTO;
-import dk.dtu.roborally.api.dto.ProgramDTO;
-import dk.dtu.roborally.api.dto.ProgramResultDTO;
-import dk.dtu.roborally.api.dto.PutBackCardsDTO;
-import dk.dtu.roborally.api.dto.RenameLobbyDTO;
-import dk.dtu.roborally.api.dto.SetColorDTO;
-import dk.dtu.roborally.api.dto.SetReadyDTO;
-import dk.dtu.roborally.api.dto.SkipUpgradeDTO;
-import dk.dtu.roborally.api.dto.StartGameDTO;
-import dk.dtu.roborally.api.dto.UseUpgradeDTO;
+import dk.dtu.roborally.api.dto.*;
 import dk.dtu.roborally.engine.services.LobbyService;
-import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
-import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
-import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
-import dk.dtu.roborally.exceptions.lobby.LobbyUserAlreadyInLobby;
-import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
-import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
+import dk.dtu.roborally.engine.services.SessionService;
+import dk.dtu.roborally.exceptions.auth.LoginException;
+import dk.dtu.roborally.exceptions.lobby.*;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
-
+import dk.dtu.roborally.models.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
@@ -48,9 +25,19 @@ import java.util.Map;
 @RequestMapping("/api/lobbies")
 public class LobbyController {
 	private final LobbyService lobbyService;
+	private final SessionService sessionService;
 
-	public LobbyController(LobbyService lobbyService) {
+	public LobbyController(LobbyService lobbyService,
+			SessionService sessionService) {
 		this.lobbyService = lobbyService;
+		this.sessionService = sessionService;
+	}
+
+	private String currentUsername(String authorization) {
+		return sessionService
+				.findUser(SessionService.tokenFromHeader(authorization))
+				.map(User::getUsername)
+				.orElseThrow(() -> new LoginException("Not logged in"));
 	}
 
 	@GetMapping
@@ -66,9 +53,12 @@ public class LobbyController {
 
 	@PostMapping
 	public ResponseEntity<LobbyDTO> createLobby(
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody CreateLobbyDTO payload) {
+		CreateLobbyDTO request = new CreateLobbyDTO(payload.name(),
+				currentUsername(authorization));
 		return ResponseEntity
-				.ok(LobbyDTO.from(lobbyService.createLobby(payload)));
+				.ok(LobbyDTO.from(lobbyService.createLobby(request)));
 	}
 
 	@PostMapping("/{id}/rename")
@@ -80,95 +70,116 @@ public class LobbyController {
 
 	@PostMapping("/{id}/join")
 	public ResponseEntity<LobbyDTO> joinLobby(@PathVariable String id,
-			@RequestBody AddToRemoveFromLobbyDTO payload) {
-		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.joinLobby(id, payload.username())));
+			@RequestHeader(value = "Authorization", required = false) String authorization) {
+		return ResponseEntity.ok(LobbyDTO.from(
+				lobbyService.joinLobby(id, currentUsername(authorization))));
 	}
 
 	@PostMapping("/{id}/leave")
 	public ResponseEntity<LobbyDTO> leaveLobby(@PathVariable String id,
-			@RequestBody AddToRemoveFromLobbyDTO payload) {
-		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.leaveLobby(id, payload.username())));
+			@RequestHeader(value = "Authorization", required = false) String authorization) {
+		return ResponseEntity.ok(LobbyDTO.from(
+				lobbyService.leaveLobby(id, currentUsername(authorization))));
 	}
 
 	@PostMapping("/{id}/kick")
 	public ResponseEntity<LobbyDTO> kickUser(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody KickUserDTO payload) {
-		lobbyService.kickUser(id, payload.kickedBy(), payload.userKicked());
+		lobbyService.kickUser(id, currentUsername(authorization),
+				payload.userKicked());
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
 	}
 
 	@PostMapping("/{id}/unkick")
 	public ResponseEntity<LobbyDTO> unKickUser(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody KickUserDTO payload) {
-		lobbyService.unKickUser(id, payload.kickedBy(), payload.userKicked());
+		lobbyService.unKickUser(id, currentUsername(authorization),
+				payload.userKicked());
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.getLobby(id)));
 	}
 
 	@PostMapping("/{id}/ready")
 	public ResponseEntity<LobbyDTO> setReady(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody SetReadyDTO payload) {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setReady(id,
-				payload.username(), payload.ready())));
+				currentUsername(authorization), payload.ready())));
 	}
 
 	@PostMapping("/{id}/color")
 	public ResponseEntity<LobbyDTO> setColor(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody SetColorDTO payload) {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setColor(id,
-				payload.username(), payload.color())));
+				currentUsername(authorization), payload.color())));
 	}
 
 	@PostMapping("/{id}/start")
 	public ResponseEntity<LobbyDTO> startGame(@PathVariable String id,
-			@RequestBody StartGameDTO payload) {
-		return ResponseEntity.ok(
-				LobbyDTO.from(lobbyService.startGame(id, payload.username())));
+			@RequestHeader(value = "Authorization", required = false) String authorization) {
+		return ResponseEntity.ok(LobbyDTO.from(
+				lobbyService.startGame(id, currentUsername(authorization))));
 	}
 
 	@PostMapping("/{id}/program")
 	public ResponseEntity<ProgramResultDTO> program(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody ProgramDTO payload) {
-		return ResponseEntity.ok(new ProgramResultDTO(lobbyService
-				.submitProgram(id, payload.username(), payload.registers())));
+		return ResponseEntity
+				.ok(new ProgramResultDTO(lobbyService.submitProgram(id,
+						currentUsername(authorization), payload.registers())));
 	}
 
 	@PostMapping("/{id}/upgrade/buy")
 	public ResponseEntity<Void> buyUpgrade(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody BuyUpgradeDTO payload) {
-		lobbyService.buyUpgrade(id, payload.username(), payload.upgrade(),
-				payload.replace());
+		lobbyService.buyUpgrade(id, currentUsername(authorization),
+				payload.upgrade(), payload.replace());
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/{id}/upgrade/skip")
 	public ResponseEntity<Void> skipUpgrade(@PathVariable String id,
-			@RequestBody SkipUpgradeDTO payload) {
-		lobbyService.skipUpgrade(id, payload.username());
+			@RequestHeader(value = "Authorization", required = false) String authorization) {
+		lobbyService.skipUpgrade(id, currentUsername(authorization));
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/{id}/upgrade/use")
 	public ResponseEntity<Void> useUpgrade(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody UseUpgradeDTO payload) {
-		lobbyService.useUpgrade(id, payload.username(), payload.upgrade(),
-				payload.cards());
+		lobbyService.useUpgrade(id, currentUsername(authorization),
+				payload.upgrade(), payload.cards());
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/{id}/hand/put-back")
 	public ResponseEntity<Void> putBackCards(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody PutBackCardsDTO payload) {
-		lobbyService.putBackCards(id, payload.username(), payload.cards());
+		lobbyService.putBackCards(id, currentUsername(authorization),
+				payload.cards());
 		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/{id}/choice")
 	public ResponseEntity<Void> makeChoice(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
 			@RequestBody MakeChoiceDTO payload) {
-		lobbyService.makeChoice(id, payload.username(), payload.choice());
+		lobbyService.makeChoice(id, currentUsername(authorization),
+				payload.choice());
 		return ResponseEntity.noContent().build();
+	}
+
+	@ExceptionHandler(LoginException.class)
+	public ResponseEntity<Map<String, String>> handleNotLoggedIn(
+			LoginException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+				.body(Map.of("error", ex.getMessage()));
 	}
 
 	@ExceptionHandler(LobbyNotFoundException.class)
