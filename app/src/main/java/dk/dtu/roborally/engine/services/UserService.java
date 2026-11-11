@@ -32,28 +32,6 @@ public class UserService {
 		return userRepository.getByUsername(username);
 	}
 
-	/**
-	 * Returns the active user for this username, creating one when the server
-	 * does not have them yet. Logging in again with the same username restores
-	 * the same user after a restart.
-	 */
-	public User ensureUser(String username) {
-		validateUsername(username);
-
-		Optional<User> existing = userRepository.getByUsername(username);
-		if (existing.isPresent())
-			return existing.get();
-
-		User user = new User(username);
-		if (!userRepository.add(user)) {
-			return userRepository.getByUsername(username)
-					.orElseThrow(() -> new IllegalStateException(
-							"user could not be created"));
-		}
-
-		return user;
-	}
-
 	// registers a new user, password is stored as a bcrypt hash
 	public User addUser(String username, String password) {
 		validateUsername(username);
