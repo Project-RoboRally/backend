@@ -7,6 +7,5 @@ import dk.dtu.roborally.enums.UpgradeType;
  * all three slots of that kind are taken, and names the installed upgrade to
  * throw out.
  */
-public record BuyUpgradeDTO(String username, UpgradeType upgrade,
-		UpgradeType replace) {
+public record BuyUpgradeDTO(UpgradeType upgrade, UpgradeType replace) {
 }

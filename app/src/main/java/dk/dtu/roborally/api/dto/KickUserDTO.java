@@ -6,5 +6,5 @@ package dk.dtu.roborally.api.dto;
  *
  * @author Nicoleta
  */
-public record KickUserDTO(String kickedBy, String userKicked) {
+public record KickUserDTO(String userKicked) {
 }

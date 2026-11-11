@@ -5,5 +5,5 @@ import java.util.List;
 /**
  * Five register cards submitted by one player, named like MOVE_1 or SPAM.
  */
-public record ProgramDTO(String username, List<String> registers) {
+public record ProgramDTO(List<String> registers) {
 }
