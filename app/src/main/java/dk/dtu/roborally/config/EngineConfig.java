@@ -2,9 +2,7 @@ package dk.dtu.roborally.config;
 
 import dk.dtu.roborally.engine.GameEngine;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
-import dk.dtu.roborally.engine.services.GameService;
-import dk.dtu.roborally.engine.services.LobbyService;
-import dk.dtu.roborally.engine.services.UserService;
+import dk.dtu.roborally.engine.services.*;
 import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
@@ -57,5 +55,15 @@ public class EngineConfig {
 	@Bean
 	public UserService userService(GameEngine gameEngine) {
 		return gameEngine.getUserService();
+	}
+
+	@Bean
+	public SessionService sessionService(UserRepository userRepository) {
+		return new SessionService(userRepository);
+	}
+
+	@Bean
+	public LoginAttemptService loginAttemptService() {
+		return new LoginAttemptService();
 	}
 }
