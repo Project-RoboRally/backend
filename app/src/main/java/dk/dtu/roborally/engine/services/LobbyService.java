@@ -7,7 +7,6 @@ import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
 import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
-import dk.dtu.roborally.exceptions.lobby.LobbyUserAlreadyInLobby;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
 import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
@@ -49,9 +48,6 @@ public class LobbyService {
 				.orElseThrow(() -> new LobbyCreatorNotFoundOnCreate(
 						payload.username()));
 
-		if (userInLobby(owner.getUsername()))
-			throw new LobbyUserAlreadyInLobby(payload.username());
-
 		GameLobby lobby = new GameLobby(config, payload.name(), owner);
 		lobbyRepository.add(lobby);
 
@@ -67,10 +63,16 @@ public class LobbyService {
 		User user = userRepository.getByUsername(username)
 				.orElseThrow(UserNotFound::new);
 
-		if (userInLobby(user.getUsername()))
-			throw new LobbyUserAlreadyInLobby(username);
-
 		GameLobby lobby = getLobby(id);
+
+		if (userInLobby(lobby, username)) {
+			return lobby;
+		}
+
+		if (lobby.isGameStarted()) {
+			throw new IllegalStateException("This game has already started.");
+		}
+
 		lobby.addUserToLobby(user);
 		lobbyRepository.update(lobby);
 
