@@ -1,6 +1,7 @@
 package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
+import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
@@ -35,7 +36,10 @@ public class LobbyService {
 	}
 
 	public List<GameLobby> getLobbies() {
-		return lobbyRepository.getAll();
+		return lobbyRepository.getAll().stream()
+				.filter(lobby -> !lobby.isGameStarted() || gameService
+						.getStatus(lobby.getGameId()) != GameStatus.FINISHED)
+				.toList();
 	}
 
 	public GameLobby createLobby(CreateLobbyDTO payload) {
@@ -230,7 +234,7 @@ public class LobbyService {
 	}
 
 	public boolean userInLobby(String username) {
-		return lobbyRepository.getAll().stream()
+		return getLobbies().stream()
 				.anyMatch(lobby -> userInLobby(lobby, username));
 	}
 
@@ -240,7 +244,7 @@ public class LobbyService {
 	}
 
 	public GameLobby getUserLobby(String username) {
-		return lobbyRepository.getAll().stream()
+		return getLobbies().stream()
 				.filter(lobby -> userInLobby(lobby, username)).findFirst()
 				.orElse(null);
 	}
