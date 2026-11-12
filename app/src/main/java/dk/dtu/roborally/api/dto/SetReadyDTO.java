@@ -5,5 +5,5 @@ package dk.dtu.roborally.api.dto;
  *
  * @author August
  */
-public record SetReadyDTO(String username, boolean ready) {
+public record SetReadyDTO(boolean ready) {
 }

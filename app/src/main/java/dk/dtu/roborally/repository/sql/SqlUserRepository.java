@@ -34,8 +34,9 @@ public class SqlUserRepository implements UserRepository {
 		if (existsByUsername(user.getUsername()) || existsById(user.getId())) {
 			return false;
 		}
-		jdbc.update("INSERT INTO users (id, username) VALUES (?, ?)",
-				user.getId(), user.getUsername());
+		jdbc.update(
+				"INSERT INTO users (id, username, password_hash) VALUES (?, ?, ?)",
+				user.getId(), user.getUsername(), user.getPasswordHash());
 		cache(user);
 		return true;
 	}
@@ -75,10 +76,12 @@ public class SqlUserRepository implements UserRepository {
 	}
 
 	private void loadAll() {
-		jdbc.query("SELECT id, username FROM users", (rs, rowNum) -> {
-			cache(new User(rs.getString("id"), rs.getString("username")));
-			return null;
-		});
+		jdbc.query("SELECT id, username, password_hash FROM users",
+				(rs, rowNum) -> {
+					cache(new User(rs.getString("id"), rs.getString("username"),
+							rs.getString("password_hash")));
+					return null;
+				});
 	}
 
 	private void cache(User user) {

@@ -7,5 +7,5 @@ import dk.dtu.roborally.enums.PlayerColor;
  *
  * @author August
  */
-public record SetColorDTO(String username, PlayerColor color) {
+public record SetColorDTO(PlayerColor color) {
 }
