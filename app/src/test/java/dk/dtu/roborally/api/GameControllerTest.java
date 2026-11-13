@@ -21,8 +21,8 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Tests that game actions take the user from the session token and map
- * errors to the right status codes.
+ * Tests that game actions take the user from the session token and map errors
+ * to the right status codes.
  *
  * @author Elias
  */
