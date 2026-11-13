@@ -18,7 +18,7 @@ import java.util.Map;
  * Handles lobby creation, retrieval, and player joining, leaving, kicking other
  * players
  *
- * @author Nicoleta
+ * @author Nicoleta, Elias
  */
 
 @RestController
@@ -121,58 +121,6 @@ public class LobbyController {
 			@RequestHeader(value = "Authorization", required = false) String authorization) {
 		return ResponseEntity.ok(LobbyDTO.from(
 				lobbyService.startGame(id, currentUsername(authorization))));
-	}
-
-	@PostMapping("/{id}/program")
-	public ResponseEntity<ProgramResultDTO> program(@PathVariable String id,
-			@RequestHeader(value = "Authorization", required = false) String authorization,
-			@RequestBody ProgramDTO payload) {
-		return ResponseEntity
-				.ok(new ProgramResultDTO(lobbyService.submitProgram(id,
-						currentUsername(authorization), payload.registers())));
-	}
-
-	@PostMapping("/{id}/upgrade/buy")
-	public ResponseEntity<Void> buyUpgrade(@PathVariable String id,
-			@RequestHeader(value = "Authorization", required = false) String authorization,
-			@RequestBody BuyUpgradeDTO payload) {
-		lobbyService.buyUpgrade(id, currentUsername(authorization),
-				payload.upgrade(), payload.replace());
-		return ResponseEntity.noContent().build();
-	}
-
-	@PostMapping("/{id}/upgrade/skip")
-	public ResponseEntity<Void> skipUpgrade(@PathVariable String id,
-			@RequestHeader(value = "Authorization", required = false) String authorization) {
-		lobbyService.skipUpgrade(id, currentUsername(authorization));
-		return ResponseEntity.noContent().build();
-	}
-
-	@PostMapping("/{id}/upgrade/use")
-	public ResponseEntity<Void> useUpgrade(@PathVariable String id,
-			@RequestHeader(value = "Authorization", required = false) String authorization,
-			@RequestBody UseUpgradeDTO payload) {
-		lobbyService.useUpgrade(id, currentUsername(authorization),
-				payload.upgrade(), payload.cards());
-		return ResponseEntity.noContent().build();
-	}
-
-	@PostMapping("/{id}/hand/put-back")
-	public ResponseEntity<Void> putBackCards(@PathVariable String id,
-			@RequestHeader(value = "Authorization", required = false) String authorization,
-			@RequestBody PutBackCardsDTO payload) {
-		lobbyService.putBackCards(id, currentUsername(authorization),
-				payload.cards());
-		return ResponseEntity.noContent().build();
-	}
-
-	@PostMapping("/{id}/choice")
-	public ResponseEntity<Void> makeChoice(@PathVariable String id,
-			@RequestHeader(value = "Authorization", required = false) String authorization,
-			@RequestBody MakeChoiceDTO payload) {
-		lobbyService.makeChoice(id, currentUsername(authorization),
-				payload.choice());
-		return ResponseEntity.noContent().build();
 	}
 
 	@ExceptionHandler(LoginException.class)
