@@ -27,6 +27,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 
 class TurnUpgradesTest {
@@ -202,6 +203,23 @@ class TurnUpgradesTest {
 		assertEquals(new Vector2D(2, 2), bob.getRobot().getCurrentSpace());
 		// Paid 1, then four Power Ups
 		assertEquals(energy - 1 + 4, ada.getEnergy());
+	}
+
+	@Test
+	void theTeleporterCannotEndOnASpaceWithAWall() {
+		ada.getUpgrades().install(UpgradeType.TELEPORTER, null);
+		// Wall is on the destination, not only along the path
+		game.getBoard().getSpace(2, 1)
+				.addBoardElement(new Wall(new Vector2D(2, 1), Direction.EAST));
+		program(CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+		int energy = ada.getEnergy();
+
+		activator.activate(game);
+
+		assertTrue(game.getCurrentRound().getPendingChoice().isEmpty());
+		assertEquals(new Vector2D(2, 1), ada.getRobot().getCurrentSpace());
+		// No teleport payment, four Power Ups
+		assertEquals(energy + 4, ada.getEnergy());
 	}
 
 	@Test
