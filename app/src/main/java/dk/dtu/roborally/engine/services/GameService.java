@@ -81,15 +81,15 @@ public class GameService {
 	}
 
 	/**
-	 * Registers a game that a lobby has just created and notifies the lobby's
+	 * Registers a game that a lobby has just created and notifies the game's
 	 * subscribers. The board message includes each robot on its starting space.
 	 * Validation already happened in GameLobby.startGame().
 	 */
-	public synchronized void startGame(String lobbyId, Game game) {
+	public synchronized void startGame(Game game) {
 		startUpgradePhase(game);
 		gameRepository.add(game);
-		gameEventPublisher.publishBoard(lobbyId, game);
-		gameEventPublisher.publishGameStarted(lobbyId, game);
+		gameEventPublisher.publishBoard(game);
+		gameEventPublisher.publishGameStarted(game);
 	}
 
 	/**
@@ -98,13 +98,9 @@ public class GameService {
 	 * A finished game rejects further programs. Returns false while the round
 	 * is still waiting for programs.
 	 */
-	public synchronized boolean submitProgram(GameLobby lobby, String username,
+	public synchronized boolean submitProgram(String gameId, String username,
 			List<String> registers) {
-		if (!lobby.isGameStarted()) {
-			throw new IllegalStateException("The game has not been started.");
-		}
-
-		Game game = getGame(lobby.getGameId());
+		Game game = getGame(gameId);
 		if (game.getGameStatus() == GameStatus.FINISHED) {
 			throw new IllegalStateException("The game has already finished.");
 		}
@@ -114,12 +110,12 @@ public class GameService {
 		boolean everyoneSubmitted = game.getPlayersInGame().stream()
 				.allMatch(player -> player.getPlayerMat().isSubmitted());
 		if (!everyoneSubmitted) {
-			startTimer(lobby, game);
+			startTimer(game);
 			gameRepository.update(game);
 			return false;
 		}
 
-		startActivation(lobby, game);
+		startActivation(game);
 		return true;
 	}
 
@@ -127,14 +123,15 @@ public class GameService {
 	 * The first program in starts the 30 second timer for everyone else. When
 	 * it runs out, see {@link #programmingTimeUp}.
 	 */
-	private void startTimer(GameLobby lobby, Game game) {
+	private void startTimer(Game game) {
 		ProgrammingTimer timer = game.getCurrentRound().getTimer();
 		if (!timer.start(clock.now())) {
 			return;
 		}
 		Instant endsAt = timer.getEndsAt().orElseThrow();
-		clock.schedule(endsAt, () -> programmingTimeUp(lobby, endsAt));
-		gameEventPublisher.publishTimerStarted(lobby.getLobbyId(), game);
+		String gameId = game.getGameID();
+		clock.schedule(endsAt, () -> programmingTimeUp(gameId, endsAt));
+		gameEventPublisher.publishTimerStarted(game);
 	}
 
 	/**
@@ -143,9 +140,8 @@ public class GameService {
 	 * runs. Does nothing if this timer is not the running one anymore, like
 	 * when everyone submitted in time.
 	 */
-	public synchronized void programmingTimeUp(GameLobby lobby,
-			Instant endsAt) {
-		Game game = getGame(lobby.getGameId());
+	public synchronized void programmingTimeUp(String gameId, Instant endsAt) {
+		Game game = getGame(gameId);
 		Round round = game.getCurrentRound();
 		if (round.getCurrentPhase() != Phase.PROGRAMMING
 				|| !round.getTimer().getEndsAt().equals(Optional.of(endsAt))) {
@@ -156,7 +152,7 @@ public class GameService {
 				player.getPlayerMat().fillRegistersFromDeck();
 			}
 		}
-		startActivation(lobby, game);
+		startActivation(game);
 	}
 
 	/**
@@ -169,68 +165,66 @@ public class GameService {
 			if (!lobby.isGameStarted()) {
 				continue;
 			}
-			gameRepository.getById(lobby.getGameId()).flatMap(
+			String gameId = lobby.getGameId();
+			gameRepository.getById(gameId).flatMap(
 					game -> game.getCurrentRound().getTimer().getEndsAt())
 					.ifPresent(endsAt -> clock.schedule(endsAt,
-							() -> programmingTimeUp(lobby, endsAt)));
+							() -> programmingTimeUp(gameId, endsAt)));
 		}
 	}
 
-	private void startActivation(GameLobby lobby, Game game) {
+	private void startActivation(Game game) {
 		game.getCurrentRound().getTimer().stop();
 		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
-		continueActivation(lobby, game);
+		continueActivation(game);
 	}
 
 	/**
 	 * Answers the choice activation is waiting on, then carries on with the
 	 * round.
 	 */
-	public synchronized void makeChoice(GameLobby lobby, String username,
+	public synchronized void makeChoice(String gameId, String username,
 			String choice) {
-		if (!lobby.isGameStarted()) {
-			throw new IllegalStateException("The game has not been started.");
-		}
-		Game game = getGame(lobby.getGameId());
+		Game game = getGame(gameId);
 		requirePhase(game, Phase.ACTIVATION);
 		game.getCurrentRound().answer(findPlayer(game, username).getId(),
 				choice);
-		continueActivation(lobby, game);
+		continueActivation(game);
 	}
 
 	/**
 	 * Runs activation until it is done or waits on a choice. Once the round is
 	 * over the mats are cleared and the next round starts, unless someone won.
 	 */
-	private void continueActivation(GameLobby lobby, Game game) {
+	private void continueActivation(Game game) {
 		RoundResult result = activateRound(game);
 		if (game.getCurrentRound().isActivating()) {
 			gameRepository.update(game);
-			gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
-			gameEventPublisher.publishChoiceRequired(lobby.getLobbyId(), game);
+			gameEventPublisher.publishRound(game, result);
+			gameEventPublisher.publishChoiceRequired(game);
 			return;
 		}
 
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
 		}
-		gameEventPublisher.publishRound(lobby.getLobbyId(), game, result);
+		gameEventPublisher.publishRound(game, result);
 		if (game.getGameStatus() == GameStatus.FINISHED) {
 			game.getCurrentRound().setCurrentPhase(Phase.ENDED);
 			gameRepository.update(game);
 			return;
 		}
 		startUpgradePhase(game);
-		gameEventPublisher.publishRoundStarted(lobby.getLobbyId(), game);
+		gameEventPublisher.publishRoundStarted(game);
 		gameRepository.update(game);
 	}
 
 	/**
-	 * Same as {@link #buyUpgrade(GameLobby, String, UpgradeType, UpgradeType)}
+	 * Same as {@link #buyUpgrade(String, String, UpgradeType, UpgradeType)}
 	 * with a free slot.
 	 */
-	public void buyUpgrade(GameLobby lobby, String username, UpgradeType type) {
-		buyUpgrade(lobby, username, type, null);
+	public void buyUpgrade(String gameId, String username, UpgradeType type) {
+		buyUpgrade(gameId, username, type, null);
 	}
 
 	/**
@@ -239,9 +233,9 @@ public class GameService {
 	 * slots of that kind taken, replacing names the installed upgrade it
 	 * replaces, which is gone after.
 	 */
-	public synchronized void buyUpgrade(GameLobby lobby, String username,
+	public synchronized void buyUpgrade(String gameId, String username,
 			UpgradeType type, UpgradeType replacing) {
-		Game game = upgradeGame(lobby);
+		Game game = upgradeGame(gameId);
 		Player player = currentBuyer(game, username);
 
 		if (player.getEnergy() < type.getCost()) {
@@ -255,19 +249,16 @@ public class GameService {
 		}
 		game.getUpgradeShop().buy(type);
 		player.spendEnergy(type.getCost());
-		endUpgradeTurn(lobby, game);
+		endUpgradeTurn(game);
 	}
 
 	/**
 	 * Uses one of the player's upgrades while they program. The player gets
 	 * their changed hand back in an UPGRADE_USED message.
 	 */
-	public synchronized void useUpgrade(GameLobby lobby, String username,
+	public synchronized void useUpgrade(String gameId, String username,
 			UpgradeType type, List<String> cards) {
-		if (!lobby.isGameStarted()) {
-			throw new IllegalStateException("The game has not been started.");
-		}
-		Game game = getGame(lobby.getGameId());
+		Game game = getGame(gameId);
 		requirePhase(game, Phase.PROGRAMMING);
 		Player player = findPlayer(game, username);
 		if (player.getPlayerMat().isSubmitted()) {
@@ -277,16 +268,13 @@ public class GameService {
 		ProgrammingUpgrades.use(game, player, type,
 				cards == null ? List.of() : cards);
 		gameRepository.update(game);
-		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
+		gameEventPublisher.publishUpgradeUsed(game);
 	}
 
 	/** The cards owed after a Memory Swap go back on top of the deck. */
-	public synchronized void putBackCards(GameLobby lobby, String username,
+	public synchronized void putBackCards(String gameId, String username,
 			List<String> cards) {
-		if (!lobby.isGameStarted()) {
-			throw new IllegalStateException("The game has not been started.");
-		}
-		Game game = getGame(lobby.getGameId());
+		Game game = getGame(gameId);
 		requirePhase(game, Phase.PROGRAMMING);
 		Player player = findPlayer(game, username);
 		if (player.getPlayerMat().getCardsToPutBack() == 0) {
@@ -294,21 +282,18 @@ public class GameService {
 		}
 		player.getPlayerMat().putOnTopOfDeck(cards);
 		gameRepository.update(game);
-		gameEventPublisher.publishUpgradeUsed(lobby.getLobbyId(), game);
+		gameEventPublisher.publishUpgradeUsed(game);
 	}
 
 	/** Passes on buying an upgrade this round. */
-	public synchronized void skipUpgrade(GameLobby lobby, String username) {
-		Game game = upgradeGame(lobby);
+	public synchronized void skipUpgrade(String gameId, String username) {
+		Game game = upgradeGame(gameId);
 		currentBuyer(game, username);
-		endUpgradeTurn(lobby, game);
+		endUpgradeTurn(game);
 	}
 
-	private Game upgradeGame(GameLobby lobby) {
-		if (!lobby.isGameStarted()) {
-			throw new IllegalStateException("The game has not been started.");
-		}
-		Game game = getGame(lobby.getGameId());
+	private Game upgradeGame(String gameId) {
+		Game game = getGame(gameId);
 		requirePhase(game, Phase.UPGRADE);
 		return game;
 	}
@@ -322,16 +307,16 @@ public class GameService {
 		return player;
 	}
 
-	private void endUpgradeTurn(GameLobby lobby, Game game) {
+	private void endUpgradeTurn(Game game) {
 		game.endUpgradeTurn();
 		if (game.getCurrentBuyer().isPresent()) {
 			gameRepository.update(game);
-			gameEventPublisher.publishUpgradeTurn(lobby.getLobbyId(), game);
+			gameEventPublisher.publishUpgradeTurn(game);
 			return;
 		}
 		startProgrammingPhase(game);
 		gameRepository.update(game);
-		gameEventPublisher.publishProgrammingStarted(lobby.getLobbyId(), game);
+		gameEventPublisher.publishProgrammingStarted(game);
 	}
 
 	/**

@@ -2,7 +2,6 @@ package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.enums.GameStatus;
-import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.LobbyCreatorNotFoundOnCreate;
 import dk.dtu.roborally.exceptions.lobby.LobbyInvalidName;
@@ -123,7 +122,7 @@ public class LobbyService {
 			throw new NotAuthorizedException(username);
 
 		Game game = lobby.startGame();
-		gameService.startGame(lobby.getLobbyId(), game);
+		gameService.startGame(game);
 		lobbyRepository.update(lobby);
 		return lobby;
 	}
@@ -193,35 +192,6 @@ public class LobbyService {
 		lobbyRepository.update(lobby);
 
 		return lobby;
-	}
-
-	public boolean submitProgram(String lobbyId, String username,
-			List<String> registers) {
-		return gameService.submitProgram(getLobby(lobbyId), username,
-				registers);
-	}
-
-	public void buyUpgrade(String lobbyId, String username, UpgradeType type,
-			UpgradeType replacing) {
-		gameService.buyUpgrade(getLobby(lobbyId), username, type, replacing);
-	}
-
-	public void skipUpgrade(String lobbyId, String username) {
-		gameService.skipUpgrade(getLobby(lobbyId), username);
-	}
-
-	public void useUpgrade(String lobbyId, String username, UpgradeType type,
-			List<String> cards) {
-		gameService.useUpgrade(getLobby(lobbyId), username, type, cards);
-	}
-
-	public void putBackCards(String lobbyId, String username,
-			List<String> cards) {
-		gameService.putBackCards(getLobby(lobbyId), username, cards);
-	}
-
-	public void makeChoice(String lobbyId, String username, String choice) {
-		gameService.makeChoice(getLobby(lobbyId), username, choice);
 	}
 
 	private void validateLobbyName(String name) {

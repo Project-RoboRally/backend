@@ -24,8 +24,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -68,7 +66,7 @@ class ProgrammingTimerFlowTest {
 		lobbies.startGame(lobby.getLobbyId(), "August");
 		game = gameService.getGame(lobby.getGameId());
 		while (game.getCurrentBuyer().isPresent()) {
-			gameService.skipUpgrade(lobby,
+			gameService.skipUpgrade(lobby.getGameId(),
 					game.getCurrentBuyer().get().getUser().getUsername());
 		}
 		// Turns only from here on, so nobody falls off and stops the round
@@ -78,18 +76,17 @@ class ProgrammingTimerFlowTest {
 
 	@Test
 	void theFirstProgramStartsTheTimerOnce() {
-		gameService.submitProgram(lobby, "August", rightTurns());
+		gameService.submitProgram(lobby.getGameId(), "August", rightTurns());
 
 		assertEquals(List.of(NOW.plusSeconds(30)), scheduledAt);
 		assertEquals(Optional.of(NOW.plusSeconds(30)),
 				game.getCurrentRound().getTimer().getEndsAt());
-		verify(publisher, times(1)).publishTimerStarted(eq(lobby.getLobbyId()),
-				any());
+		verify(publisher, times(1)).publishTimerStarted(game);
 	}
 
 	@Test
 	void whenTimeRunsOutTheDeckFillsTheRegistersAndTheRoundRuns() {
-		gameService.submitProgram(lobby, "August", rightTurns());
+		gameService.submitProgram(lobby.getGameId(), "August", rightTurns());
 		Player alice = named("Alice");
 
 		scheduled.get(0).run();
@@ -106,8 +103,8 @@ class ProgrammingTimerFlowTest {
 
 	@Test
 	void anOldTimerDoesNothingOnceEveryoneSubmitted() {
-		gameService.submitProgram(lobby, "August", rightTurns());
-		gameService.submitProgram(lobby, "Alice", rightTurns());
+		gameService.submitProgram(lobby.getGameId(), "August", rightTurns());
+		gameService.submitProgram(lobby.getGameId(), "Alice", rightTurns());
 		Phase phase = game.getCurrentRound().getCurrentPhase();
 
 		scheduled.get(0).run();
@@ -118,7 +115,7 @@ class ProgrammingTimerFlowTest {
 
 	@Test
 	void aRunningTimerIsScheduledAgainAfterARestart() {
-		gameService.submitProgram(lobby, "August", rightTurns());
+		gameService.submitProgram(lobby.getGameId(), "August", rightTurns());
 		scheduled.clear();
 		scheduledAt.clear();
 

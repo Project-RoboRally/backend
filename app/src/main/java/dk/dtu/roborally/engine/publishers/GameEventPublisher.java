@@ -7,7 +7,7 @@ import dk.dtu.roborally.models.game.RoundResult;
  * Publishes game events to connected clients. Keeps the engine independent of
  * the transport used (STOMP over WebSocket).
  *
- * @author Nicoleta, Sebastian
+ * @author Nicoleta, Sebastian, Elias
  */
 public interface GameEventPublisher {
 	void publishStatus(Game game);
@@ -15,55 +15,55 @@ public interface GameEventPublisher {
 	/**
 	 * Sends every player in the game the full game state, including their own
 	 */
-	void publishGameStarted(String lobbyId, Game game);
+	void publishGameStarted(Game game);
 
 	/**
 	 * Sends every player the full game state when a new round starts with its
 	 * upgrade phase.
 	 */
-	void publishRoundStarted(String lobbyId, Game game);
+	void publishRoundStarted(Game game);
 
 	/**
 	 * Sends every player the full game state after someone bought or skipped.
 	 */
-	void publishUpgradeTurn(String lobbyId, Game game);
+	void publishUpgradeTurn(Game game);
 
 	/**
 	 * Sends every player the full game state when programming starts, so they
 	 * get their new hand.
 	 */
-	void publishProgrammingStarted(String lobbyId, Game game);
+	void publishProgrammingStarted(Game game);
 
 	/**
 	 * Sends every player the full game state after someone used an upgrade
 	 * while programming, so the player sees their changed hand.
 	 */
-	void publishUpgradeUsed(String lobbyId, Game game);
+	void publishUpgradeUsed(Game game);
 
 	/**
 	 * Sends every player the full game state when the first program is in and
 	 * the programming timer starts. The state says when it runs out.
 	 */
-	void publishTimerStarted(String lobbyId, Game game);
+	void publishTimerStarted(Game game);
 
 	/**
 	 * Sends every player the full game state when activation stops to wait for
 	 * a player's choice. The state says who has to choose and between what.
 	 */
-	void publishChoiceRequired(String lobbyId, Game game);
+	void publishChoiceRequired(Game game);
 
 	/**
 	 * Sends the board layout, including robots placed on it, to everyone
-	 * subscribed to the lobby.
+	 * subscribed to the game.
 	 */
-	void publishBoard(String lobbyId, Game game);
+	void publishBoard(Game game);
 
 	/**
 	 * Same board message, plus one pose per robot after each turn or step and
 	 * the cards played in each register, so clients can animate the round. The
 	 * default drops both.
 	 */
-	default void publishRound(String lobbyId, Game game, RoundResult result) {
-		publishBoard(lobbyId, game);
+	default void publishRound(Game game, RoundResult result) {
+		publishBoard(game);
 	}
 }

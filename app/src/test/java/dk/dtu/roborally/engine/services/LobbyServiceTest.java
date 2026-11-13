@@ -66,7 +66,7 @@ class LobbyServiceTest {
 		assertEquals(game.getGameID(), lobby.getGameId());
 
 		assertTrue(lobby.isGameStarted());
-		verify(publisher).publishGameStarted(lobby.getLobbyId(), game);
+		verify(publisher).publishGameStarted(game);
 	}
 
 	@Test
