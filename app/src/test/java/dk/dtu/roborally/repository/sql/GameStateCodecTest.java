@@ -2,6 +2,7 @@ package dk.dtu.roborally.repository.sql;
 
 import dk.dtu.roborally.engine.activation.Damage;
 import dk.dtu.roborally.enums.ChoiceType;
+import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.enums.UpgradeType;
@@ -80,6 +81,22 @@ class GameStateCodecTest {
 
 		assertEquals(Optional.of("U_TURN"),
 				reload().getCurrentRound().ask(choice));
+	}
+
+	@Test
+	void keepsExecutedInstructionsFromAHackedRegister() {
+		String playerId = game.getPlayersInGame().iterator().next().getId();
+		game.getCurrentRound().startRegister(1, List.of(playerId));
+		game.getCurrentRound().recordExecuted(playerId, 0,
+				CommandInstruction.LEFT_TURN);
+		game.getCurrentRound().recordExecuted(playerId, 0,
+				CommandInstruction.LEFT_TURN);
+
+		assertEquals(
+				List.of(CommandInstruction.LEFT_TURN,
+						CommandInstruction.LEFT_TURN),
+				reload().getCurrentRound().getExecutedInstructions(playerId,
+						0));
 	}
 
 	@Test

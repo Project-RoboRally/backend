@@ -90,6 +90,11 @@ public class Round {
 	/** Answers about this turn's card, kept for when Hack plays it again. */
 	private final Map<ChoiceType, String> turnAnswers = new EnumMap<>(
 			ChoiceType.class);
+	/**
+	 * Programming actions each player actually ran this activation, by
+	 * register. Hack records two entries so Again can re-execute the second.
+	 */
+	private final Map<String, Map<Integer, List<CommandInstruction>>> executedInstructions = new HashMap<>();
 
 	/** Modular Chassis swaps to sort out, as pusher id and pushed id. */
 	private final List<List<String>> chassisSwaps = new ArrayList<>();
@@ -119,6 +124,54 @@ public class Round {
 	/** Clears what happened in the last activation phase. */
 	public void startActivation() {
 		log = new ActivationLog();
+		executedInstructions.clear();
+	}
+
+	/** Records one programming action that ran in this register. */
+	public void recordExecuted(String playerId, int register,
+			CommandInstruction instruction) {
+		executedInstructions
+				.computeIfAbsent(playerId, ignored -> new HashMap<>())
+				.computeIfAbsent(register, ignored -> new ArrayList<>())
+				.add(instruction);
+	}
+
+	/** Actions this player ran in the given register, empty if none yet. */
+	public List<CommandInstruction> getExecutedInstructions(String playerId,
+			int register) {
+		Map<Integer, List<CommandInstruction>> byRegister = executedInstructions
+				.get(playerId);
+		if (byRegister == null) {
+			return List.of();
+		}
+		return List.copyOf(byRegister.getOrDefault(register, List.of()));
+	}
+
+	/** All recorded executions, for storage. */
+	public Map<String, Map<Integer, List<CommandInstruction>>> getExecutedInstructions() {
+		Map<String, Map<Integer, List<CommandInstruction>>> copy = new HashMap<>();
+		executedInstructions.forEach((playerId, byRegister) -> {
+			Map<Integer, List<CommandInstruction>> registers = new HashMap<>();
+			byRegister.forEach((register, plays) -> registers.put(register,
+					List.copyOf(plays)));
+			copy.put(playerId, registers);
+		});
+		return copy;
+	}
+
+	/** Puts back executions loaded from storage. */
+	public void restoreExecutedInstructions(
+			Map<String, Map<Integer, List<CommandInstruction>>> executed) {
+		executedInstructions.clear();
+		if (executed == null) {
+			return;
+		}
+		executed.forEach((playerId, byRegister) -> {
+			Map<Integer, List<CommandInstruction>> registers = new HashMap<>();
+			byRegister.forEach((register, plays) -> registers.put(register,
+					new ArrayList<>(plays)));
+			executedInstructions.put(playerId, registers);
+		});
 	}
 
 	/** What happened since this was last called, so nothing is sent twice. */
