@@ -12,7 +12,6 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.Checkpoint;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
-import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
 import dk.dtu.roborally.models.player.RobotView;
@@ -129,12 +128,12 @@ class CheckpointWinningTest {
 	void finishedGameRejectsNewProgramsWithoutChangingTheRobot() {
 		Player alice = player("alice", 0, 0, PlayerColor.RED);
 		Game game = game(board(1), alice);
-		GameLobby lobby = lobby(game);
 		readyToProgram(game, alice);
-		assertTrue(service.submitProgram(lobby, "alice", names(moves())));
+		assertTrue(service.submitProgram("test-game", "alice", names(moves())));
 
 		IllegalStateException error = assertThrows(IllegalStateException.class,
-				() -> service.submitProgram(lobby, "alice", names(moves())));
+				() -> service.submitProgram("test-game", "alice",
+						names(moves())));
 
 		assertEquals("The game has already finished.", error.getMessage());
 		assertFalse(alice.getPlayerMat().isSubmitted());
@@ -148,19 +147,18 @@ class CheckpointWinningTest {
 		Player alice = player("alice", 0, 0, PlayerColor.RED);
 		Player bob = player("bob", 0, 1, PlayerColor.BLUE);
 		Game game = game(board(1), alice, bob);
-		GameLobby lobby = lobby(game);
 		readyToProgram(game, alice, bob);
 
-		assertFalse(service.submitProgram(lobby, "alice", names(moves())));
-		assertTrue(service.submitProgram(lobby, "bob", names(turns())));
+		assertFalse(
+				service.submitProgram("test-game", "alice", names(moves())));
+		assertTrue(service.submitProgram("test-game", "bob", names(turns())));
 
 		for (String username : List.of("alice", "bob")) {
 			ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 					.forClass(PlayerGameStateDTO.class);
 			// Timer started, then the round itself
 			verify(messages, times(2)).convertAndSend(
-					eq("/game/lobby/test-lobby/player/" + username),
-					sent.capture());
+					eq("/game/test-game/player/" + username), sent.capture());
 			assertEquals(PlayerGameStateDTO.TIMER_STARTED,
 					sent.getAllValues().get(0).type());
 			PlayerGameStateDTO state = sent.getValue();
@@ -189,17 +187,13 @@ class CheckpointWinningTest {
 		Player alice = player("alice", 0, 0, PlayerColor.RED);
 		Player bob = player("bob", 0, 1, PlayerColor.BLUE);
 		Game game = game(board(1), alice, bob);
-		GameLobby lobby = lobby(game);
 		readyToProgram(game, alice, bob);
-		service.submitProgram(lobby, "alice", names(moves()));
-		service.submitProgram(lobby, "bob", names(turns()));
-		LobbyService lobbies = mock(LobbyService.class);
-		when(lobbies.getLobby("test-lobby")).thenReturn(lobby);
-		PlayerStateController controller = new PlayerStateController(lobbies,
-				service);
+		service.submitProgram("test-game", "alice", names(moves()));
+		service.submitProgram("test-game", "bob", names(turns()));
+		PlayerStateController controller = new PlayerStateController(service);
 
 		for (String username : List.of("alice", "bob")) {
-			PlayerGameStateDTO state = controller.playerState("test-lobby",
+			PlayerGameStateDTO state = controller.playerState("test-game",
 					username);
 
 			assertNotNull(state);
@@ -236,14 +230,6 @@ class CheckpointWinningTest {
 		Game game = new Game("test-game", board, Set.of(players));
 		repository.add(game);
 		return game;
-	}
-
-	private GameLobby lobby(Game game) {
-		GameLobby lobby = mock(GameLobby.class);
-		when(lobby.isGameStarted()).thenReturn(true);
-		when(lobby.getGameId()).thenReturn(game.getGameID());
-		when(lobby.getLobbyId()).thenReturn("test-lobby");
-		return lobby;
 	}
 
 	private List<List<RobotView>> activate(Game game,
