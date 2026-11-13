@@ -2,6 +2,7 @@ services:
   # PostgreSQL database
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: roborally
       POSTGRES_USER: roborally
@@ -11,9 +12,10 @@ services:
     volumes:
       - roborally-postgres:/var/lib/postgresql/data
 
-  # phpMyAdmin is MySQL-only; Adminer is the equivalent UI for Postgres.
+  # Adminer database UI
   adminer:
     image: adminer:4
+    restart: unless-stopped
     ports:
       - "8081:8080"
     depends_on:
