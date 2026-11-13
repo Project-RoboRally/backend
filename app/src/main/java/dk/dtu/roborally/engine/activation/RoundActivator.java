@@ -164,11 +164,13 @@ public class RoundActivator {
 		Optional<CommandInstruction> refreshed = round.getRefreshedTo();
 		CommandInstruction instruction;
 		ProgrammableCard card;
+		boolean repeating;
 		if (refreshed.isPresent()) {
 			// Refresh swapped the programming for this register
 			card = new ProgrammingCard(refreshed.get());
-			instruction = refreshed.get().repeatsPreviousRegister()
-					? previousInstruction(player, register)
+			repeating = refreshed.get().repeatsPreviousRegister();
+			instruction = repeating
+					? previousInstruction(round, player, register)
 					: refreshed.get();
 			if (instruction == null) {
 				return true;
@@ -183,7 +185,13 @@ public class RoundActivator {
 			}
 			// Taken first, a reboot during the move empties the register
 			card = slot.getCard();
+			repeating = card instanceof ProgrammingCard programming
+					&& programming.getInstruction().repeatsPreviousRegister();
 			instruction = resolveInstruction(player, register);
+			if (repeating) {
+				instruction = secondCardFromPrevious(round, player, register)
+						.orElse(instruction);
+			}
 		}
 		if (!instruction.actionsToChooseFrom().isEmpty()) {
 			Optional<CommandInstruction> chosen = chooseAction(game, player,
@@ -248,6 +256,7 @@ public class RoundActivator {
 			} else {
 				moveOne(player, game, moveOne, log);
 			}
+			round.recordExecuted(player.getId(), register, instruction);
 		}
 		log.addCard(register, new PlayedCard(player.getUser().getUsername(),
 				card, firstStep, log.stepCount() - firstStep));
@@ -381,9 +390,31 @@ public class RoundActivator {
 	}
 
 	/** What an Again from Refresh repeats, null in register 1. */
-	private CommandInstruction previousInstruction(Player player,
+	private CommandInstruction previousInstruction(Round round, Player player,
 			int register) {
-		return register == 0 ? null : resolveInstruction(player, register - 1);
+		if (register == 0) {
+			return null;
+		}
+		return secondCardFromPrevious(round, player, register)
+				.orElseGet(() -> resolveInstruction(player, register - 1));
+	}
+
+	/**
+	 * When the previous register ran multiple programming actions (Hack), Again
+	 * and Repeat Routine re-execute the last one instead of the programmed
+	 * card.
+	 */
+	private Optional<CommandInstruction> secondCardFromPrevious(Round round,
+			Player player, int register) {
+		if (register == 0) {
+			return Optional.empty();
+		}
+		List<CommandInstruction> previousPlays = round
+				.getExecutedInstructions(player.getId(), register - 1);
+		if (previousPlays.size() < 2) {
+			return Optional.empty();
+		}
+		return Optional.of(previousPlays.get(previousPlays.size() - 1));
 	}
 
 	/**
