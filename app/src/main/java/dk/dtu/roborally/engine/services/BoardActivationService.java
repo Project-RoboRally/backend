@@ -90,8 +90,8 @@ public class BoardActivationService {
 
 	private boolean isBlue(ConveyorBelt belt) {
 		return switch (belt.getType()) {
-			case GREEN_STRAIGHT, GREEN_RIGHT_CURVE, GREEN_LEFT_CURVE -> true;
-			case BLUE_STRAIGHT, BLUE_RIGHT_CURVE, BLUE_LEFT_CURVE -> false;
+			case GREEN_STRAIGHT, GREEN_RIGHT_CURVE, GREEN_LEFT_CURVE -> false;
+			case BLUE_STRAIGHT, BLUE_RIGHT_CURVE, BLUE_LEFT_CURVE -> true;
 		};
 	}
 
