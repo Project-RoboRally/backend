@@ -11,6 +11,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.Checkpoint;
 import dk.dtu.roborally.models.board.elements.Pit;
+import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.DamageCard;
 import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
@@ -257,7 +258,7 @@ public class RoundActivator {
 	/**
 	 * Where a Teleporter would take the robot for this move card, if it has one
 	 * and the energy to pay. It ignores walls, pits, the antenna and robots on
-	 * the way, but can not end on a pit, the antenna or off the board.
+	 * the way, but can not end on a wall, pit, the antenna or off the board.
 	 */
 	private Optional<Vector2D> teleportTarget(Game game, Player player,
 			CommandInstruction instruction) {
@@ -282,7 +283,8 @@ public class RoundActivator {
 		}
 		Space space = game.getBoard().getSpace(target);
 		if (Movement.hasAntenna(space) || space.getBoardElements().stream()
-				.anyMatch(Pit.class::isInstance)) {
+				.anyMatch(element -> element instanceof Pit
+						|| element instanceof Wall)) {
 			return Optional.empty();
 		}
 		return Optional.of(target);
