@@ -1,12 +1,11 @@
 package dk.dtu.roborally.engine.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.Test;
 
 import dk.dtu.roborally.enums.ConveyorBeltType;
@@ -75,7 +74,7 @@ class BoardActivationServiceTest {
 	}
 
 	@Test
-	void expressConveyorMovesTwoSpacesAndRotatesRobot() {
+	void regularConveyorMovesOneSpace() {
 		Map<Vector2D, Space> spaces = horizontalSpaces(4);
 		spaces.get(new Vector2D(0, 0))
 				.addBoardElement(new ConveyorBelt(new Vector2D(0, 0), 1,
@@ -84,12 +83,12 @@ class BoardActivationServiceTest {
 
 		service.activateRegister(0, List.of(player), new Board(spaces));
 
-		assertEquals(new Vector2D(2, 0), player.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(1, 0), player.getRobot().getCurrentSpace());
 		assertEquals(Direction.EAST, player.getRobot().getOrientation());
 	}
 
 	@Test
-	void regularConveyorMovesOneSpace() {
+	void expressConveyorMovesTwoSpacesAndRotatesRobot() {
 		Map<Vector2D, Space> spaces = horizontalSpaces(3);
 		spaces.get(new Vector2D(0, 0))
 				.addBoardElement(new ConveyorBelt(new Vector2D(0, 0), 1,
@@ -98,7 +97,7 @@ class BoardActivationServiceTest {
 
 		service.activateRegister(0, List.of(player), new Board(spaces));
 
-		assertEquals(new Vector2D(1, 0), player.getRobot().getCurrentSpace());
+		assertEquals(new Vector2D(2, 0), player.getRobot().getCurrentSpace());
 	}
 
 	@Test
