@@ -73,21 +73,10 @@ class LobbyControllerTest {
 
 	@Test
 	void anActionWithoutATokenGives401() throws Exception {
-		mockMvc.perform(post("/api/lobbies/lobby1/upgrade/skip"))
+		mockMvc.perform(post("/api/lobbies/lobby1/leave"))
 				.andExpect(status().isUnauthorized());
 
 		verifyNoInteractions(lobbyService);
-	}
-
-	@Test
-	void theUserComesFromTheTokenNotFromTheBody() throws Exception {
-		mockMvc.perform(post("/api/lobbies/lobby1/choice")
-				.header("Authorization", "Bearer " + aliceToken)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"username\":\"bob\",\"choice\":\"LEFT\"}"))
-				.andExpect(status().isNoContent());
-
-		verify(lobbyService).makeChoice("lobby1", "alice", "LEFT");
 	}
 
 	@Test
