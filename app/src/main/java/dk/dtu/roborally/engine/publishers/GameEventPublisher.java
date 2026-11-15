@@ -48,9 +48,17 @@ public interface GameEventPublisher {
 
 	/**
 	 * Sends every player the full game state when activation stops to wait for
-	 * a player's choice. The state says who has to choose and between what.
+	 * a player's choice. The state says who has to choose and between what, and
+	 * includes the round animation / revealed registers so far.
 	 */
-	void publishChoiceRequired(Game game);
+	void publishChoiceRequired(Game game, RoundResult result);
+
+	/**
+	 * Same as {@link #publishChoiceRequired(Game, RoundResult)} with no frames.
+	 */
+	default void publishChoiceRequired(Game game) {
+		publishChoiceRequired(game, RoundResult.NONE);
+	}
 
 	/**
 	 * Sends the board layout, including robots placed on it, to everyone
