@@ -86,8 +86,8 @@ class RebootTest {
 			ada.getPlayerMat().getRegisters().get(i)
 					.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
 		}
-		ada.getPlayerMat().addToHand(
-				new ProgrammingCard(CommandInstruction.U_TURN));
+		ada.getPlayerMat()
+				.addToHand(new ProgrammingCard(CommandInstruction.U_TURN));
 		game.getCurrentRound().startRegister(2, List.of(ada.getId()));
 
 		Reboot.reboot(game, ada, true, new Vector2D(1, 1));

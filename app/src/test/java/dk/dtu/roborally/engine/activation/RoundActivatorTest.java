@@ -169,9 +169,10 @@ class RoundActivatorTest {
 	void anEmptyDamagePileLetsThePlayerPickAnotherType() {
 		Player ada = player("ada", 2, 1, Direction.EAST);
 		Game game = game(ada);
-		game.getDamagePiles().restore(Map.of(DamageInstruction.SPAM, 0,
-				DamageInstruction.TROJAN_HORSE, 2, DamageInstruction.WORM, 5,
-				DamageInstruction.VIRUS, 1));
+		game.getDamagePiles()
+				.restore(Map.of(DamageInstruction.SPAM, 0,
+						DamageInstruction.TROJAN_HORSE, 2,
+						DamageInstruction.WORM, 5, DamageInstruction.VIRUS, 1));
 		program(ada, CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
 
 		activator.activate(game);
