@@ -79,13 +79,15 @@ class RebootTest {
 	}
 
 	@Test
-	void theRestOfTheProgramIsCancelled() {
+	void theRestOfTheProgramAndTheHandAreDiscarded() {
 		Game game = game(player("ada", 1, 1, new Vector2D(0, 4)));
 		Player ada = game.getPlayersInGame().iterator().next();
 		for (int i = 0; i < 5; i++) {
 			ada.getPlayerMat().getRegisters().get(i)
 					.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
 		}
+		ada.getPlayerMat().addToHand(
+				new ProgrammingCard(CommandInstruction.U_TURN));
 		game.getCurrentRound().startRegister(2, List.of(ada.getId()));
 
 		Reboot.reboot(game, ada, true, new Vector2D(1, 1));
@@ -94,6 +96,9 @@ class RebootTest {
 				ada.getPlayerMat().getRegisters().get(1).getCard().getName());
 		assertNull(ada.getPlayerMat().getRegisters().get(2).getCard());
 		assertNull(ada.getPlayerMat().getRegisters().get(4).getCard());
+		assertTrue(ada.getPlayerMat().getHand().isEmpty());
+		assertEquals(1, ada.getPlayerMat().getDiscardPile().stream()
+				.filter(card -> card.getName().equals("U_TURN")).count());
 	}
 
 	@Test
