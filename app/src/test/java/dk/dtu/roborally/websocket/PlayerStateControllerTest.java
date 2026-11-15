@@ -1,5 +1,9 @@
 package dk.dtu.roborally.websocket;
 
+/**
+ * @author Elias
+ */
+
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.services.GameService;
@@ -7,6 +11,7 @@ import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.game.Game;
+import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.repository.inmemory.InMemoryGameRepository;
 import dk.dtu.roborally.repository.inmemory.InMemoryLobbyRepository;
@@ -57,7 +62,7 @@ class PlayerStateControllerTest {
 			}
 
 			@Override
-			public void publishChoiceRequired(Game game) {
+			public void publishChoiceRequired(Game game, RoundResult result) {
 			}
 
 			@Override

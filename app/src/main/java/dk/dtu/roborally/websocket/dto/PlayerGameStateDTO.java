@@ -91,8 +91,10 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 	 */
 	public static PlayerGameStateDTO from(String type, Game game,
 			Player recipient, RoundResult result) {
+		boolean revealPrograms = game.getCurrentRound()
+				.getCurrentPhase() == Phase.ACTIVATION;
 		List<PlayerDTO> players = game.getPlayersInGame().stream()
-				.map(PlayerDTO::from)
+				.map(player -> PlayerDTO.from(player, revealPrograms))
 				.sorted(Comparator.comparing(PlayerDTO::username)).toList();
 
 		String winnerUsername = game.getWinner() == null
@@ -102,8 +104,7 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 		return new PlayerGameStateDTO(type, game.getGameID(),
 				game.getGameStatus(), RoundDTO.from(game.getCurrentRound()),
 				BoardDTO.from(game, result), players,
-				recipient.getUser().getUsername(),
-				PlayerMatDTO.from(recipient.getPlayerMat()),
+				recipient.getUser().getUsername(), PlayerMatDTO.from(recipient),
 				game.getUpgradeShop().getCards().stream().map(UpgradeDTO::from)
 						.toList(),
 				game.getCurrentBuyer()

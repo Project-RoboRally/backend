@@ -174,10 +174,14 @@ public class Round {
 		});
 	}
 
-	/** What happened since this was last called, so nothing is sent twice. */
+	/**
+	 * What happened since this was last called. Animation frames are cleared so
+	 * they are not sent twice; revealed register cards stay so clients still
+	 * see earlier registers while activation is paused.
+	 */
 	public ActivationLog takeLog() {
-		ActivationLog taken = log;
-		log = new ActivationLog();
+		ActivationLog taken = log.copy();
+		log.clearSteps();
 		return taken;
 	}
 
