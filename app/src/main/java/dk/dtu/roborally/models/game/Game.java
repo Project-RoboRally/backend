@@ -65,4 +65,24 @@ public class Game {
 	public void endUpgradeTurn() {
 		upgradeOrder.pollFirst();
 	}
+
+	/** True if the game can not go on until the given player acts. */
+	public boolean isWaitingOn(Player player) {
+		if (gameStatus != GameStatus.IN_PROGRESS) {
+			return false;
+		}
+		boolean mustChoose = currentRound.getPendingChoice()
+				.map(choice -> choice.playerId().equals(player.getId()))
+				.orElse(false);
+		if (mustChoose) {
+			return true;
+		}
+		return switch (currentRound.getCurrentPhase()) {
+			case UPGRADE -> getCurrentBuyer()
+					.map(buyer -> buyer.getId().equals(player.getId()))
+					.orElse(false);
+			case PROGRAMMING -> !player.getPlayerMat().isSubmitted();
+			default -> false;
+		};
+	}
 }
