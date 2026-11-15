@@ -200,8 +200,9 @@ public class GameService {
 		RoundResult result = activateRound(game);
 		if (game.getCurrentRound().isActivating()) {
 			gameRepository.update(game);
-			gameEventPublisher.publishRound(game, result);
-			gameEventPublisher.publishChoiceRequired(game);
+			// One message: keep revealed registers + steps, and the pending
+			// choice
+			gameEventPublisher.publishChoiceRequired(game, result);
 			return;
 		}
 
