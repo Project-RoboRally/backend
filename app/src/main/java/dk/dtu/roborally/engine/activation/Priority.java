@@ -13,11 +13,12 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Works out whose turn it is. The robot closest to the priority antenna goes
- * first. Robots just as close are taken clockwise, starting from where the dish
- * points. Without an antenna it goes by username.
+ * Works out whose turn it is. Distance is Manhattan (count by row, then by
+ * column): the robot fewest orthogonal spaces from the antenna goes first.
+ * Robots just as close are taken clockwise, starting from the line that points
+ * straight out of the dish. Without an antenna it goes by username.
  *
- * @author Sebastian
+ * @author Sebastian, Elias
  */
 public final class Priority {
 
