@@ -1,5 +1,9 @@
 package dk.dtu.roborally.engine.activation;
 
+/**
+ * @author Elias
+ */
+
 import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
@@ -132,7 +136,7 @@ class BoardElementsTest {
 	}
 
 	@Test
-	void aBeltTurningACornerTurnsTheRobot() {
+	void aStraightBeltAroundACornerDoesNotTurnTheRobot() {
 		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
 		belt(2, 0, 2, Direction.SOUTH, ConveyorBeltType.GREEN_STRAIGHT);
 		Player ada = player("ada", 1, 0, Direction.EAST);
@@ -140,7 +144,32 @@ class BoardElementsTest {
 		BoardElements.activate(game(ada), 0, log);
 
 		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.EAST, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void aRotatingBeltTurnsTheRobotItCarries() {
+		put(1, 0, new ConveyorBelt(new Vector2D(1, 0), 1, Direction.EAST,
+				ConveyorBeltType.GREEN_RIGHT_CURVE));
+		Player ada = player("ada", 1, 0, Direction.EAST);
+
+		BoardElements.activate(game(ada), 0, log);
+
+		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
 		assertEquals(Direction.SOUTH, ada.getRobot().getOrientation());
+	}
+
+	@Test
+	void arrivingOnACurveFromAStraightBeltDoesNotTurn() {
+		belt(0, 0, 2, Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT);
+		put(2, 0, new ConveyorBelt(new Vector2D(2, 0), 1, Direction.SOUTH,
+				ConveyorBeltType.GREEN_RIGHT_CURVE));
+		Player ada = player("ada", 1, 0, Direction.EAST);
+
+		BoardElements.activate(game(ada), 0, log);
+
+		assertEquals(new Vector2D(2, 0), ada.getRobot().getCurrentSpace());
+		assertEquals(Direction.EAST, ada.getRobot().getOrientation());
 	}
 
 	@Test
