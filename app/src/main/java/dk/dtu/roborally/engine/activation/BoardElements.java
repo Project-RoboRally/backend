@@ -1,6 +1,5 @@
 package dk.dtu.roborally.engine.activation;
 
-import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.RotationDirection;
 import dk.dtu.roborally.models.board.Space;
