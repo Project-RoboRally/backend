@@ -68,15 +68,15 @@ class WebSocketGameEventPublisherTest {
 				Set.of(player("alice", PlayerColor.RED, 0, 0),
 						player("bob", PlayerColor.BLUE, 1, 0)));
 
-		publisher.publishGameStarted("lobby-1", game);
+		publisher.publishGameStarted(game);
 
 		ArgumentCaptor<PlayerGameStateDTO> alice = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
 		ArgumentCaptor<PlayerGameStateDTO> bob = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+		verify(template).convertAndSend(eq("/game/game-1/player/alice"),
 				alice.capture());
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/bob"),
+		verify(template).convertAndSend(eq("/game/game-1/player/bob"),
 				bob.capture());
 
 		PlayerGameStateDTO aliceState = alice.getValue();
@@ -103,11 +103,11 @@ class WebSocketGameEventPublisherTest {
 		Game game = new Game("game-1", boardWithWall(), Set.of(alice));
 		alice.getPlayerMat().drawHand();
 
-		publisher.publishProgrammingStarted("lobby-1", game);
+		publisher.publishProgrammingStarted(game);
 
 		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+		verify(template).convertAndSend(eq("/game/game-1/player/alice"),
 				sent.capture());
 		assertEquals(PlayerGameStateDTO.PROGRAMMING_STARTED,
 				sent.getValue().type());
@@ -124,11 +124,11 @@ class WebSocketGameEventPublisherTest {
 		game.getUpgradeShop().refill(1);
 		game.setUpgradeOrder(List.of(alice));
 
-		publisher.publishUpgradeTurn("lobby-1", game);
+		publisher.publishUpgradeTurn(game);
 
 		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+		verify(template).convertAndSend(eq("/game/game-1/player/alice"),
 				sent.capture());
 		assertEquals(PlayerGameStateDTO.UPGRADE_TURN, sent.getValue().type());
 		assertEquals(1, sent.getValue().upgradeShop().size());
@@ -149,11 +149,11 @@ class WebSocketGameEventPublisherTest {
 		game.getCurrentRound().ask(new PendingChoice(alice.getId(),
 				ChoiceType.WEASEL_ACTION, List.of("LEFT_TURN", "U_TURN")));
 
-		publisher.publishChoiceRequired("lobby-1", game);
+		publisher.publishChoiceRequired(game);
 
 		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+		verify(template).convertAndSend(eq("/game/game-1/player/alice"),
 				sent.capture());
 		assertEquals(PlayerGameStateDTO.CHOICE_REQUIRED,
 				sent.getValue().type());
@@ -164,17 +164,17 @@ class WebSocketGameEventPublisherTest {
 	}
 
 	@Test
-	void publishesLoadedLevelToLobbyBoardTopic() {
+	void publishesLoadedLevelToGameBoardTopic() {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Board level = LevelLoader.load(JsonLoader.loadConfig().levels.level_0);
 		Game game = new Game("game-1", level, Set.of());
 
-		publisher.publishBoard("lobby-1", game);
+		publisher.publishBoard(game);
 
 		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
+		verify(template).convertAndSend(eq("/game/game-1/board"),
 				sent.capture());
 		assertEquals(level.getSpaceMap().size(),
 				sent.getValue().spaces().size());
@@ -192,10 +192,10 @@ class WebSocketGameEventPublisherTest {
 				Set.of(player("alice", PlayerColor.RED, 0, 0),
 						player("bob", PlayerColor.BLUE, 1, 0)));
 
-		publisher.publishBoard("lobby-1", game);
+		publisher.publishBoard(game);
 
 		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
+		verify(template).convertAndSend(eq("/game/game-1/board"),
 				sent.capture());
 		assertEquals(List.of(
 				new BoardDTO.RobotDTO("alice", PlayerColor.RED, 0, 0,
@@ -216,14 +216,14 @@ class WebSocketGameEventPublisherTest {
 				Set.of(player("alice", PlayerColor.RED, 1, 0)));
 
 		ProgrammingCard card = new ProgrammingCard(CommandInstruction.MOVE_1);
-		publisher.publishRound("lobby-1", game, new RoundResult(
+		publisher.publishRound(game, new RoundResult(
 				List.of(List.of(new RobotView("alice", PlayerColor.RED, 1, 0,
 						Direction.EAST))),
 				List.of(new RegisterReveal(0,
 						List.of(new PlayedCard("alice", card, 0, 1))))));
 
 		ArgumentCaptor<BoardDTO> sent = ArgumentCaptor.forClass(BoardDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/board"),
+		verify(template).convertAndSend(eq("/game/game-1/board"),
 				sent.capture());
 		assertEquals(1, sent.getValue().steps().size());
 		assertEquals(new BoardDTO.RobotDTO("alice", PlayerColor.RED, 1, 0,
@@ -246,11 +246,11 @@ class WebSocketGameEventPublisherTest {
 		bob.getPlayerMat().getRegisters().get(0)
 				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
 
-		publisher.publishRoundStarted("lobby-1", game);
+		publisher.publishRoundStarted(game);
 
 		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
-		verify(template).convertAndSend(eq("/game/lobby/lobby-1/player/alice"),
+		verify(template).convertAndSend(eq("/game/game-1/player/alice"),
 				sent.capture());
 		assertTrue(sent.getValue().playerMat().registers().stream()
 				.allMatch(register -> register.card() == null));

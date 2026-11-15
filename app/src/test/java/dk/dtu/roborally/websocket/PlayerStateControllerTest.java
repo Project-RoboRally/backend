@@ -4,6 +4,7 @@ import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.services.GameService;
 import dk.dtu.roborally.engine.services.LobbyService;
+import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.lobby.GameLobby;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class PlayerStateControllerTest {
 	private LobbyService lobbyService;
@@ -31,35 +33,35 @@ class PlayerStateControllerTest {
 			}
 
 			@Override
-			public void publishGameStarted(String lobbyId, Game game) {
+			public void publishGameStarted(Game game) {
 			}
 
 			@Override
-			public void publishRoundStarted(String lobbyId, Game game) {
+			public void publishRoundStarted(Game game) {
 			}
 
 			@Override
-			public void publishUpgradeTurn(String lobbyId, Game game) {
+			public void publishUpgradeTurn(Game game) {
 			}
 
 			@Override
-			public void publishProgrammingStarted(String lobbyId, Game game) {
+			public void publishProgrammingStarted(Game game) {
 			}
 
 			@Override
-			public void publishUpgradeUsed(String lobbyId, Game game) {
+			public void publishUpgradeUsed(Game game) {
 			}
 
 			@Override
-			public void publishTimerStarted(String lobbyId, Game game) {
+			public void publishTimerStarted(Game game) {
 			}
 
 			@Override
-			public void publishChoiceRequired(String lobbyId, Game game) {
+			public void publishChoiceRequired(Game game) {
 			}
 
 			@Override
-			public void publishBoard(String lobbyId, Game game) {
+			public void publishBoard(Game game) {
 			}
 		};
 		InMemoryUserRepository users = new InMemoryUserRepository();
@@ -71,7 +73,7 @@ class PlayerStateControllerTest {
 				publisher);
 		lobbyService = new LobbyService(new InMemoryLobbyRepository(), users,
 				gameService);
-		controller = new PlayerStateController(lobbyService, gameService);
+		controller = new PlayerStateController(gameService);
 
 		lobby = lobbyService.createLobby(new CreateLobbyDTO("Lobby", "August"));
 		lobbyService.joinLobby(lobby.getLobbyId(), "Alice");
@@ -82,7 +84,7 @@ class PlayerStateControllerTest {
 	void repliesWithTheSubscribersStateOnceTheGameHasStarted() {
 		lobbyService.startGame(lobby.getLobbyId(), "August");
 
-		PlayerGameStateDTO state = controller.playerState(lobby.getLobbyId(),
+		PlayerGameStateDTO state = controller.playerState(lobby.getGameId(),
 				"Alice");
 
 		assertNotNull(state);
@@ -94,14 +96,15 @@ class PlayerStateControllerTest {
 	}
 
 	@Test
-	void sendsNothingBeforeTheGameHasStarted() {
-		assertNull(controller.playerState(lobby.getLobbyId(), "Alice"));
+	void anUnknownGameIsNotFound() {
+		assertThrows(GameNotFoundException.class,
+				() -> controller.playerState("missing", "Alice"));
 	}
 
 	@Test
 	void sendsNothingToAUserWhoIsNotPlayingInTheGame() {
 		lobbyService.startGame(lobby.getLobbyId(), "August");
 
-		assertNull(controller.playerState(lobby.getLobbyId(), "Bob"));
+		assertNull(controller.playerState(lobby.getGameId(), "Bob"));
 	}
 }

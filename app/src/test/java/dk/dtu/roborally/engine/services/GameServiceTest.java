@@ -11,7 +11,6 @@ import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.enums.RotationDirection;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
-import dk.dtu.roborally.loaders.JsonLoader;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
@@ -54,13 +53,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GameServiceTest {
 	private final List<Game> published = new ArrayList<>();
 	private final List<Game> startedPublished = new ArrayList<>();
-	private final List<String> startedLobbyIds = new ArrayList<>();
-	private final List<String> boardLobbyIds = new ArrayList<>();
-	private final List<String> roundStartedLobbyIds = new ArrayList<>();
+	private final List<String> startedGameIds = new ArrayList<>();
+	private final List<String> boardGameIds = new ArrayList<>();
+	private final List<String> roundStartedGameIds = new ArrayList<>();
 	private final List<String> upgradeTurns = new ArrayList<>();
-	private final List<String> programmingStartedLobbyIds = new ArrayList<>();
-	private final List<String> choiceLobbyIds = new ArrayList<>();
-	private final List<String> timerLobbyIds = new ArrayList<>();
+	private final List<String> programmingStartedGameIds = new ArrayList<>();
+	private final List<String> choiceGameIds = new ArrayList<>();
+	private final List<String> timerGameIds = new ArrayList<>();
 	private GameService gameService;
 	private Game game;
 
@@ -88,42 +87,42 @@ class GameServiceTest {
 			}
 
 			@Override
-			public void publishBoard(String lobbyId, Game game) {
-				boardLobbyIds.add(lobbyId);
+			public void publishBoard(Game game) {
+				boardGameIds.add(game.getGameID());
 			}
 
 			@Override
-			public void publishRoundStarted(String lobbyId, Game game) {
-				roundStartedLobbyIds.add(lobbyId);
+			public void publishRoundStarted(Game game) {
+				roundStartedGameIds.add(game.getGameID());
 			}
 
 			@Override
-			public void publishUpgradeTurn(String lobbyId, Game game) {
-				upgradeTurns.add(lobbyId);
+			public void publishUpgradeTurn(Game game) {
+				upgradeTurns.add(game.getGameID());
 			}
 
 			@Override
-			public void publishProgrammingStarted(String lobbyId, Game game) {
-				programmingStartedLobbyIds.add(lobbyId);
+			public void publishProgrammingStarted(Game game) {
+				programmingStartedGameIds.add(game.getGameID());
 			}
 
 			@Override
-			public void publishUpgradeUsed(String lobbyId, Game game) {
+			public void publishUpgradeUsed(Game game) {
 			}
 
 			@Override
-			public void publishTimerStarted(String lobbyId, Game game) {
-				timerLobbyIds.add(lobbyId);
+			public void publishTimerStarted(Game game) {
+				timerGameIds.add(game.getGameID());
 			}
 
 			@Override
-			public void publishChoiceRequired(String lobbyId, Game game) {
-				choiceLobbyIds.add(lobbyId);
+			public void publishChoiceRequired(Game game) {
+				choiceGameIds.add(game.getGameID());
 			}
 
 			@Override
-			public void publishGameStarted(String lobbyId, Game game) {
-				startedLobbyIds.add(lobbyId);
+			public void publishGameStarted(Game game) {
+				startedGameIds.add(game.getGameID());
 				startedPublished.add(game);
 			}
 		};
@@ -162,16 +161,13 @@ class GameServiceTest {
 
 	@Test
 	void startingGamePublishesGameStartedOnce() {
-		GameLobby lobby = new GameLobby(JsonLoader.loadConfig(), "lobby",
-				new User("alice"));
-		lobby.addUserToLobby(new User("bob"));
 		Game newGame = new Game("game-2", board(), Set.of());
 
-		gameService.startGame(lobby.getLobbyId(), newGame);
+		gameService.startGame(newGame);
 
 		assertEquals(List.of(newGame), startedPublished);
-		assertEquals(List.of(lobby.getLobbyId()), startedLobbyIds);
-		assertEquals(List.of(lobby.getLobbyId()), boardLobbyIds);
+		assertEquals(List.of("game-2"), startedGameIds);
+		assertEquals(List.of("game-2"), boardGameIds);
 	}
 
 	@Test
@@ -493,27 +489,29 @@ class GameServiceTest {
 		Game started = gameService.getGame(lobby.getGameId());
 		skipUpgrades(lobby, started);
 		Map<String, Direction> before = facings(started);
-		int boardsBefore = boardLobbyIds.size();
+		int boardsBefore = boardGameIds.size();
 		// Turns only, so nobody can fall off the board and stop the round
 		List<CommandInstruction> august = fromHand(
 				turnsOnly(named(started, "August")));
 		List<CommandInstruction> alice = fromHand(
 				turnsOnly(named(started, "Alice")));
 
-		assertFalse(gameService.submitProgram(lobby, "August", names(august)));
+		assertFalse(gameService.submitProgram(lobby.getGameId(), "August",
+				names(august)));
 		assertEquals(before, facings(started));
-		assertEquals(boardsBefore, boardLobbyIds.size());
-		assertTrue(roundStartedLobbyIds.isEmpty());
+		assertEquals(boardsBefore, boardGameIds.size());
+		assertTrue(roundStartedGameIds.isEmpty());
 		assertTrue(named(started, "August").getPlayerMat().isSubmitted());
 		assertThrows(IllegalStateException.class, () -> gameService
-				.submitProgram(lobby, "August", names(august)));
+				.submitProgram(lobby.getGameId(), "August", names(august)));
 
-		assertTrue(gameService.submitProgram(lobby, "Alice", names(alice)));
-		assertEquals(boardsBefore + 1, boardLobbyIds.size());
-		assertEquals(lobby.getLobbyId(),
-				boardLobbyIds.get(boardLobbyIds.size() - 1));
+		assertTrue(gameService.submitProgram(lobby.getGameId(), "Alice",
+				names(alice)));
+		assertEquals(boardsBefore + 1, boardGameIds.size());
+		assertEquals(lobby.getGameId(),
+				boardGameIds.get(boardGameIds.size() - 1));
 
-		assertEquals(List.of(lobby.getLobbyId()), roundStartedLobbyIds);
+		assertEquals(List.of(lobby.getGameId()), roundStartedGameIds);
 		assertEquals(Phase.UPGRADE,
 				started.getCurrentRound().getCurrentPhase());
 		assertEquals(2, started.getCurrentRound().getNumber());
@@ -530,7 +528,7 @@ class GameServiceTest {
 			}
 		}
 
-		assertFalse(gameService.submitProgram(lobby, "August",
+		assertFalse(gameService.submitProgram(lobby.getGameId(), "August",
 				names(fromHand(named(started, "August")))));
 	}
 
@@ -544,7 +542,7 @@ class GameServiceTest {
 		assertEquals(1, started.getCurrentRound().getNumber());
 		assertEquals(2, started.getUpgradeShop().getCards().size());
 		assertThrows(IllegalStateException.class,
-				() -> gameService.submitProgram(lobby, "August",
+				() -> gameService.submitProgram(lobby.getGameId(), "August",
 						names(five(CommandInstruction.MOVE_1))));
 	}
 
@@ -560,9 +558,9 @@ class GameServiceTest {
 		UpgradeType type = UpgradeType.SPEED_ROUTINE;
 
 		assertThrows(IllegalStateException.class,
-				() -> gameService.skipUpgrade(lobby, secondName));
+				() -> gameService.skipUpgrade(lobby.getGameId(), secondName));
 
-		gameService.buyUpgrade(lobby, firstName, type);
+		gameService.buyUpgrade(lobby.getGameId(), firstName, type);
 
 		assertEquals(5 - type.getCost(), first.getEnergy());
 		assertEquals(1, first.getPlayerMat().getDiscardPile().size());
@@ -570,16 +568,16 @@ class GameServiceTest {
 				((ProgrammingCard) first.getPlayerMat().getDiscardPile().get(0))
 						.getInstruction());
 		assertEquals(1, started.getUpgradeShop().getCards().size());
-		assertEquals(List.of(lobby.getLobbyId()), upgradeTurns);
+		assertEquals(List.of(lobby.getGameId()), upgradeTurns);
 		assertTrue(first.getPlayerMat().getHand().isEmpty());
 		assertThrows(IllegalStateException.class,
-				() -> gameService.skipUpgrade(lobby, firstName));
+				() -> gameService.skipUpgrade(lobby.getGameId(), firstName));
 
-		gameService.skipUpgrade(lobby, secondName);
+		gameService.skipUpgrade(lobby.getGameId(), secondName);
 
 		assertEquals(Phase.PROGRAMMING,
 				started.getCurrentRound().getCurrentPhase());
-		assertEquals(List.of(lobby.getLobbyId()), programmingStartedLobbyIds);
+		assertEquals(List.of(lobby.getGameId()), programmingStartedGameIds);
 		for (Player player : started.getPlayersInGame()) {
 			assertEquals(9, player.getPlayerMat().getHand().size());
 		}
@@ -595,8 +593,9 @@ class GameServiceTest {
 		UpgradeType type = UpgradeType.BRAKES;
 		buyer.spendEnergy(buyer.getEnergy() - type.getCost() + 1);
 
-		assertThrows(IllegalArgumentException.class, () -> gameService
-				.buyUpgrade(lobby, buyer.getUser().getUsername(), type));
+		assertThrows(IllegalArgumentException.class,
+				() -> gameService.buyUpgrade(lobby.getGameId(),
+						buyer.getUser().getUsername(), type));
 
 		assertEquals(type.getCost() - 1, buyer.getEnergy());
 		assertEquals(2, started.getUpgradeShop().getCards().size());
@@ -612,7 +611,7 @@ class GameServiceTest {
 		started.getUpgradeShop().restore(List.of(),
 				List.of(UpgradeType.BRAKES, UpgradeType.ZOOP));
 
-		gameService.buyUpgrade(lobby, buyer.getUser().getUsername(),
+		gameService.buyUpgrade(lobby.getGameId(), buyer.getUser().getUsername(),
 				UpgradeType.BRAKES);
 
 		assertEquals(List.of(UpgradeType.BRAKES), buyer.getUpgrades().getAll());
@@ -624,7 +623,8 @@ class GameServiceTest {
 		GameLobby lobby = startedLobby();
 
 		IllegalStateException error = assertThrows(IllegalStateException.class,
-				() -> gameService.makeChoice(lobby, "August", "LEFT_TURN"));
+				() -> gameService.makeChoice(lobby.getGameId(), "August",
+						"LEFT_TURN"));
 
 		assertEquals("The game is not in the ACTIVATION phase.",
 				error.getMessage());
@@ -646,7 +646,7 @@ class GameServiceTest {
 
 	private void skipUpgrades(GameLobby lobby, Game round) {
 		while (round.getCurrentBuyer().isPresent()) {
-			gameService.skipUpgrade(lobby,
+			gameService.skipUpgrade(lobby.getGameId(),
 					round.getCurrentBuyer().get().getUser().getUsername());
 		}
 	}

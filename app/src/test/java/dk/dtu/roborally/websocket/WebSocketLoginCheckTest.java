@@ -71,22 +71,20 @@ class WebSocketLoginCheckTest {
 	@Test
 	void aPlayerCanSubscribeToTheirOwnChannel() {
 		assertDoesNotThrow(() -> interceptor.preSend(
-				subscribe("/game/lobby/l1/player/alice", () -> "alice"), null));
+				subscribe("/game/g1/player/alice", () -> "alice"), null));
 		assertDoesNotThrow(() -> interceptor.preSend(
-				subscribe("/app/lobby/l1/player/alice", () -> "alice"), null));
+				subscribe("/app/game/g1/player/alice", () -> "alice"), null));
 	}
 
 	@Test
 	void aPlayerCannotSubscribeToSomeoneElsesChannel() {
-		assertThrows(MessagingException.class,
-				() -> interceptor.preSend(
-						subscribe("/game/lobby/l1/player/bob", () -> "alice"),
-						null));
+		assertThrows(MessagingException.class, () -> interceptor.preSend(
+				subscribe("/game/g1/player/bob", () -> "alice"), null));
 	}
 
 	@Test
 	void sharedChannelsAreStillOpen() {
-		assertDoesNotThrow(() -> interceptor.preSend(
-				subscribe("/game/lobby/l1/board", () -> "alice"), null));
+		assertDoesNotThrow(() -> interceptor
+				.preSend(subscribe("/game/g1/board", () -> "alice"), null));
 	}
 }
