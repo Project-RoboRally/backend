@@ -27,7 +27,7 @@ import java.util.Set;
  * register. They go in the rulebook's order and only affect robots standing on
  * them at that moment.
  *
- * @author Sebastian
+ * @author Sebastian, Elias
  */
 public final class BoardElements {
 
@@ -104,7 +104,7 @@ public final class BoardElements {
 			Direction direction = riding.get(player).getDirection();
 			player.getRobot().moveTo(targets.get(player));
 			if (!Movement.fallIfNeeded(game, player, from)) {
-				turnOntoCurve(game, player, direction);
+				turnIfRotatingBelt(player, riding.get(player));
 			}
 			moved = true;
 		}
@@ -122,18 +122,20 @@ public final class BoardElements {
 	}
 
 	/**
-	 * A belt carrying a robot onto a belt pointing another way is a curve, and
-	 * the robot turns with it.
+	 * Rotating (curved-arrow) belts turn the robot they carry 90°. Straight
+	 * belts never do, even if the next space is a curve or points another way.
+	 * Walking onto a curve does not turn the robot; only a belt move from a
+	 * curved space does.
 	 */
-	private static void turnOntoCurve(Game game, Player player,
-			Direction travelled) {
-		element(game, player, ConveyorBelt.class).ifPresent(belt -> {
-			if (belt.getDirection() == travelled.turnRight()) {
+	private static void turnIfRotatingBelt(Player player, ConveyorBelt belt) {
+		switch (belt.getType()) {
+			case BLUE_RIGHT_CURVE, GREEN_RIGHT_CURVE ->
 				player.getRobot().turnRight();
-			} else if (belt.getDirection() == travelled.turnLeft()) {
+			case BLUE_LEFT_CURVE, GREEN_LEFT_CURVE ->
 				player.getRobot().turnLeft();
+			case BLUE_STRAIGHT, GREEN_STRAIGHT -> {
 			}
-		});
+		}
 	}
 
 	/**
