@@ -11,6 +11,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.LaserEmitter;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
+import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.cards.ProgrammingCard;
 import dk.dtu.roborally.models.game.Game;
@@ -73,6 +74,17 @@ class LasersTest {
 
 		assertEquals(0, spam(behindWall));
 		assertEquals(0, spam(behindAntenna));
+	}
+
+	@Test
+	void aPushPanelStopsLasersLikeAWall() {
+		put(0, new LaserEmitter(new Vector2D(0, 0), Direction.EAST, 1));
+		put(1, new PushPanel(new Vector2D(1, 0), Direction.EAST, Set.of(1)));
+		Player behind = player("behind", 2, Direction.NORTH);
+
+		fire(game(behind));
+
+		assertEquals(0, spam(behind));
 	}
 
 	@Test
