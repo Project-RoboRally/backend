@@ -1,5 +1,9 @@
 package dk.dtu.roborally.loaders;
 
+/**
+ * @author Elias
+ */
+
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
@@ -56,7 +60,7 @@ class LevelLoaderTest {
 		PriorityAntenna antenna = board.getSpace(10, 17).getBoardElements()
 				.stream().filter(PriorityAntenna.class::isInstance)
 				.map(PriorityAntenna.class::cast).findFirst().orElseThrow();
-		assertEquals(Direction.NORTH, antenna.getFacing());
+		assertEquals(Direction.SOUTH, antenna.getFacing());
 	}
 
 	@Test
