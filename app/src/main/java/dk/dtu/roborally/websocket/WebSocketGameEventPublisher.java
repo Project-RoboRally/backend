@@ -93,8 +93,17 @@ public class WebSocketGameEventPublisher implements GameEventPublisher {
 	}
 
 	@Override
-	public void publishChoiceRequired(Game game) {
-		publishPlayerStates(game, PlayerGameStateDTO.CHOICE_REQUIRED);
+	public void publishChoiceRequired(Game game, RoundResult result) {
+		messagingTemplate.convertAndSend(boardTopic(game.getGameID()),
+				BoardDTO.from(game, result));
+
+		for (Player player : game.getPlayersInGame()) {
+			messagingTemplate.convertAndSend(
+					playerTopic(game.getGameID(),
+							player.getUser().getUsername()),
+					PlayerGameStateDTO.from(PlayerGameStateDTO.CHOICE_REQUIRED,
+							game, player, result));
+		}
 	}
 
 	private void publishPlayerStates(Game game, String type) {

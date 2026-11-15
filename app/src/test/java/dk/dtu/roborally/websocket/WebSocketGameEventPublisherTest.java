@@ -1,5 +1,9 @@
 package dk.dtu.roborally.websocket;
 
+/**
+ * @author Elias
+ */
+
 import dk.dtu.roborally.enums.CommandInstruction;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.GameStatus;
@@ -148,8 +152,12 @@ class WebSocketGameEventPublisherTest {
 		Game game = new Game("game-1", boardWithWall(), Set.of(alice));
 		game.getCurrentRound().ask(new PendingChoice(alice.getId(),
 				ChoiceType.WEASEL_ACTION, List.of("LEFT_TURN", "U_TURN")));
+		ProgrammingCard card = new ProgrammingCard(CommandInstruction.MOVE_1);
+		RoundResult result = new RoundResult(List.of(),
+				List.of(new RegisterReveal(0,
+						List.of(new PlayedCard("alice", card, 0, 0)))));
 
-		publisher.publishChoiceRequired(game);
+		publisher.publishChoiceRequired(game, result);
 
 		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
 				.forClass(PlayerGameStateDTO.class);
@@ -161,6 +169,8 @@ class WebSocketGameEventPublisherTest {
 		assertEquals(ChoiceType.WEASEL_ACTION, sent.getValue().choice().type());
 		assertEquals(List.of("LEFT_TURN", "U_TURN"),
 				sent.getValue().choice().options());
+		assertEquals(1, sent.getValue().board().registers().size());
+		assertEquals(0, sent.getValue().board().registers().get(0).register());
 	}
 
 	@Test
@@ -255,6 +265,38 @@ class WebSocketGameEventPublisherTest {
 		assertTrue(sent.getValue().playerMat().registers().stream()
 				.allMatch(register -> register.card() == null));
 		assertFalse(sent.getValue().players().toString().contains("MOVE_1"));
+		assertTrue(sent.getValue().players().stream()
+				.allMatch(player -> player.program().isEmpty()));
+	}
+
+	@Test
+	void activationRevealsEveryPlayersFullProgram() {
+		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
+		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
+				template);
+		Player alice = player("alice", PlayerColor.RED, 0, 0);
+		Player bob = player("bob", PlayerColor.BLUE, 1, 0);
+		Game game = new Game("game-1", boardWithWall(), Set.of(alice, bob));
+		bob.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
+		bob.getPlayerMat().getRegisters().get(1)
+				.setCard(new ProgrammingCard(CommandInstruction.LEFT_TURN));
+		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
+
+		publisher.publishChoiceRequired(game);
+
+		ArgumentCaptor<PlayerGameStateDTO> sent = ArgumentCaptor
+				.forClass(PlayerGameStateDTO.class);
+		verify(template).convertAndSend(eq("/game/game-1/player/alice"),
+				sent.capture());
+		var bobPublic = sent.getValue().players().stream()
+				.filter(player -> player.username().equals("bob")).findFirst()
+				.orElseThrow();
+		assertEquals(5, bobPublic.program().size());
+		assertEquals(new CardDTO("PROGRAMMING", "MOVE_1"),
+				bobPublic.program().get(0));
+		assertEquals(new CardDTO("PROGRAMMING", "LEFT_TURN"),
+				bobPublic.program().get(1));
 	}
 
 	@Test
