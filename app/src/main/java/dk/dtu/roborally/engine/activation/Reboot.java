@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * Brings back robots that fell off the board or into a pit, or played a worm.
  *
- * @author Sebastian
+ * @author Sebastian, Elias
  */
 public final class Reboot {
 
@@ -60,8 +60,8 @@ public final class Reboot {
 	}
 
 	/**
-	 * The registers from the current one on are discarded, cards and all, so
-	 * the robot does nothing more this round.
+	 * Remaining registers and the hand are discarded, cards and all, so the
+	 * robot does nothing more this round.
 	 */
 	private static void cancelProgram(Game game, Player player) {
 		int from = game.getCurrentRound().getCurrentRegisterIndex().orElse(0);
@@ -71,6 +71,7 @@ public final class Reboot {
 				register.setCard(null);
 			}
 		}
+		player.getPlayerMat().discardHand();
 	}
 
 	private static Direction startFacing(Game game, Vector2D start) {
