@@ -70,8 +70,8 @@ public final class Damage {
 	private static void deal(Game game, Player player, DamageInstruction type,
 			int amount, boolean onTopOfDeck) {
 		for (int i = 0; i < amount; i++) {
-			draw(game, player, type, onTopOfDeck).ifPresent(card -> give(player,
-					card, onTopOfDeck));
+			draw(game, player, type, onTopOfDeck)
+					.ifPresent(card -> give(player, card, onTopOfDeck));
 		}
 	}
 

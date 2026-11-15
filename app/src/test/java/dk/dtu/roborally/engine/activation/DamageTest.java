@@ -41,9 +41,10 @@ class DamageTest {
 	void outsideActivationAnEmptyPileTakesFromTheBiggestOtherPile() {
 		Player ada = player("ada");
 		Game game = game(ada);
-		game.getDamagePiles().restore(Map.of(DamageInstruction.SPAM, 0,
-				DamageInstruction.TROJAN_HORSE, 2, DamageInstruction.WORM, 5,
-				DamageInstruction.VIRUS, 1));
+		game.getDamagePiles()
+				.restore(Map.of(DamageInstruction.SPAM, 0,
+						DamageInstruction.TROJAN_HORSE, 2,
+						DamageInstruction.WORM, 5, DamageInstruction.VIRUS, 1));
 
 		Damage.take(game, ada, DamageInstruction.SPAM, 1);
 
@@ -58,9 +59,10 @@ class DamageTest {
 		Game game = game(ada);
 		game.getCurrentRound().startActivation();
 		game.getCurrentRound().startRegister(0, List.of(ada.getId()));
-		game.getDamagePiles().restore(Map.of(DamageInstruction.SPAM, 0,
-				DamageInstruction.TROJAN_HORSE, 2, DamageInstruction.WORM, 5,
-				DamageInstruction.VIRUS, 1));
+		game.getDamagePiles()
+				.restore(Map.of(DamageInstruction.SPAM, 0,
+						DamageInstruction.TROJAN_HORSE, 2,
+						DamageInstruction.WORM, 5, DamageInstruction.VIRUS, 1));
 
 		Damage.take(game, ada, DamageInstruction.SPAM, 1);
 
