@@ -86,6 +86,14 @@ public final class GameStateCodec {
 				(type, answer) -> stored.turnAnswers.put(type.name(), answer));
 		stored.refreshedTo = round.getRefreshedTo().map(Enum::name)
 				.orElse(null);
+		stored.executedInstructions = new HashMap<>();
+		round.getExecutedInstructions().forEach((playerId, byRegister) -> {
+			Map<String, List<String>> registers = new HashMap<>();
+			byRegister.forEach((register, plays) -> registers.put(
+					Integer.toString(register),
+					plays.stream().map(Enum::name).toList()));
+			stored.executedInstructions.put(playerId, registers);
+		});
 		stored.pickedUpgrade = round.getPickedUpgrade().map(Enum::name)
 				.orElse(null);
 		stored.programmingEndsAt = round.getTimer().getEndsAt()
@@ -166,6 +174,17 @@ public final class GameStateCodec {
 		if (stored.refreshedTo != null) {
 			game.getCurrentRound().setRefreshedTo(
 					CommandInstruction.valueOf(stored.refreshedTo));
+		}
+		if (stored.executedInstructions != null) {
+			Map<String, Map<Integer, List<CommandInstruction>>> executed = new HashMap<>();
+			stored.executedInstructions.forEach((playerId, byRegister) -> {
+				Map<Integer, List<CommandInstruction>> registers = new HashMap<>();
+				byRegister.forEach((register, plays) -> registers
+						.put(Integer.parseInt(register), plays.stream()
+								.map(CommandInstruction::valueOf).toList()));
+				executed.put(playerId, registers);
+			});
+			game.getCurrentRound().restoreExecutedInstructions(executed);
 		}
 		if (stored.pickedUpgrade != null) {
 			game.getCurrentRound().setPickedUpgrade(
@@ -376,6 +395,8 @@ public final class GameStateCodec {
 		private boolean weaponsPicked;
 		private Map<String, String> turnAnswers;
 		private String refreshedTo;
+		/** playerId -> register index -> executed instruction names. */
+		private Map<String, Map<String, List<String>>> executedInstructions;
 		private String pickedUpgrade;
 		private Long programmingEndsAt;
 		private Map<String, Integer> damagePiles;
