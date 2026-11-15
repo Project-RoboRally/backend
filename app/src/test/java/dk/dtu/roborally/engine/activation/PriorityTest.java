@@ -1,5 +1,9 @@
 package dk.dtu.roborally.engine.activation;
 
+/**
+ * @author Elias
+ */
+
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.models.User;
@@ -51,6 +55,19 @@ class PriorityTest {
 
 		assertEquals(List.of(rightOfLine, leftOfLine),
 				Priority.order(game(Direction.NORTH, leftOfLine, rightOfLine)));
+	}
+
+	@Test
+	void rulebookTieSweepsClockwiseFromASouthDish() {
+		// Same layout as the rulebook 5B example: antenna on the south edge,
+		// dish pointing at the starting docks. Green and yellow are equally
+		// far; red is farther. Clockwise from south hits west first.
+		Player green = player("zoom", 1, 2);
+		Player yellow = player("smash", 3, 2);
+		Player red = player("hulk", 5, 2);
+
+		assertEquals(List.of(green, yellow, red),
+				Priority.order(game(Direction.SOUTH, red, yellow, green)));
 	}
 
 	private static Game game(Direction dish, Player... players) {
