@@ -7,6 +7,7 @@ import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
+import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -21,7 +22,7 @@ import java.util.function.Consumer;
  * robots in front of them, and robots falling into pits or off the board
  * reboot.
  *
- * @author Sebastian
+ * @author Sebastian, Elias
  */
 public final class Movement {
 
@@ -192,6 +193,11 @@ public final class Movement {
 		}
 		for (BoardElement element : space.getBoardElements()) {
 			if (element instanceof Wall wall && wall.getSide() == side) {
+				return true;
+			}
+			// The panel sits on the wall it pushes away from
+			if (element instanceof PushPanel panel
+					&& panel.getPushDirection().uTurn() == side) {
 				return true;
 			}
 		}
