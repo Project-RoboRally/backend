@@ -4,6 +4,7 @@ import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.models.cards.DamageCard;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,14 +35,16 @@ class DamagePilesTest {
 	}
 
 	@Test
-	void anEmptyPileTakesFromTheBiggestOtherPile() {
+	void anEmptyPileDoesNotTakeAnotherType() {
 		DamagePiles piles = new DamagePiles();
 		piles.restore(Map.of(DamageInstruction.SPAM, 0,
 				DamageInstruction.TROJAN_HORSE, 2, DamageInstruction.WORM, 5,
 				DamageInstruction.VIRUS, 1));
 
-		assertEquals(DamageInstruction.WORM, piles.take(DamageInstruction.SPAM)
-				.orElseThrow().getInstruction());
+		assertEquals(Optional.empty(), piles.take(DamageInstruction.SPAM));
+		assertEquals(List.of(DamageInstruction.TROJAN_HORSE,
+				DamageInstruction.WORM, DamageInstruction.VIRUS),
+				piles.typesLeft());
 	}
 
 	@Test
