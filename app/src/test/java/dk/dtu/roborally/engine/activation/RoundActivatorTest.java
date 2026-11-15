@@ -111,6 +111,61 @@ class RoundActivatorTest {
 	}
 
 	@Test
+	void againAfterAHackedSandboxReplaysTheSecondAction() {
+		Player ada = player("ada", 1, 1, Direction.NORTH);
+		Game game = game(ada);
+		ada.getUpgrades().install(UpgradeType.HACK, null);
+		ada.getPlayerMat().getRegisters().get(0).setCard(
+				new ProgrammingCard(CommandInstruction.SANDBOX_ROUTINE));
+		ada.getPlayerMat().getRegisters().get(1)
+				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
+		for (int i = 2; i < 5; i++) {
+			ada.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(CommandInstruction.POWER_UP));
+		}
+
+		activator.activate(game);
+		game.getCurrentRound().answer("ada", "HACK");
+		activator.activate(game);
+		game.getCurrentRound().answer("ada", "LEFT_TURN");
+		activator.activate(game);
+
+		// Sandbox left twice under Hack (N→W→S), Again replays the second left
+		assertTrue(game.getCurrentRound().getPendingChoice().isEmpty());
+		assertEquals(Direction.EAST, ada.getRobot().getOrientation());
+		assertEquals(8, ada.getEnergy());
+	}
+
+	@Test
+	void againAfterAHackedMoveRepeatsTheMoveOnce() {
+		Player ada = player("ada", 0, 1, Direction.EAST);
+		Map<Vector2D, Space> spaces = new HashMap<>();
+		for (int x = 0; x < 4; x++) {
+			for (int y = 0; y < 3; y++) {
+				spaces.put(new Vector2D(x, y), new Space(new Vector2D(x, y)));
+			}
+		}
+		Game game = new Game("game", new Board(spaces), Set.of(ada));
+		ada.getUpgrades().install(UpgradeType.HACK, null);
+		ada.getPlayerMat().getRegisters().get(0)
+				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
+		ada.getPlayerMat().getRegisters().get(1)
+				.setCard(new ProgrammingCard(CommandInstruction.AGAIN));
+		for (int i = 2; i < 5; i++) {
+			ada.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(CommandInstruction.POWER_UP));
+		}
+
+		activator.activate(game);
+		game.getCurrentRound().answer("ada", "HACK");
+		activator.activate(game);
+
+		// Move 1 twice from Hack, once from Again
+		assertEquals(new Vector2D(3, 1), ada.getRobot().getCurrentSpace());
+		assertEquals(8, ada.getEnergy());
+	}
+
+	@Test
 	void spamGoesBackToItsPileAndTheTopCardIsPlayedInstead() {
 		Player ada = player("ada", 1, 2, Direction.NORTH);
 		Game game = game(ada);
