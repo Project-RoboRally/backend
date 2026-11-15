@@ -1,5 +1,9 @@
 package dk.dtu.roborally.engine.services;
 
+/**
+ * @author Elias
+ */
+
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.engine.activation.Priority;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
@@ -116,7 +120,7 @@ class GameServiceTest {
 			}
 
 			@Override
-			public void publishChoiceRequired(Game game) {
+			public void publishChoiceRequired(Game game, RoundResult result) {
 				choiceGameIds.add(game.getGameID());
 			}
 
