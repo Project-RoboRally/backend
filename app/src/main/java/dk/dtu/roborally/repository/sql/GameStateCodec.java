@@ -19,6 +19,7 @@ import dk.dtu.roborally.models.cards.ProgrammableCard;
 import dk.dtu.roborally.models.cards.UpgradeCard;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.game.PendingChoice;
+import dk.dtu.roborally.models.game.QueuedDamage;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.player.Player;
@@ -70,6 +71,13 @@ public final class GameStateCodec {
 		stored.activated = round.getActivatedCount();
 		stored.choice = storeChoice(round);
 		stored.rebootsToFace = round.getRebootsToFace();
+		stored.damageDraws = new ArrayList<>();
+		for (QueuedDamage draw : round.getDamageDraws()) {
+			StoredDamageDraw storedDraw = new StoredDamageDraw();
+			storedDraw.playerId = draw.playerId();
+			storedDraw.onTopOfDeck = draw.onTopOfDeck();
+			stored.damageDraws.add(storedDraw);
+		}
 		stored.chassisSwaps = round.getChassisSwaps();
 		stored.usedAtRegisterStart = new HashMap<>();
 		round.getUsedAtRegisterStart().forEach((id,
@@ -195,6 +203,13 @@ public final class GameStateCodec {
 		}
 		if (stored.rebootsToFace != null) {
 			game.getCurrentRound().restoreRebootsToFace(stored.rebootsToFace);
+		}
+		if (stored.damageDraws != null) {
+			List<QueuedDamage> draws = new ArrayList<>();
+			for (StoredDamageDraw draw : stored.damageDraws) {
+				draws.add(new QueuedDamage(draw.playerId, draw.onTopOfDeck));
+			}
+			game.getCurrentRound().restoreDamageDraws(draws);
 		}
 		if (stored.choice != null) {
 			game.getCurrentRound()
@@ -384,6 +399,7 @@ public final class GameStateCodec {
 		private int activated;
 		private StoredChoice choice;
 		private List<String> rebootsToFace;
+		private List<StoredDamageDraw> damageDraws;
 		private List<List<String>> chassisSwaps;
 		private Map<String, List<String>> usedAtRegisterStart;
 		private List<String> startDone;
@@ -403,6 +419,11 @@ public final class GameStateCodec {
 		private Map<String, Integer> energyCubes;
 		private StoredShop shop;
 		private List<StoredPlayer> players;
+	}
+
+	private static final class StoredDamageDraw {
+		private String playerId;
+		private boolean onTopOfDeck;
 	}
 
 	private static final class StoredChoice {

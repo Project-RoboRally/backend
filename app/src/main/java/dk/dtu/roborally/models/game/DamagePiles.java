@@ -2,8 +2,9 @@ package dk.dtu.roborally.models.game;
 
 import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.models.cards.DamageCard;
-import java.util.Comparator;
+import java.util.Arrays;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -12,7 +13,7 @@ import java.util.Optional;
  * The four damage piles next to the board. Every card in a pile is the same, so
  * a pile is just a count.
  *
- * @author Sebastian
+ * @author Sebastian, Elias
  */
 public class DamagePiles {
 
@@ -29,24 +30,22 @@ public class DamagePiles {
 		return piles.get(type);
 	}
 
+	/** Types that still have at least one card, in enum order. */
+	public List<DamageInstruction> typesLeft() {
+		return Arrays.stream(DamageInstruction.values())
+				.filter(type -> size(type) > 0).toList();
+	}
+
 	/**
-	 * Takes a card from the given pile. The rulebook has the player pick
-	 * another type when a pile runs out, we take from the biggest pile left.
-	 * Empty only when every pile is empty.
+	 * Takes a card from the given pile. Empty when that pile has run out; the
+	 * player then picks another type.
 	 */
 	public Optional<DamageCard> take(DamageInstruction type) {
-		DamageInstruction from = type;
 		if (size(type) == 0) {
-			from = piles.entrySet().stream()
-					.max(Comparator.comparingInt(Map.Entry::getValue))
-					.filter(pile -> pile.getValue() > 0).map(Map.Entry::getKey)
-					.orElse(null);
-			if (from == null) {
-				return Optional.empty();
-			}
+			return Optional.empty();
 		}
-		piles.merge(from, -1, Integer::sum);
-		return Optional.of(new DamageCard(from));
+		piles.merge(type, -1, Integer::sum);
+		return Optional.of(new DamageCard(type));
 	}
 
 	/** Puts a played or discarded damage card back on its pile. */

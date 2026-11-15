@@ -74,7 +74,8 @@ public class RoundActivator {
 			startRegister(game, 0);
 		}
 		while (round.isActivating() && round.getPendingChoice().isEmpty()) {
-			if (!faceRebootedRobots(game) || !PushUpgrades.swapChassis(game)) {
+			if (!Damage.giveQueued(game) || !faceRebootedRobots(game)
+					|| !PushUpgrades.swapChassis(game)) {
 				break;
 			}
 			if (game.getGameStatus() == GameStatus.FINISHED) {

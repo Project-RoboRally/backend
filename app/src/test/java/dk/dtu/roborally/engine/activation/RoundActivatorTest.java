@@ -166,6 +166,34 @@ class RoundActivatorTest {
 	}
 
 	@Test
+	void anEmptyDamagePileLetsThePlayerPickAnotherType() {
+		Player ada = player("ada", 2, 1, Direction.EAST);
+		Game game = game(ada);
+		game.getDamagePiles()
+				.restore(Map.of(DamageInstruction.SPAM, 0,
+						DamageInstruction.TROJAN_HORSE, 2,
+						DamageInstruction.WORM, 5, DamageInstruction.VIRUS, 1));
+		program(ada, CommandInstruction.MOVE_1, CommandInstruction.POWER_UP);
+
+		activator.activate(game);
+
+		PendingChoice choice = game.getCurrentRound().getPendingChoice()
+				.orElseThrow();
+		assertEquals(ChoiceType.DAMAGE_TYPE, choice.type());
+		assertEquals(List.of("TROJAN_HORSE", "WORM", "VIRUS"),
+				choice.options());
+
+		game.getCurrentRound().answer("ada", "WORM");
+		activator.activate(game);
+		game.getCurrentRound().answer("ada", "VIRUS");
+		activator.activate(game);
+
+		assertEquals(1, count(ada, "WORM"));
+		assertEquals(1, count(ada, "VIRUS"));
+		assertEquals(0, count(ada, "SPAM"));
+	}
+
+	@Test
 	void spamGoesBackToItsPileAndTheTopCardIsPlayedInstead() {
 		Player ada = player("ada", 1, 2, Direction.NORTH);
 		Game game = game(ada);

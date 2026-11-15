@@ -102,6 +102,11 @@ public class Round {
 	/** Player ids of rebooted robots that still have to pick a facing. */
 	private final List<String> rebootsToFace = new ArrayList<>();
 
+	/**
+	 * Damage cards waiting for another type because their pile was empty.
+	 */
+	private final List<QueuedDamage> damageDraws = new ArrayList<>();
+
 	/** Moves on to the next round of the game. */
 	public void beginNext() {
 		number++;
@@ -408,6 +413,26 @@ public class Round {
 		swaps.forEach(swap -> chassisSwaps.add(List.copyOf(swap)));
 	}
 
+	public void addDamageDraw(String playerId, boolean onTopOfDeck) {
+		damageDraws.add(new QueuedDamage(playerId, onTopOfDeck));
+	}
+
+	public List<QueuedDamage> getDamageDraws() {
+		return List.copyOf(damageDraws);
+	}
+
+	public void removeFirstDamageDraw() {
+		if (!damageDraws.isEmpty()) {
+			damageDraws.remove(0);
+		}
+	}
+
+	/** Puts back queued damage draws loaded from storage. */
+	public void restoreDamageDraws(List<QueuedDamage> draws) {
+		damageDraws.clear();
+		damageDraws.addAll(draws);
+	}
+
 	public void addRebootToFace(String playerId) {
 		rebootsToFace.add(playerId);
 	}
@@ -449,5 +474,6 @@ public class Round {
 		activated = 0;
 		choice = null;
 		answer = null;
+		damageDraws.clear();
 	}
 }
