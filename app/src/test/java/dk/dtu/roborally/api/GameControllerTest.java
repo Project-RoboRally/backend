@@ -2,6 +2,7 @@ package dk.dtu.roborally.api;
 
 import dk.dtu.roborally.api.controllers.GameController;
 import dk.dtu.roborally.engine.services.GameService;
+import dk.dtu.roborally.engine.services.PresenceService;
 import dk.dtu.roborally.engine.services.SessionService;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.models.User;
@@ -45,6 +46,11 @@ class GameControllerTest {
 		@Bean
 		GameService gameService() {
 			return mock(GameService.class);
+		}
+
+		@Bean
+		PresenceService presenceService() {
+			return mock(PresenceService.class);
 		}
 	}
 

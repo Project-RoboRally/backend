@@ -206,6 +206,13 @@ public class GameService {
 			return;
 		}
 
+		int kicked = game.applyPendingKicks();
+		if (kicked > 0 && game.getPlayersInGame().size() == 1) {
+			endAsWinner(game, game.getPlayersInGame().iterator().next(),
+					result);
+			return;
+		}
+
 		for (Player player : game.getPlayersInGame()) {
 			player.getPlayerMat().clearProgram();
 		}
@@ -352,6 +359,71 @@ public class GameService {
 	/** Runs the activation phase of the round. */
 	RoundResult activateRound(Game game) {
 		return roundActivator.activate(game);
+	}
+
+	/**
+	 * Votes an offline player out. During activation the robot stays until the
+	 * round is over, so the rest of the round can run as usual. If only one
+	 * player is left afterwards, they win.
+	 */
+	public synchronized void kickPlayer(String gameId, String username) {
+		Game game = getGame(gameId);
+		if (game.getGameStatus() == GameStatus.FINISHED) {
+			throw new IllegalStateException("The game has already finished.");
+		}
+		Player player = findPlayer(game, username);
+		if (game.getCurrentRound().getCurrentPhase() == Phase.ACTIVATION
+				&& game.getCurrentRound().isActivating()) {
+			game.queueKick(player);
+			gameRepository.update(game);
+			return;
+		}
+		game.removePlayer(player);
+		afterKick(game);
+	}
+
+	private void afterKick(Game game) {
+		List<Player> remaining = List.copyOf(game.getPlayersInGame());
+		if (remaining.size() == 1) {
+			endAsWinner(game, remaining.getFirst(), RoundResult.NONE);
+			return;
+		}
+		Round round = game.getCurrentRound();
+		switch (round.getCurrentPhase()) {
+			case PROGRAMMING -> {
+				boolean everyoneSubmitted = remaining.stream()
+						.allMatch(left -> left.getPlayerMat().isSubmitted());
+				if (everyoneSubmitted) {
+					startActivation(game);
+				} else {
+					gameRepository.update(game);
+					gameEventPublisher.publishProgrammingStarted(game);
+				}
+			}
+			case UPGRADE -> {
+				if (game.getCurrentBuyer().isEmpty()) {
+					startProgrammingPhase(game);
+					gameRepository.update(game);
+					gameEventPublisher.publishProgrammingStarted(game);
+				} else {
+					gameRepository.update(game);
+					gameEventPublisher.publishUpgradeTurn(game);
+				}
+			}
+			default -> {
+				gameRepository.update(game);
+				gameEventPublisher.publishBoard(game);
+			}
+		}
+	}
+
+	private void endAsWinner(Game game, Player winner, RoundResult result) {
+		game.setWinner(winner);
+		game.setGameStatus(GameStatus.FINISHED);
+		game.getCurrentRound().setCurrentPhase(Phase.ENDED);
+		gameRepository.update(game);
+		gameEventPublisher.publishStatus(game);
+		gameEventPublisher.publishRound(game, result);
 	}
 
 	private Player findPlayer(Game game, String username) {
