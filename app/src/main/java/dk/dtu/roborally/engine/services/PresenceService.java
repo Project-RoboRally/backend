@@ -19,8 +19,8 @@ import java.util.TreeSet;
 
 /**
  * Keeps track of which players in a game are still connected, and of votes to
- * kick offline players. Clients send a health ping every {@link #TICK_MILLIS}
- * ms and {@link #tick()} runs just as often. After the first miss the player is
+ * kick offline players. Clients send a health ping every {@link #TICK_MS} ms
+ * and {@link #tick()} runs just as often. After the first miss the player is
  * asked {@code ARE YOU THERE}; a player who then misses
  * {@link #MISSES_BEFORE_OFFLINE} ticks in a row is offline until their next
  * ping.
@@ -29,14 +29,18 @@ import java.util.TreeSet;
  */
 public class PresenceService {
 
-	public static final long TICK_MILLIS = 10_000;
-	public static final int MISSES_BEFORE_OFFLINE = 2;
+	public static final long TICK_MS = 10_000;
+	public static final int MISSES_BEFORE_OFFLINE = 2; // How many pings to be
+														// missed before going
+														// offline
 
 	private final GameService gameService;
 	private final PresencePublisher publisher;
 	/** Game id to username to health, for games someone has pinged in. */
 	private final Map<String, Map<String, Health>> games = new HashMap<>();
-	private final Map<String, Vote> votes = new HashMap<>();
+	private final Map<String, Vote> votes = new HashMap<>(); // Votes for
+																// kicking a
+																// player
 
 	public PresenceService(GameService gameService,
 			PresencePublisher publisher) {
