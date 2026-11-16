@@ -31,13 +31,16 @@ public class ConveyorBelt extends BoardElement {
 	private Direction convergingDirection;
 
 	public ConveyorBelt(Vector2D position, int length, Direction direction,
-			Direction convergingDirection,
-			ConveyorBeltType type) {
+			Direction convergingDirection, ConveyorBeltType type) {
 		this.direction = direction;
 		this.type = type;
 		this.position = position;
 		this.length = length;
-		this.convergingDirection = convergingDirection;
+		this.convergingDirection = convergingDirection; // is set on the
+														// incoming belt and
+														// indicates the
+														// direction of the belt
+														// it joins.
 	}
 
 	public ConveyorBelt(Vector2D position, int length, Direction direction,

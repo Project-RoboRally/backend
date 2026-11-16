@@ -81,21 +81,21 @@ public class BoardActivationService {
 
 			int moveCount = blue ? 2 : 1;
 			boolean moved = false;
-			List<Direction> convergingDirections = new ArrayList<>();
+			Direction convergingDirection = null;
 			for (int i = 0; i < moveCount; i++) {
 				if (!moveRobot(player, belt.getDirection(), players, board)) {
 					break;
 				}
 				moved = true;
-				Direction destinationDirection = convergingDirectionAt(
-						spaces.get(player.getRobot().getCurrentSpace()), belt);
-				if (destinationDirection != null) {
-					convergingDirections.add(destinationDirection);
+				if (convergingDirection == null) {
+					convergingDirection = convergingDirectionAt(
+							spaces.get(player.getRobot().getCurrentSpace()),
+							belt);
 				}
 			}
 			if (moved) {
 				rotateForConveyor(player.getRobot(), belt);
-				for (Direction convergingDirection : convergingDirections) {
+				if (convergingDirection != null) {
 					turnForConvergence(player.getRobot(), belt,
 							convergingDirection);
 				}
@@ -107,15 +107,15 @@ public class BoardActivationService {
 
 	private Direction convergingDirectionAt(Space space,
 			ConveyorBelt movingBelt) {
-		if (space == null) {
+		Direction convergingDirection = movingBelt.getConvergingDirection();
+		if (space == null || convergingDirection == null
+				|| convergingDirection == Direction.NONE) {
 			return null;
 		}
 		for (BoardElement element : space.getBoardElements()) {
 			if (element instanceof ConveyorBelt targetBelt
-					&& targetBelt != movingBelt
-					&& targetBelt.getConvergingDirection() != null
-					&& targetBelt.getConvergingDirection() != Direction.NONE) {
-				return targetBelt.getConvergingDirection();
+					&& targetBelt != movingBelt) {
+				return convergingDirection;
 			}
 		}
 		return null;

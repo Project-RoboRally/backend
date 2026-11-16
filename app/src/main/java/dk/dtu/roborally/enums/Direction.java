@@ -9,7 +9,7 @@ import dk.dtu.roborally.models.board.Vector2D;
  * @author August, Matthias, Sebastian, Victor
  */
 public enum Direction {
-	NORTH(0, -1), EAST(1, 0), SOUTH(0, 1), WEST(-1, 0), NONE (0,0);
+	NORTH(0, -1), EAST(1, 0), SOUTH(0, 1), WEST(-1, 0), NONE(0, 0);
 
 	private final Vector2D step;
 
@@ -37,7 +37,7 @@ public enum Direction {
 		if (this == NONE) {
 			return NONE;
 		}
-		Direction[] directions = { NORTH, EAST, SOUTH, WEST };
+		Direction[] directions = {NORTH, EAST, SOUTH, WEST};
 		return directions[(ordinal() + quarterTurns) % directions.length];
 	}
 }

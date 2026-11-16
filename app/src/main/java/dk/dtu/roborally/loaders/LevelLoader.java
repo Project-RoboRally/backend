@@ -114,9 +114,13 @@ public class LevelLoader {
 
 		Direction dir = parse(Direction.class, belt.direction,
 				"conveyor belt direction");
-		Direction convergingDirection = belt.converging_direction == null ? Direction.NONE : parse(Direction.class, belt.converging_direction, "converging direction");
+		Direction convergingDirection = belt.converging_direction == null
+				? Direction.NONE
+				: parse(Direction.class, belt.converging_direction,
+						"converging direction");
 		Vector2D position = new Vector2D(belt.x, belt.y);
-		ConveyorBelt cb = new ConveyorBelt(position, belt.length, dir, convergingDirection, cbt);
+		ConveyorBelt cb = new ConveyorBelt(position, belt.length, dir,
+				convergingDirection, cbt);
 		// One belt object covers every space it runs over
 		for (int i = 0; i < belt.length; i++) {
 			getSpaceAt(spaceMap, position).addBoardElement(cb);

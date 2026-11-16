@@ -12,6 +12,7 @@ import dk.dtu.roborally.enums.ConveyorBeltType;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.enums.RotationDirection;
+import dk.dtu.roborally.loaders.LevelLoader;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
@@ -24,6 +25,13 @@ import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.player.Player;
 import dk.dtu.roborally.models.player.Robot;
+
+/**
+ * Test for Board ActivationService. Activates board elements for a register
+ * after all players have executed their programming cards.
+ *
+ * @author Victor
+ */
 
 class BoardActivationServiceTest {
 
@@ -105,11 +113,11 @@ class BoardActivationServiceTest {
 		Map<Vector2D, Space> spaces = horizontalSpaces(2);
 		spaces.get(new Vector2D(0, 0))
 				.addBoardElement(new ConveyorBelt(new Vector2D(0, 0), 1,
-						Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT));
+						Direction.EAST, Direction.SOUTH,
+						ConveyorBeltType.GREEN_STRAIGHT));
 		spaces.get(new Vector2D(1, 0))
 				.addBoardElement(new ConveyorBelt(new Vector2D(1, 0), 1,
-						Direction.SOUTH, Direction.SOUTH,
-						ConveyorBeltType.GREEN_STRAIGHT));
+						Direction.SOUTH, ConveyorBeltType.GREEN_STRAIGHT));
 		Player player = player("player", new Vector2D(0, 0), Direction.NORTH);
 
 		service.activateRegister(0, List.of(player), new Board(spaces));
@@ -123,17 +131,27 @@ class BoardActivationServiceTest {
 		Map<Vector2D, Space> spaces = horizontalSpaces(2);
 		spaces.get(new Vector2D(0, 0))
 				.addBoardElement(new ConveyorBelt(new Vector2D(0, 0), 1,
-						Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT));
+						Direction.EAST, Direction.NORTH,
+						ConveyorBeltType.GREEN_STRAIGHT));
 		spaces.get(new Vector2D(1, 0))
 				.addBoardElement(new ConveyorBelt(new Vector2D(1, 0), 1,
-						Direction.NORTH, Direction.NORTH,
-						ConveyorBeltType.GREEN_STRAIGHT));
+						Direction.NORTH, ConveyorBeltType.GREEN_STRAIGHT));
 		Player player = player("player", new Vector2D(0, 0), Direction.NORTH);
 
 		service.activateRegister(0, List.of(player), new Board(spaces));
 
 		assertEquals(new Vector2D(1, 0), player.getRobot().getCurrentSpace());
 		assertEquals(Direction.WEST, player.getRobot().getOrientation());
+	}
+
+	@Test
+	void dizzyHighwayConvergenceTurnsRobot() {
+		Board board = LevelLoader.load("levels/dizzy_highway.json");
+		Player player = player("player", new Vector2D(4, 7), Direction.SOUTH);
+
+		service.activateRegister(0, List.of(player), board);
+
+		assertEquals(Direction.EAST, player.getRobot().getOrientation());
 	}
 
 	@Test
