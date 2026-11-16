@@ -41,7 +41,7 @@ public class PresenceController {
 				presenceService.vote(gameId));
 	}
 
-	@Scheduled(fixedRate = PresenceService.TICK_MILLIS)
+	@Scheduled(fixedRate = PresenceService.TICK_MS)
 	public void tick() {
 		presenceService.tick();
 	}
