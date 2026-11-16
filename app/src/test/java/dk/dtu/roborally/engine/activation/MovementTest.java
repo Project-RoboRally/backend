@@ -8,6 +8,7 @@ import dk.dtu.roborally.models.board.Space;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
+import dk.dtu.roborally.models.board.elements.PushPanel;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -112,6 +113,25 @@ class MovementTest {
 		assertEquals(new Vector2D(5, 5), bob.getRobot().getCurrentSpace());
 		assertTrue(bob.getRobot().isRebootedThisRound());
 		assertEquals(2, bob.getPlayerMat().getDiscardPile().size());
+	}
+
+	@Test
+	void aPushPanelBlocksTheWallItPushesAwayFrom() {
+		row(3);
+		spaces.get(new Vector2D(1, 0)).addBoardElement(
+				new PushPanel(new Vector2D(1, 0), Direction.EAST, Set.of(1)));
+		Player fromTheWall = player("wall", 0, Direction.EAST);
+		Player fromTheOpenSide = player("open", 2, Direction.WEST);
+
+		assertFalse(
+				Movement.step(game(fromTheWall), fromTheWall, Direction.EAST));
+		assertEquals(new Vector2D(0, 0),
+				fromTheWall.getRobot().getCurrentSpace());
+
+		assertTrue(Movement.step(game(fromTheOpenSide), fromTheOpenSide,
+				Direction.WEST));
+		assertEquals(new Vector2D(1, 0),
+				fromTheOpenSide.getRobot().getCurrentSpace());
 	}
 
 	@Test
