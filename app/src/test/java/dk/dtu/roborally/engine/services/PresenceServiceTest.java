@@ -2,6 +2,7 @@ package dk.dtu.roborally.engine.services;
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
+import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.game.Game;
@@ -19,6 +20,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -29,6 +32,7 @@ class PresenceServiceTest {
 	private Game game;
 	private String gameId;
 	private final List<List<PlayerPresence>> published = new ArrayList<>();
+	private final List<List<String>> asked = new ArrayList<>();
 
 	@BeforeEach
 	void setUp() {
@@ -50,7 +54,10 @@ class PresenceServiceTest {
 		gameId = lobby.getGameId();
 		game = gameService.getGame(gameId);
 		presence = new PresenceService(gameService,
-				(id, players) -> published.add(players));
+				(id, players, ask, vote) -> {
+					published.add(players);
+					asked.add(ask);
+				});
 		// A client subscribing to the presence starts tracking the game
 		presence.presence(gameId);
 	}
@@ -66,6 +73,25 @@ class PresenceServiceTest {
 		presence.tick();
 
 		assertTrue(find("Alice").online());
+	}
+
+	@Test
+	void theLastMissBeforeOfflineAsksIfThePlayerIsThere() {
+		presence.tick();
+
+		assertTrue(asked.get(0).contains("Alice"));
+		assertTrue(asked.get(0).contains("August"));
+		assertTrue(find("Alice").online());
+	}
+
+	@Test
+	void answeringTheAskKeepsThePlayerOnline() {
+		presence.tick();
+		presence.recordPing(gameId, "Alice");
+		presence.tick();
+
+		assertTrue(find("Alice").online());
+		assertFalse(asked.get(1).contains("Alice"));
 	}
 
 	@Test
@@ -145,10 +171,102 @@ class PresenceServiceTest {
 		assertFalse(find("Alice").blocking());
 	}
 
+	@Test
+	void kickingTheOnlyOtherPlayerWinsTheGame() {
+		presence.recordPing(gameId, "August");
+		presence.tick();
+		presence.recordPing(gameId, "August");
+		presence.tick();
+
+		presence.startKickVote(gameId, "August", "Alice");
+
+		assertFalse(stillInGame("Alice"));
+		assertEquals("August", game.getWinner().getUser().getUsername());
+		assertEquals(GameStatus.FINISHED, game.getGameStatus());
+	}
+
+	@Test
+	void everyOnlinePlayerMustVoteYesToKick() {
+		threePlayerGame();
+		presence.recordPing(gameId, "August");
+		presence.recordPing(gameId, "Bob");
+		presence.tick();
+		presence.recordPing(gameId, "August");
+		presence.recordPing(gameId, "Bob");
+		presence.tick();
+
+		presence.startKickVote(gameId, "August", "Alice");
+
+		assertTrue(stillInGame("Alice"));
+		assertEquals("Alice", presence.vote(gameId).target());
+
+		presence.voteOnKick(gameId, "Bob", true);
+
+		assertFalse(stillInGame("Alice"));
+		assertEquals(2, game.getPlayersInGame().size());
+		assertNull(game.getWinner());
+	}
+
+	@Test
+	void aNoVoteCancelsTheKick() {
+		threePlayerGame();
+		presence.recordPing(gameId, "August");
+		presence.recordPing(gameId, "Bob");
+		presence.tick();
+		presence.recordPing(gameId, "August");
+		presence.recordPing(gameId, "Bob");
+		presence.tick();
+
+		presence.startKickVote(gameId, "August", "Alice");
+		presence.voteOnKick(gameId, "Bob", false);
+
+		assertTrue(stillInGame("Alice"));
+		assertNull(presence.vote(gameId));
+	}
+
+	@Test
+	void anOnlinePlayerCannotBeKicked() {
+		assertThrows(IllegalStateException.class,
+				() -> presence.startKickVote(gameId, "August", "Alice"));
+	}
+
+	private void threePlayerGame() {
+		InMemoryUserRepository users = new InMemoryUserRepository();
+		users.add(new User("August"));
+		users.add(new User("Alice"));
+		users.add(new User("Bob"));
+		GameService gameService = new GameService(new InMemoryGameRepository(),
+				new SilentPublisher());
+		LobbyService lobbyService = new LobbyService(
+				new InMemoryLobbyRepository(), users, gameService);
+		GameLobby lobby = lobbyService
+				.createLobby(new CreateLobbyDTO("Lobby", "August"));
+		lobbyService.joinLobby(lobby.getLobbyId(), "Alice");
+		lobbyService.joinLobby(lobby.getLobbyId(), "Bob");
+		lobbyService.setReady(lobby.getLobbyId(), "Alice", true);
+		lobbyService.setReady(lobby.getLobbyId(), "Bob", true);
+		lobbyService.startGame(lobby.getLobbyId(), "August");
+		gameId = lobby.getGameId();
+		game = gameService.getGame(gameId);
+		published.clear();
+		asked.clear();
+		presence = new PresenceService(gameService,
+				(id, players, ask, vote) -> {
+					published.add(players);
+					asked.add(ask);
+				});
+		presence.presence(gameId);
+	}
+
 	private PlayerPresence find(String username) {
 		return presence.presence(gameId).stream()
 				.filter(p -> p.username().equals(username)).findFirst()
 				.orElseThrow();
+	}
+
+	private boolean stillInGame(String username) {
+		return game.getPlayersInGame().stream().anyMatch(
+				player -> player.getUser().getUsername().equals(username));
 	}
 
 	private static class SilentPublisher implements GameEventPublisher {

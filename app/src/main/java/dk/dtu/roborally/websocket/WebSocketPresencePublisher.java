@@ -1,6 +1,7 @@
 package dk.dtu.roborally.websocket;
 
 import dk.dtu.roborally.engine.publishers.PresencePublisher;
+import dk.dtu.roborally.models.game.KickVote;
 import dk.dtu.roborally.models.game.PlayerPresence;
 import dk.dtu.roborally.websocket.dto.PresenceDTO;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -18,8 +19,7 @@ public class WebSocketPresencePublisher implements PresencePublisher {
 
 	private final SimpMessagingTemplate messagingTemplate;
 
-	public WebSocketPresencePublisher(
-			SimpMessagingTemplate messagingTemplate) {
+	public WebSocketPresencePublisher(SimpMessagingTemplate messagingTemplate) {
 		this.messagingTemplate = messagingTemplate;
 	}
 
@@ -28,8 +28,9 @@ public class WebSocketPresencePublisher implements PresencePublisher {
 	}
 
 	@Override
-	public void publishPresence(String gameId, List<PlayerPresence> players) {
+	public void publishPresence(String gameId, List<PlayerPresence> players,
+			List<String> ask, KickVote vote) {
 		messagingTemplate.convertAndSend(presenceTopic(gameId),
-				new PresenceDTO(players));
+				new PresenceDTO(players, ask, vote));
 	}
 }

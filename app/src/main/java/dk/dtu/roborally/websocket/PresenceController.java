@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
 
 import java.security.Principal;
+import java.util.List;
 
 /**
  * Receives health pings on {@code /app/health/{gameId}} and replies with the
@@ -18,11 +19,11 @@ import java.security.Principal;
  * @author Elias
  */
 @Controller
-public class HealthController {
+public class PresenceController {
 
 	private final PresenceService presenceService;
 
-	public HealthController(PresenceService presenceService) {
+	public PresenceController(PresenceService presenceService) {
 		this.presenceService = presenceService;
 	}
 
@@ -36,7 +37,8 @@ public class HealthController {
 
 	@SubscribeMapping("/game/{gameId}/presence")
 	public PresenceDTO presence(@DestinationVariable String gameId) {
-		return new PresenceDTO(presenceService.presence(gameId));
+		return new PresenceDTO(presenceService.presence(gameId), List.of(),
+				presenceService.vote(gameId));
 	}
 
 	@Scheduled(fixedRate = PresenceService.TICK_MILLIS)
