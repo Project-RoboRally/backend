@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +40,7 @@ public class Game {
 	@Getter
 	private final DamagePiles damagePiles = new DamagePiles();
 	private final Deque<Player> upgradeOrder = new ArrayDeque<>();
+	private final List<Player> pendingKicks = new ArrayList<>();
 
 	public Game(String gameID, Board board, Set<Player> players) {
 		this.gameID = gameID;
@@ -64,5 +66,56 @@ public class Game {
 
 	public void endUpgradeTurn() {
 		upgradeOrder.pollFirst();
+	}
+
+	public void removeFromUpgradeOrder(Player player) {
+		upgradeOrder.removeIf(buyer -> buyer.getId().equals(player.getId()));
+	}
+
+	/**
+	 * Remember to take this robot off after the current activation finishes, so
+	 * the round can run with the usual player list.
+	 */
+	public void queueKick(Player player) {
+		if (!pendingKicks.contains(player)) {
+			pendingKicks.add(player);
+		}
+	}
+
+	/** Takes queued robots out of the game. Returns how many were removed. */
+	public int applyPendingKicks() {
+		int removed = pendingKicks.size();
+		for (Player player : List.copyOf(pendingKicks)) {
+			removePlayer(player);
+		}
+		pendingKicks.clear();
+		return removed;
+	}
+
+	/** Takes the player and their robot out of the game. */
+	public void removePlayer(Player player) {
+		playersInGame.remove(player);
+		pendingKicks.remove(player);
+		removeFromUpgradeOrder(player);
+	}
+
+	/** True if the game can not go on until the given player acts. */
+	public boolean isWaitingOn(Player player) {
+		if (gameStatus != GameStatus.IN_PROGRESS) {
+			return false;
+		}
+		boolean mustChoose = currentRound.getPendingChoice()
+				.map(choice -> choice.playerId().equals(player.getId()))
+				.orElse(false);
+		if (mustChoose) {
+			return true;
+		}
+		return switch (currentRound.getCurrentPhase()) {
+			case UPGRADE -> getCurrentBuyer()
+					.map(buyer -> buyer.getId().equals(player.getId()))
+					.orElse(false);
+			case PROGRAMMING -> !player.getPlayerMat().isSubmitted();
+			default -> false;
+		};
 	}
 }
