@@ -2,6 +2,7 @@ package dk.dtu.roborally.api.controllers;
 
 import dk.dtu.roborally.api.dto.*;
 import dk.dtu.roborally.engine.services.GameService;
+import dk.dtu.roborally.engine.services.PresenceService;
 import dk.dtu.roborally.engine.services.SessionService;
 import dk.dtu.roborally.exceptions.auth.LoginException;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
@@ -23,11 +24,13 @@ import java.util.Map;
 @RequestMapping("/api/games")
 public class GameController {
 	private final GameService gameService;
+	private final PresenceService presenceService;
 	private final SessionService sessionService;
 
 	public GameController(GameService gameService,
-			SessionService sessionService) {
+			PresenceService presenceService, SessionService sessionService) {
 		this.gameService = gameService;
+		this.presenceService = presenceService;
 		this.sessionService = sessionService;
 	}
 
@@ -78,6 +81,24 @@ public class GameController {
 			@RequestBody PutBackCardsDTO payload) {
 		gameService.putBackCards(id, currentUsername(authorization),
 				payload.cards());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/kick-vote")
+	public ResponseEntity<Void> startKickVote(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@RequestBody KickTargetDTO payload) {
+		presenceService.startKickVote(id, currentUsername(authorization),
+				payload.username());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/kick-vote/ballot")
+	public ResponseEntity<Void> voteOnKick(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@RequestBody KickBallotDTO payload) {
+		presenceService.voteOnKick(id, currentUsername(authorization),
+				payload.yes());
 		return ResponseEntity.noContent().build();
 	}
 
