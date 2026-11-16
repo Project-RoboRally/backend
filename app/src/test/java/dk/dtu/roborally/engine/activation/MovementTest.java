@@ -123,8 +123,8 @@ class MovementTest {
 		Player fromTheWall = player("wall", 0, Direction.EAST);
 		Player fromTheOpenSide = player("open", 2, Direction.WEST);
 
-		assertFalse(Movement.step(game(fromTheWall), fromTheWall,
-				Direction.EAST));
+		assertFalse(
+				Movement.step(game(fromTheWall), fromTheWall, Direction.EAST));
 		assertEquals(new Vector2D(0, 0),
 				fromTheWall.getRobot().getCurrentSpace());
 
