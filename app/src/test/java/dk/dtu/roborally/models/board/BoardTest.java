@@ -11,7 +11,11 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
+/**
+ * Tests for the Board class.
+ *
+ * @author Victor
+ */
 class BoardTest {
 
 	@Test

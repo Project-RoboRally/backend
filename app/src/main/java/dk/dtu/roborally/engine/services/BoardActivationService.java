@@ -34,24 +34,31 @@ public class BoardActivationService {
 		List<List<RobotView>> steps = new ArrayList<>();
 		Map<Vector2D, Space> spaces = board.getSpaceMap();
 
+		// Priority 1: Activate conveyor blue belts
 		for (Player player : players) {
 			activateConveyor(player, players, board, spaces, true, steps);
 		}
+		// Priority 2: Activate conveyor green belts
 		for (Player player : players) {
 			activateConveyor(player, players, board, spaces, false, steps);
 		}
+		// Priority 3: Activate push panels
 		for (Player player : players) {
 			activatePushPanel(player, players, board, spaces, steps);
 		}
+		// Priority 4: Activate gears
 		for (Player player : players) {
 			activateGear(player, players, spaces, steps);
 		}
+		// Priority 5: Activate board lasers
 		for (Player player : players) {
 			activateBoardLasers(player, spaces);
 		}
+		// Priority 6: Activate robot lasers
 		for (Player player : players) {
 			activateRobotLaser(player, players, board, spaces);
 		}
+		// Priority 7: Activate energy spaces
 		for (Player player : players) {
 			activateEnergySpace(player, register, spaces);
 		}
@@ -74,17 +81,53 @@ public class BoardActivationService {
 
 			int moveCount = blue ? 2 : 1;
 			boolean moved = false;
+			List<Direction> convergingDirections = new ArrayList<>();
 			for (int i = 0; i < moveCount; i++) {
 				if (!moveRobot(player, belt.getDirection(), players, board)) {
 					break;
 				}
 				moved = true;
+				Direction destinationDirection = convergingDirectionAt(
+						spaces.get(player.getRobot().getCurrentSpace()), belt);
+				if (destinationDirection != null) {
+					convergingDirections.add(destinationDirection);
+				}
 			}
 			if (moved) {
 				rotateForConveyor(player.getRobot(), belt);
+				for (Direction convergingDirection : convergingDirections) {
+					turnForConvergence(player.getRobot(), belt,
+							convergingDirection);
+				}
 				steps.add(snapshot(players));
 			}
 			return;
+		}
+	}
+
+	private Direction convergingDirectionAt(Space space,
+			ConveyorBelt movingBelt) {
+		if (space == null) {
+			return null;
+		}
+		for (BoardElement element : space.getBoardElements()) {
+			if (element instanceof ConveyorBelt targetBelt
+					&& targetBelt != movingBelt
+					&& targetBelt.getConvergingDirection() != null
+					&& targetBelt.getConvergingDirection() != Direction.NONE) {
+				return targetBelt.getConvergingDirection();
+			}
+		}
+		return null;
+	}
+
+	private void turnForConvergence(Robot robot, ConveyorBelt movingBelt,
+			Direction convergingDirection) {
+		if (movingBelt.getDirection().turnRight() == convergingDirection) {
+			robot.turnRight();
+		} else if (movingBelt.getDirection()
+				.turnLeft() == convergingDirection) {
+			robot.turnLeft();
 		}
 	}
 

@@ -6,10 +6,10 @@ import dk.dtu.roborally.models.board.Vector2D;
  * Represents a direction for a robot. Declared in clockwise order, which the
  * turns rely on.
  *
- * @author August, Matthias, Sebastian
+ * @author August, Matthias, Sebastian, Victor
  */
 public enum Direction {
-	NORTH(0, -1), EAST(1, 0), SOUTH(0, 1), WEST(-1, 0);
+	NORTH(0, -1), EAST(1, 0), SOUTH(0, 1), WEST(-1, 0), NONE (0,0);
 
 	private final Vector2D step;
 
@@ -34,7 +34,10 @@ public enum Direction {
 	}
 
 	private Direction rotate(int quarterTurns) {
-		Direction[] directions = values();
+		if (this == NONE) {
+			return NONE;
+		}
+		Direction[] directions = { NORTH, EAST, SOUTH, WEST };
 		return directions[(ordinal() + quarterTurns) % directions.length];
 	}
 }

@@ -101,6 +101,42 @@ class BoardActivationServiceTest {
 	}
 
 	@Test
+	void conveyorTurnsRobotRightWhenConvergingToTheRight() {
+		Map<Vector2D, Space> spaces = horizontalSpaces(2);
+		spaces.get(new Vector2D(0, 0))
+				.addBoardElement(new ConveyorBelt(new Vector2D(0, 0), 1,
+						Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT));
+		spaces.get(new Vector2D(1, 0))
+				.addBoardElement(new ConveyorBelt(new Vector2D(1, 0), 1,
+						Direction.SOUTH, Direction.SOUTH,
+						ConveyorBeltType.GREEN_STRAIGHT));
+		Player player = player("player", new Vector2D(0, 0), Direction.NORTH);
+
+		service.activateRegister(0, List.of(player), new Board(spaces));
+
+		assertEquals(new Vector2D(1, 0), player.getRobot().getCurrentSpace());
+		assertEquals(Direction.EAST, player.getRobot().getOrientation());
+	}
+
+	@Test
+	void conveyorTurnsRobotLeftWhenConvergingToTheLeft() {
+		Map<Vector2D, Space> spaces = horizontalSpaces(2);
+		spaces.get(new Vector2D(0, 0))
+				.addBoardElement(new ConveyorBelt(new Vector2D(0, 0), 1,
+						Direction.EAST, ConveyorBeltType.GREEN_STRAIGHT));
+		spaces.get(new Vector2D(1, 0))
+				.addBoardElement(new ConveyorBelt(new Vector2D(1, 0), 1,
+						Direction.NORTH, Direction.NORTH,
+						ConveyorBeltType.GREEN_STRAIGHT));
+		Player player = player("player", new Vector2D(0, 0), Direction.NORTH);
+
+		service.activateRegister(0, List.of(player), new Board(spaces));
+
+		assertEquals(new Vector2D(1, 0), player.getRobot().getCurrentSpace());
+		assertEquals(Direction.WEST, player.getRobot().getOrientation());
+	}
+
+	@Test
 	void pushPanelPushesRobotChain() {
 		Map<Vector2D, Space> spaces = horizontalSpaces(3);
 		spaces.get(new Vector2D(0, 0)).addBoardElement(new PushPanel(

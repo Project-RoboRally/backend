@@ -36,4 +36,11 @@ class DirectionTest {
 		assertEquals(new Vector2D(0, -1), Direction.NORTH.step());
 		assertEquals(new Vector2D(1, 0), Direction.EAST.step());
 	}
+
+	@Test
+	void noneRemainsNoneWhenTurned() {
+		assertEquals(Direction.NONE, Direction.NONE.turnRight());
+		assertEquals(Direction.NONE, Direction.NONE.turnLeft());
+		assertEquals(Direction.NONE, Direction.NONE.uTurn());
+	}
 }
