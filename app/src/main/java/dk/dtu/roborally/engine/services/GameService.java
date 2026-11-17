@@ -249,6 +249,11 @@ public class GameService {
 		if (player.getEnergy() < type.getCost()) {
 			throw new IllegalArgumentException("Not enough energy for " + type);
 		}
+		if (game.getUpgradeShop().getCards().stream()
+				.noneMatch(card -> card.getType() == type)) {
+			throw new IllegalArgumentException(
+					"Upgrade is not in the shop: " + type);
+		}
 		if (type.isRoutine()) {
 			player.getPlayerMat()
 					.addToDiscardPile(new ProgrammingCard(type.getRoutine()));
