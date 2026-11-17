@@ -8,6 +8,7 @@ import dk.dtu.roborally.models.board.elements.BoardElement;
 import dk.dtu.roborally.models.board.elements.Pit;
 import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.PushPanel;
+import dk.dtu.roborally.models.board.elements.LaserEmitter;
 import dk.dtu.roborally.models.board.elements.Wall;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -22,7 +23,7 @@ import java.util.function.Consumer;
  * robots in front of them, and robots falling into pits or off the board
  * reboot.
  *
- * @author Sebastian, Elias
+ * @author Sebastian, Elias, August
  */
 public final class Movement {
 
@@ -198,6 +199,11 @@ public final class Movement {
 			// The panel sits on the wall it pushes away from
 			if (element instanceof PushPanel panel
 					&& panel.getPushDirection().uTurn() == side) {
+				return true;
+			}
+			// The emitter sits on the wall opposite its firing direction.
+			if (element instanceof LaserEmitter laser
+					&& laser.getDirection().uTurn() == side) {
 				return true;
 			}
 		}
