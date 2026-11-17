@@ -34,6 +34,7 @@ public class LevelData {
 		public int length;
 		public String direction;
 		public String type;
+		public String converging_direction;
 	}
 
 	public static class CheckpointData {

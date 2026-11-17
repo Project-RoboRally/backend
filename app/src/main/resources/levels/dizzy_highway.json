@@ -1,0 +1,271 @@
+{
+    "_metadata": {
+        "author": "Victor",
+        "description": "The dizzy highway roborally board from the actual game. If its your first time playing, start here!"
+    },
+    "squares": [
+        {
+            "x1": 0,
+            "y1": 0,
+            "x2": 13,
+            "y2": 10
+        }
+    ],
+    "belts": [
+        {
+            "x": 2,
+            "y": 0,
+            "length": 1,
+            "direction": "east",
+            "type": "green_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 2,
+            "y": 9,
+            "length": 1,
+            "direction": "east",
+            "type": "green_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 4,
+            "y": 0,
+            "length": 7,
+            "direction": "south",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 4,
+            "y": 7,
+            "length": 1,
+            "direction": "south",
+            "type": "blue_straight",
+            "converging_direction": "east"
+        },
+        {
+            "x": 3,
+            "y": 7,
+            "length": 1,
+            "direction": "east",
+            "type": "blue_straight",
+            "converging_direction": "south"
+        },
+        {
+            "x": 3,
+            "y": 8,
+            "length": 7,
+            "direction": "east",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 10,
+            "y": 8,
+            "length": 1,
+            "direction": "east",
+            "type": "blue_straight",
+            "converging_direction": "north"
+        },
+        {
+            "x": 10,
+            "y": 9,
+            "length": 1,
+            "direction": "north",
+            "type": "blue_straight",
+            "converging_direction": "east"
+        },
+        {
+            "x": 11,
+            "y": 9,
+            "length": 7,
+            "direction": "north",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 11,
+            "y": 2,
+            "length": 1,
+            "direction": "north",
+            "type": "blue_straight",
+            "converging_direction": "west"
+        },
+        {
+            "x": 12,
+            "y": 2,
+            "length": 1,
+            "direction": "west",
+            "type": "blue_straight",
+            "converging_direction": "north"
+        },
+        {
+            "x": 12,
+            "y": 1,
+            "length": 7,
+            "direction": "west",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 5,
+            "y": 0,
+            "length": 1,
+            "direction": "south",
+            "type": "blue_straight",
+            "converging_direction": "west"
+        }
+    ],
+    "start_points": [
+        {
+            "x": 1,
+            "y": 1,
+            "orientation": "east"
+        },
+        {
+            "x": 0,
+            "y": 3,
+            "orientation": "east"
+        },
+        {
+            "x": 1,
+            "y": 4,
+            "orientation": "east"
+        },
+        {
+            "x": 1,
+            "y": 5,
+            "orientation": "east"
+        },
+        {
+            "x": 0,
+            "y": 6,
+            "orientation": "east"
+        },
+        {
+            "x": 1,
+            "y": 8,
+            "orientation": "east"
+        }
+    ],
+    "checkpoints": [
+        {
+            "x": 12,
+            "y": 3,
+            "number": 1
+        }
+    ],
+    "antenna": {
+        "x": 0,
+        "y": 4,
+        "direction": "east"
+    },
+    "reboot_points": [
+        {
+            "x": 7,
+            "y": 3,
+            "direction": "south",
+            "x1": 0,
+            "y1": 0,
+            "x2": 12,
+            "y2": 9
+        }
+    ],
+    "gears": [],
+    "push_panels": [],
+    "walls": [
+        {
+            "x1": 1,
+            "y1": 2,
+            "x2": 1,
+            "y2": 2,
+            "direction": "north"
+        },
+        {
+            "x1": 4,
+            "y1": 2,
+            "x2": 5,
+            "y2": 2,
+            "direction": "east"
+        },
+        {
+            "x1": 1,
+            "y1": 7,
+            "x2": 1,
+            "y2": 7,
+            "direction": "south"
+        }
+    ],
+    "laser_emitters": [
+        {
+            "x": 6,
+            "y": 3,
+            "amount": 1,
+            "direction": "south"
+        },
+        {
+            "x": 8,
+            "y": 3,
+            "amount": 1,
+            "direction": "east"
+        },
+        {
+            "x": 9,
+            "y": 3,
+            "amount": 1,
+            "direction": "west"
+        },
+        {
+            "x": 9,
+            "y": 5,
+            "amount": 1,
+            "direction": "south"
+        },
+        {
+            "x": 9,
+            "y": 6,
+            "amount": 1,
+            "direction": "north"
+        },
+        {
+            "x": 6,
+            "y": 4,
+            "amount": 1,
+            "direction": "north"
+        }
+    ],
+    "pits": [],
+    "energy_spaces": [
+        {
+            "x": 3,
+            "y": 9,
+            "energy_cubes": 1
+        },
+        {
+            "x": 5,
+            "y": 2,
+            "energy_cubes": 1
+        },
+        {
+            "x": 7,
+            "y": 5,
+            "energy_cubes": 1
+        },
+        {
+            "x": 8,
+            "y": 4,
+            "energy_cubes": 1
+        },
+        {
+            "x": 12,
+            "y": 0,
+            "energy_cubes": 1
+        },
+        {
+            "x": 10,
+            "y": 7,
+            "energy_cubes": 1
+        }
+    ]
+}
