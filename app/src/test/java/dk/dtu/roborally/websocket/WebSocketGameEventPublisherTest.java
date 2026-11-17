@@ -270,18 +270,26 @@ class WebSocketGameEventPublisherTest {
 	}
 
 	@Test
-	void activationRevealsEveryPlayersFullProgram() {
+	void activationOnlyRevealsOtherPlayersRegistersUpToTheCurrentOne() {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
 		Player alice = player("alice", PlayerColor.RED, 0, 0);
 		Player bob = player("bob", PlayerColor.BLUE, 1, 0);
 		Game game = new Game("game-1", boardWithWall(), Set.of(alice, bob));
-		bob.getPlayerMat().getRegisters().get(0)
-				.setCard(new ProgrammingCard(CommandInstruction.MOVE_1));
-		bob.getPlayerMat().getRegisters().get(1)
-				.setCard(new ProgrammingCard(CommandInstruction.LEFT_TURN));
+		CommandInstruction[] cards = {CommandInstruction.MOVE_1,
+				CommandInstruction.LEFT_TURN, CommandInstruction.MOVE_2,
+				CommandInstruction.RIGHT_TURN, CommandInstruction.MOVE_3};
+		for (int i = 0; i < cards.length; i++) {
+			alice.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(cards[i]));
+			bob.getPlayerMat().getRegisters().get(i)
+					.setCard(new ProgrammingCard(cards[i]));
+		}
 		game.getCurrentRound().setCurrentPhase(Phase.ACTIVATION);
+		// Registers 1 and 2 are played, alice has a choice in register 3
+		game.getCurrentRound().startRegister(2,
+				List.of(alice.getId(), bob.getId()));
 
 		publisher.publishChoiceRequired(game);
 
@@ -292,11 +300,12 @@ class WebSocketGameEventPublisherTest {
 		var bobPublic = sent.getValue().players().stream()
 				.filter(player -> player.username().equals("bob")).findFirst()
 				.orElseThrow();
-		assertEquals(5, bobPublic.program().size());
-		assertEquals(new CardDTO("PROGRAMMING", "MOVE_1"),
-				bobPublic.program().get(0));
-		assertEquals(new CardDTO("PROGRAMMING", "LEFT_TURN"),
-				bobPublic.program().get(1));
+		assertEquals(List.of(new CardDTO("PROGRAMMING", "MOVE_1"),
+				new CardDTO("PROGRAMMING", "LEFT_TURN"),
+				new CardDTO("PROGRAMMING", "MOVE_2")), bobPublic.program());
+		// She still sees all of her own cards
+		assertEquals(5, sent.getValue().playerMat().registers().stream()
+				.filter(register -> register.card() != null).count());
 	}
 
 	@Test

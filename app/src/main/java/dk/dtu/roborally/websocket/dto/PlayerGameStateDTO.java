@@ -12,6 +12,7 @@ import dk.dtu.roborally.models.game.ProgrammingTimer;
 import dk.dtu.roborally.models.game.Round;
 import dk.dtu.roborally.models.game.RoundResult;
 import dk.dtu.roborally.models.player.Player;
+import dk.dtu.roborally.models.player.PlayerMat;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -91,10 +92,14 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 	 */
 	public static PlayerGameStateDTO from(String type, Game game,
 			Player recipient, RoundResult result) {
-		boolean revealPrograms = game.getCurrentRound()
-				.getCurrentPhase() == Phase.ACTIVATION;
+		int revealedToOthers = revealedRegisters(game);
 		List<PlayerDTO> players = game.getPlayersInGame().stream()
-				.map(player -> PlayerDTO.from(player, revealPrograms))
+				.map(player -> PlayerDTO.from(player,
+						player == recipient
+								? revealedToOthers == 0
+										? 0
+										: PlayerMat.REGISTER_COUNT
+								: revealedToOthers))
 				.sorted(Comparator.comparing(PlayerDTO::username)).toList();
 
 		String winnerUsername = game.getWinner() == null
@@ -114,5 +119,19 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 						.map(choice -> ChoiceDTO.from(game, choice))
 						.orElse(null),
 				winnerUsername);
+	}
+
+	/**
+	 * How many registers other players can see during activation: the ones
+	 * already played plus the one being played now. Your own mat always shows
+	 * everything.
+	 */
+	private static int revealedRegisters(Game game) {
+		Round round = game.getCurrentRound();
+		if (round.getCurrentPhase() != Phase.ACTIVATION) {
+			return 0;
+		}
+		return round.getCurrentRegisterIndex().map(index -> index + 1)
+				.orElse(PlayerMat.REGISTER_COUNT);
 	}
 }
