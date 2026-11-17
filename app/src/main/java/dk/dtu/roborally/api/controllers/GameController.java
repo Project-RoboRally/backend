@@ -17,7 +17,7 @@ import java.util.Map;
  * Handles the decisions a player makes during a running game: programming,
  * upgrades, putting cards back, and choices during activation.
  *
- * @author Nicoleta, Elias
+ * @author Nicoleta, Elias, Sebastian
  */
 
 @RestController
@@ -48,6 +48,24 @@ public class GameController {
 		return ResponseEntity
 				.ok(new ProgramResultDTO(gameService.submitProgram(id,
 						currentUsername(authorization), payload.registers())));
+	}
+
+	@PostMapping("/{id}/register/place")
+	public ResponseEntity<Void> placeCard(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@RequestBody PlaceCardDTO payload) {
+		gameService.placeCard(id, currentUsername(authorization),
+				payload.register(), payload.card());
+		return ResponseEntity.noContent().build();
+	}
+
+	@PostMapping("/{id}/register/remove")
+	public ResponseEntity<Void> removeCard(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@RequestBody RemoveCardDTO payload) {
+		gameService.removeCard(id, currentUsername(authorization),
+				payload.register());
+		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/{id}/upgrade/buy")

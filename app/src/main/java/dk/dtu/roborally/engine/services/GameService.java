@@ -120,6 +120,27 @@ public class GameService {
 	}
 
 	/**
+	 * Puts a card from the hand in a register while programming. It stays
+	 * there if the timer runs out, and when the page is reloaded.
+	 */
+	public synchronized void placeCard(String gameId, String username,
+			int register, String card) {
+		Game game = getGame(gameId);
+		requirePhase(game, Phase.PROGRAMMING);
+		findPlayer(game, username).getPlayerMat().placeCard(register, card);
+		gameRepository.update(game);
+	}
+
+	/** Takes a placed card back to the hand while programming. */
+	public synchronized void removeCard(String gameId, String username,
+			int register) {
+		Game game = getGame(gameId);
+		requirePhase(game, Phase.PROGRAMMING);
+		findPlayer(game, username).getPlayerMat().removeCard(register);
+		gameRepository.update(game);
+	}
+
+	/**
 	 * The first program in starts the 30 second timer for everyone else. When
 	 * it runs out, see {@link #programmingTimeUp}.
 	 */

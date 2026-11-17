@@ -102,6 +102,24 @@ class ProgrammingTimerFlowTest {
 	}
 
 	@Test
+	void cardsPlacedBeforeTheTimerEndsAreKept() {
+		Player alice = named("Alice");
+		gameService.placeCard(lobby.getGameId(), "Alice", 0, "RIGHT_TURN");
+		gameService.placeCard(lobby.getGameId(), "Alice", 1, "RIGHT_TURN");
+		gameService.placeCard(lobby.getGameId(), "Alice", 2, "RIGHT_TURN");
+		gameService.submitProgram(lobby.getGameId(), "August", rightTurns());
+
+		assertEquals(6, alice.getPlayerMat().getHand().size());
+		scheduled.get(0).run();
+
+		// 3 placed right turns and the 6 left in hand were played or
+		// discarded, only the 2 empty registers got left turns off the deck
+		assertEquals(9, count(alice, "RIGHT_TURN"));
+		assertEquals(2, count(alice, "LEFT_TURN"));
+		assertEquals(3, alice.getPlayerMat().getDrawPileSize());
+	}
+
+	@Test
 	void anOldTimerDoesNothingOnceEveryoneSubmitted() {
 		gameService.submitProgram(lobby.getGameId(), "August", rightTurns());
 		gameService.submitProgram(lobby.getGameId(), "Alice", rightTurns());
