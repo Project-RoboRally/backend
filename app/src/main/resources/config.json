@@ -4,6 +4,7 @@
         "description": "General Server Config, used to store level data so far"
     },
     "levels": {
-        "level_0": "levels/level_0.json"
+        "level_0": "levels/level_0.json",
+        "test_board": "levels/test_board.json"
     }
 }
