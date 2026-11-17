@@ -10,6 +10,7 @@ public class Config {
 
 	public static class LevelsData {
 		public String level_0;
+		public String test_board;
 		public String dizzy_highway;
 	}
 }

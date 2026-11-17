@@ -5,6 +5,7 @@
     },
     "levels": {
         "level_0": "levels/level_0.json",
+        "test_board": "levels/test_board.json",
         "dizzy_highway": "levels/dizzy_highway.json"
     }
 }
