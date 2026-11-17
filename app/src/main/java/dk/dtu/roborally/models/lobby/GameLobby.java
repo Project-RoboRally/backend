@@ -61,7 +61,7 @@ public class GameLobby {
 
 	public GameLobby(Config config, String lobbyName, User lobbyOwner) {
 		this(java.util.UUID.randomUUID().toString(), config, lobbyName,
-				lobbyOwner, config.levels.test_board);
+				lobbyOwner, config.levels.level_0);
 		addUserToLobby(lobbyOwner);
 	}
 
