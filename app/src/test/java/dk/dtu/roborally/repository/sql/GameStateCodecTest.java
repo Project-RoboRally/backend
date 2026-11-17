@@ -137,7 +137,7 @@ class GameStateCodecTest {
 		battery.setCubeAmount(0);
 
 		Game loaded = codec.toGame(codec.toJson(game),
-				LevelLoader.load("levels/level_0.json"), lobby);
+				LevelLoader.load("levels/test_board.json"), lobby);
 
 		assertEquals(0,
 				loaded.getBoard().getSpace(battery.getPosition())
