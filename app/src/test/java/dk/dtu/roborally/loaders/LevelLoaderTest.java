@@ -4,6 +4,7 @@ package dk.dtu.roborally.loaders;
  * @author Elias
  */
 
+import dk.dtu.roborally.helpers.TestResources;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.models.board.Board;
 import dk.dtu.roborally.models.board.Space;
@@ -109,5 +110,57 @@ class LevelLoaderTest {
 		assertEquals(Set.of(2, 4), panel.getRegisters());
 		assertTrue(panel.pushesIn(1));
 		assertFalse(panel.pushesIn(2));
+	}
+
+	@Test
+	void fromJsonBuildsTheSameBoardAsTheFile() {
+		Board fromFile = LevelLoader.load("levels/test_board.json");
+		Board fromText = LevelLoader
+				.fromJson(TestResources.read("levels/test_board.json"));
+
+		assertEquals(fromFile.getStartingPoints().size(),
+				fromText.getStartingPoints().size());
+		assertNotNull(fromText.getSpace(5, 9));
+		assertNull(fromText.getSpace(6, 10));
+	}
+
+	@Test
+	void fromJsonAllowsAFull40By40Board() {
+		Board board = LevelLoader.fromJson(
+				"{\"squares\":[{\"x1\":0,\"y1\":0,\"x2\":40,\"y2\":40}]}");
+
+		assertNotNull(board.getSpace(39, 39));
+	}
+
+	@Test
+	void fromJsonRefusesABoardLargerThan40By40() {
+		assertThrows(IllegalArgumentException.class, () -> LevelLoader.fromJson(
+				"{\"squares\":[{\"x1\":0,\"y1\":0,\"x2\":41,\"y2\":5}]}"));
+	}
+
+	@Test
+	void fromJsonRefusesTextThatIsNotALevel() {
+		assertThrows(IllegalArgumentException.class,
+				() -> LevelLoader.fromJson("{not json"));
+		assertThrows(IllegalArgumentException.class,
+				() -> LevelLoader.fromJson(""));
+		assertThrows(IllegalArgumentException.class,
+				() -> LevelLoader.fromJson("[1, 2, 3]"));
+		// Valid JSON, but without any squares
+		assertThrows(IllegalArgumentException.class,
+				() -> LevelLoader.fromJson("{}"));
+	}
+
+	@Test
+	void fromJsonRefusesAnElementOutsideTheBoard() {
+		assertThrows(IllegalArgumentException.class, () -> LevelLoader.fromJson(
+				"{\"squares\":[{\"x1\":0,\"y1\":0,\"x2\":5,\"y2\":5}],"
+						+ "\"start_points\":[{\"x\":30,\"y\":30,\"orientation\":\"north\"}]}"));
+	}
+
+	@Test
+	void fromJsonTurnsAMissingValueIntoABadFile() {
+		assertThrows(IllegalArgumentException.class,
+				() -> LevelLoader.fromJson("{\"squares\":[null]}"));
 	}
 }

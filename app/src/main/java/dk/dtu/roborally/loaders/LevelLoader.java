@@ -35,15 +35,64 @@ import java.util.stream.Collectors;
  */
 
 public class LevelLoader {
+	/** Max spaces each dimension of the board can reach */
+	public static final int MAX_SIDE = 40;
+
 	public static Board load(String levelPath) {
 		LevelData level = JsonLoader.loadLevel(levelPath);
 		if (level == null) {
 			throw new IllegalArgumentException(
 					"Level data is null for: " + levelPath);
 		}
+		return build(level, levelPath);
+	}
+
+	/**
+	 * Builds a board from level JSON that is not a file under resources, like
+	 * one a lobby owner uploaded. Anything wrong with it is an
+	 * IllegalArgumentException.
+	 */
+	public static Board fromJson(String json) {
+		LevelData level = JsonLoader.parseLevel(json);
+		// Checked before building, since every square becomes spaces in memory
+		checkWithinMaxSize(level);
+		try {
+			return build(level, "the board file");
+		} catch (IllegalArgumentException e) {
+			throw e;
+		} catch (RuntimeException e) {
+			// A missing value inside an element, like a square without x1
+			throw new IllegalArgumentException(
+					"The board file has a missing or wrong value.", e);
+		}
+	}
+
+	private static void checkWithinMaxSize(LevelData level) {
+		if (level.squares == null) {
+			return; // build() refuses a level without squares
+		}
+		for (LevelData.SquareData square : level.squares) {
+			if (square == null) {
+				continue;
+			}
+			// A square's far corner is exclusive (x2 = 6 gives columns 0-5),
+			// so a full-width square ends at MAX_SIDE
+			for (int coordinate : new int[]{square.x1, square.y1, square.x2,
+					square.y2}) {
+				if (coordinate < 0 || coordinate > MAX_SIDE) {
+					throw new IllegalArgumentException("Boards can be at most "
+							+ MAX_SIDE + " by " + MAX_SIDE
+							+ " spaces: square corners go from 0 to " + MAX_SIDE
+							+ ".");
+				}
+			}
+		}
+	}
+
+	private static Board build(LevelData level, String source) {
 		if (level.squares == null || level.squares.length == 0) {
 			throw new IllegalArgumentException(
-					"Level must contain at least one square: " + levelPath);
+					"Level must contain at least one square: " + source);
 		}
 
 		Map<Vector2D, Space> spaceMap = new HashMap<>();

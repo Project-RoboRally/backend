@@ -7,6 +7,7 @@ import dk.dtu.roborally.exceptions.auth.LoginException;
 import dk.dtu.roborally.exceptions.lobby.*;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
 import dk.dtu.roborally.models.User;
+import dk.dtu.roborally.websocket.dto.BoardDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -114,6 +115,37 @@ public class LobbyController {
 			@RequestBody SetColorDTO payload) {
 		return ResponseEntity.ok(LobbyDTO.from(lobbyService.setColor(id,
 				currentUsername(authorization), payload.color())));
+	}
+
+	@PostMapping("/{id}/board")
+	public ResponseEntity<LobbyDTO> changeBoard(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@RequestBody ChangeBoardDTO payload) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.changeBoard(id,
+				currentUsername(authorization), payload.boardId())));
+	}
+
+	/**
+	 * The body is the board JSON file in string format. Taking it as text skips
+	 * Jackson: the level is read by Gson like the files in resources, and the
+	 * same text is what gets stored.
+	 */
+	@PostMapping("/{id}/board/custom")
+	public ResponseEntity<LobbyDTO> uploadBoard(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@RequestBody String levelJson) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.uploadBoard(id,
+				currentUsername(authorization), levelJson)));
+	}
+
+	/**
+	 * The lobby's board layout, for the preview. Works the same for a board
+	 * from the list and an uploaded one.
+	 */
+	@GetMapping("/{id}/board")
+	public ResponseEntity<BoardDTO> getBoard(@PathVariable String id) {
+		return ResponseEntity
+				.ok(BoardDTO.from(lobbyService.getLobby(id).getLevel()));
 	}
 
 	@PostMapping("/{id}/start")

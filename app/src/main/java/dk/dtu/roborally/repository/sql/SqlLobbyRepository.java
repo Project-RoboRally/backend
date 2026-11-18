@@ -1,8 +1,8 @@
 package dk.dtu.roborally.repository.sql;
 
 import dk.dtu.roborally.enums.PlayerColor;
-import dk.dtu.roborally.loaders.Config;
-import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.loaders.BoardCatalog;
+import dk.dtu.roborally.loaders.BoardInfo;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.lobby.LobbyMember;
@@ -31,16 +31,17 @@ public class SqlLobbyRepository implements LobbyRepository {
 	private final JdbcTemplate jdbc;
 	private final TransactionTemplate transactions;
 	private final UserRepository users;
-	private final Config config;
+	private final BoardCatalog boards;
 	private final Map<String, GameLobby> lobbies = new LinkedHashMap<>();
 
-	public SqlLobbyRepository(DataSource dataSource, UserRepository users) {
+	public SqlLobbyRepository(DataSource dataSource, UserRepository users,
+			BoardCatalog boards) {
 		SqlSchema.ensure(dataSource);
 		this.jdbc = new JdbcTemplate(dataSource);
 		this.transactions = new TransactionTemplate(
 				new DataSourceTransactionManager(dataSource));
 		this.users = users;
-		this.config = JsonLoader.loadConfig();
+		this.boards = boards;
 		loadAll();
 	}
 
@@ -88,21 +89,25 @@ public class SqlLobbyRepository implements LobbyRepository {
 	private void write(GameLobby lobby, boolean insert) {
 		transactions.executeWithoutResult(status -> {
 			if (insert) {
-				jdbc.update("""
-						INSERT INTO lobbies
-						    (id, name, owner_id, level_path, game_id)
-						VALUES (?, ?, ?, ?, ?)
-						""", lobby.getLobbyId(), lobby.getLobbyName(),
+				jdbc.update(
+						"""
+								INSERT INTO lobbies
+								    (id, name, owner_id, level_path, level_json, game_id)
+								VALUES (?, ?, ?, ?, ?, ?)
+								""",
+						lobby.getLobbyId(), lobby.getLobbyName(),
 						lobby.getLobbyOwner().getId(), lobby.getLevelPath(),
-						lobby.getGameId());
+						lobby.getLevelJson(), lobby.getGameId());
 			} else {
 				int rows = jdbc.update("""
 						UPDATE lobbies
-						SET name = ?, owner_id = ?, level_path = ?, game_id = ?
+						SET name = ?, owner_id = ?, level_path = ?,
+						    level_json = ?, game_id = ?
 						WHERE id = ?
 						""", lobby.getLobbyName(),
 						lobby.getLobbyOwner().getId(), lobby.getLevelPath(),
-						lobby.getGameId(), lobby.getLobbyId());
+						lobby.getLevelJson(), lobby.getGameId(),
+						lobby.getLobbyId());
 				if (rows == 0) {
 					throw new IllegalStateException(
 							"Lobby is not stored: " + lobby.getLobbyId());
@@ -125,15 +130,20 @@ public class SqlLobbyRepository implements LobbyRepository {
 		Map<String, GameLobby> loaded = new LinkedHashMap<>();
 		Map<String, String> gameIds = new HashMap<>();
 		jdbc.query("""
-				SELECT id, name, owner_id, level_path, game_id
+				SELECT id, name, owner_id, level_path, level_json, game_id
 				FROM lobbies
 				""", rs -> {
 			String id = rs.getString("id");
 			User owner = users.getById(rs.getString("owner_id"))
 					.orElseThrow(() -> new IllegalStateException(
 							"Lobby owner is missing: " + id));
-			loaded.put(id, new GameLobby(id, config, rs.getString("name"),
-					owner, rs.getString("level_path")));
+			// An uploaded board has only its JSON; any other has a level file
+			String levelJson = rs.getString("level_json");
+			BoardInfo board = levelJson != null
+					? BoardInfo.uploaded(levelJson)
+					: boards.forStoredPath(rs.getString("level_path"));
+			loaded.put(id,
+					new GameLobby(id, board, rs.getString("name"), owner));
 			gameIds.put(id, rs.getString("game_id"));
 		});
 

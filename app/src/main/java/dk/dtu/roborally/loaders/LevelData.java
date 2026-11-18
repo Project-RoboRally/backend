@@ -8,6 +8,7 @@ package dk.dtu.roborally.loaders;
  */
 
 public class LevelData {
+	public MetadataData _metadata;
 	public SquareData[] squares;
 	public BeltData[] belts;
 	public StartingPointData[] start_points;
@@ -20,6 +21,21 @@ public class LevelData {
 	public CheckpointData[] checkpoints;
 	public AntennaData antenna;
 	public RebootPointData[] reboot_points;
+
+	/** The name in _metadata, or fallback when the file gives none. */
+	public String nameOr(String fallback) {
+		if (_metadata == null || _metadata.name == null
+				|| _metadata.name.isBlank()) {
+			return fallback;
+		}
+		return _metadata.name;
+	}
+
+	public static class MetadataData {
+		public String author;
+		public String name;
+		public String description;
+	}
 
 	public static class SquareData {
 		public int x1;

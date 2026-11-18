@@ -9,8 +9,8 @@ import dk.dtu.roborally.exceptions.lobby.LobbyNotFoundException;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
 import dk.dtu.roborally.exceptions.lobby.UserNotInLobby;
 import dk.dtu.roborally.exceptions.user.UserNotFound;
-import dk.dtu.roborally.loaders.Config;
-import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.loaders.BoardCatalog;
+import dk.dtu.roborally.loaders.BoardInfo;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.game.Game;
@@ -20,17 +20,27 @@ import dk.dtu.roborally.repository.UserRepository;
 import java.util.List;
 
 public class LobbyService {
+	/** Characters in the largest board file an owner can upload. */
+	static final int MAX_UPLOAD_LENGTH = 100_000;
+
 	private final LobbyRepository lobbyRepository;
 	private final UserRepository userRepository;
 	private final GameService gameService;
-	private final Config config;
+	private final BoardCatalog boards;
 
+	/** Uses the boards listed in config.json. */
 	public LobbyService(LobbyRepository lobbyRepository,
 			UserRepository userRepository, GameService gameService) {
+		this(lobbyRepository, userRepository, gameService, BoardCatalog.load());
+	}
+
+	public LobbyService(LobbyRepository lobbyRepository,
+			UserRepository userRepository, GameService gameService,
+			BoardCatalog boards) {
 		this.lobbyRepository = lobbyRepository;
 		this.userRepository = userRepository;
 		this.gameService = gameService;
-		this.config = JsonLoader.loadConfig();
+		this.boards = boards;
 	}
 
 	public List<GameLobby> getLobbies() {
@@ -47,7 +57,8 @@ public class LobbyService {
 				.orElseThrow(() -> new LobbyCreatorNotFoundOnCreate(
 						payload.username()));
 
-		GameLobby lobby = new GameLobby(config, payload.name(), owner);
+		GameLobby lobby = new GameLobby(boards.defaultBoard(), payload.name(),
+				owner);
 		lobbyRepository.add(lobby);
 
 		return lobby;
@@ -117,12 +128,47 @@ public class LobbyService {
 
 		GameLobby lobby = getLobby(id);
 
-		if (lobby.getLobbyOwner() == null
-				|| !lobby.getLobbyOwner().getUsername().equals(username))
-			throw new NotAuthorizedException(username);
+		validateIsLobbyOwner(lobby, username);
 
 		Game game = lobby.startGame();
 		gameService.startGame(game);
+		lobbyRepository.update(lobby);
+		return lobby;
+	}
+
+	public GameLobby changeBoard(String id, String username, String boardId) {
+		GameLobby lobby = getLobby(id);
+
+		validateIsLobbyOwner(lobby, username);
+
+		BoardInfo board = boards.byId(boardId)
+				.orElseThrow(() -> new IllegalArgumentException(
+						"Unknown board: " + boardId));
+
+		lobby.changeBoard(board);
+		lobbyRepository.update(lobby);
+		return lobby;
+	}
+
+	/**
+	 * Changes the board held by the lobby to the uploaded JSON file by the
+	 * lobby owner
+	 */
+	public GameLobby uploadBoard(String id, String username, String levelJson) {
+		GameLobby lobby = getLobby(id);
+
+		validateIsLobbyOwner(lobby, username);
+
+		if (levelJson == null || levelJson.isBlank())
+			throw new IllegalArgumentException("The board file is empty.");
+
+		// refuse if more than 1000 KB
+		if (levelJson.length() > MAX_UPLOAD_LENGTH)
+			throw new IllegalArgumentException(
+					"The board file is too large (at most "
+							+ MAX_UPLOAD_LENGTH / 1000 + " KB).");
+
+		lobby.changeBoard(BoardInfo.uploaded(levelJson));
 		lobbyRepository.update(lobby);
 		return lobby;
 	}
@@ -133,9 +179,7 @@ public class LobbyService {
 
 		GameLobby lobby = getLobby(id);
 
-		if (lobby.getLobbyOwner() == null
-				|| !lobby.getLobbyOwner().getUsername().equals(kickedBy))
-			throw new NotAuthorizedException(kickedBy);
+		validateIsLobbyOwner(lobby, kickedBy);
 
 		if (!userInLobby(lobby, userToKick.getUsername()))
 			throw new UserNotInLobby(toKickUsername);
@@ -154,9 +198,7 @@ public class LobbyService {
 
 		GameLobby lobby = getLobby(id);
 
-		if (lobby.getLobbyOwner() == null || !lobby.getLobbyOwner()
-				.getUsername().equals(lobbyOwnerUsername))
-			throw new NotAuthorizedException(lobbyOwnerUsername);
+		validateIsLobbyOwner(lobby, lobbyOwnerUsername);
 
 		lobby.unKickUser(userToUnKick.getId());
 		lobbyRepository.update(lobby);
@@ -192,6 +234,13 @@ public class LobbyService {
 		lobbyRepository.update(lobby);
 
 		return lobby;
+	}
+
+	private void validateIsLobbyOwner(GameLobby lobby, String ownerUsername) {
+		if (lobby.getLobbyOwner().getUsername().equals(ownerUsername)) {
+		} else {
+			throw new NotAuthorizedException(ownerUsername);
+		}
 	}
 
 	private void validateLobbyName(String name) {
