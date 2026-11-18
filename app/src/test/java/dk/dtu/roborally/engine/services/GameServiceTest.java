@@ -13,6 +13,7 @@ import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.enums.RotationDirection;
+import dk.dtu.roborally.enums.UpgradeKind;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.exceptions.game.GameNotFoundException;
 import dk.dtu.roborally.models.User;
@@ -620,6 +621,72 @@ class GameServiceTest {
 
 		assertEquals(List.of(UpgradeType.BRAKES), buyer.getUpgrades().getAll());
 		assertTrue(buyer.getPlayerMat().getDiscardPile().isEmpty());
+	}
+
+	@Test
+	void buyingWithFullSlotsReplacesTheChosenUpgrade() {
+		GameLobby lobby = startedLobby();
+		Game started = gameService.getGame(lobby.getGameId());
+		Player buyer = started.getCurrentBuyer().orElseThrow();
+		fillPermanentSlots(buyer);
+		started.getUpgradeShop().restore(List.of(),
+				List.of(UpgradeType.HOVER_UNIT, UpgradeType.ZOOP));
+
+		gameService.buyUpgrade(lobby.getGameId(), buyer.getUser().getUsername(),
+				UpgradeType.HOVER_UNIT, UpgradeType.FIREWALL);
+
+		assertEquals(
+				List.of(UpgradeType.DEFLECTOR_SHIELD, UpgradeType.MEMORY_STICK,
+						UpgradeType.HOVER_UNIT),
+				buyer.getUpgrades().of(UpgradeKind.PERMANENT));
+		assertEquals(5 - UpgradeType.HOVER_UNIT.getCost(), buyer.getEnergy());
+		assertEquals(1, started.getUpgradeShop().getCards().size());
+	}
+
+	@Test
+	void buyingWithFullSlotsAndNothingToReplaceCostsNothing() {
+		GameLobby lobby = startedLobby();
+		Game started = gameService.getGame(lobby.getGameId());
+		Player buyer = started.getCurrentBuyer().orElseThrow();
+		fillPermanentSlots(buyer);
+		started.getUpgradeShop().restore(List.of(),
+				List.of(UpgradeType.HOVER_UNIT, UpgradeType.ZOOP));
+		List<UpgradeType> before = buyer.getUpgrades().getAll();
+
+		assertThrows(IllegalArgumentException.class,
+				() -> gameService.buyUpgrade(lobby.getGameId(),
+						buyer.getUser().getUsername(), UpgradeType.HOVER_UNIT));
+		assertThrows(IllegalArgumentException.class,
+				() -> gameService.buyUpgrade(lobby.getGameId(),
+						buyer.getUser().getUsername(), UpgradeType.HOVER_UNIT,
+						UpgradeType.ZOOP));
+
+		assertEquals(before, buyer.getUpgrades().getAll());
+		assertEquals(5, buyer.getEnergy());
+		assertEquals(2, started.getUpgradeShop().getCards().size());
+		assertEquals(buyer, started.getCurrentBuyer().orElseThrow());
+	}
+
+	@Test
+	void upgradeNotInTheShopIsNotInstalled() {
+		GameLobby lobby = startedLobby();
+		Game started = gameService.getGame(lobby.getGameId());
+		Player buyer = started.getCurrentBuyer().orElseThrow();
+		started.getUpgradeShop().restore(List.of(),
+				List.of(UpgradeType.BRAKES, UpgradeType.ZOOP));
+
+		assertThrows(IllegalArgumentException.class,
+				() -> gameService.buyUpgrade(lobby.getGameId(),
+						buyer.getUser().getUsername(), UpgradeType.HOVER_UNIT));
+
+		assertTrue(buyer.getUpgrades().getAll().isEmpty());
+		assertEquals(5, buyer.getEnergy());
+	}
+
+	private void fillPermanentSlots(Player player) {
+		player.getUpgrades().install(UpgradeType.DEFLECTOR_SHIELD, null);
+		player.getUpgrades().install(UpgradeType.FIREWALL, null);
+		player.getUpgrades().install(UpgradeType.MEMORY_STICK, null);
 	}
 
 	@Test
