@@ -25,7 +25,8 @@ import java.util.Optional;
 /**
  * Postgres storage for lobbies. Each lobby stays cached so joins, ready flags
  * and the linked game id survive a restart.
-  * @author Elias
+ *
+ * @author Elias
  */
 public class SqlLobbyRepository implements LobbyRepository {
 

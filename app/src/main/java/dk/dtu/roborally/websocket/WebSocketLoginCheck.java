@@ -18,7 +18,7 @@ import java.security.Principal;
  * private channel is only allowed for that player.
  *
  * @Author Nicoleta
-  * @author Nicoleta
+ * @author Nicoleta
  */
 public class WebSocketLoginCheck implements ChannelInterceptor {
 

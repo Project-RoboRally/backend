@@ -17,7 +17,8 @@ import java.util.Optional;
 /**
  * Postgres storage for games. The row is rewritten after every change, and
  * unfinished games are loaded again when the server starts.
-  * @author Elias
+ *
+ * @author Elias
  */
 public class SqlGameRepository implements GameRepository {
 

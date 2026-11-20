@@ -5,7 +5,8 @@ import dk.dtu.roborally.enums.PlayerColor;
 
 /**
  * One robot's pose, copied so later movement does not change an earlier frame.
-  * @author Elias
+ *
+ * @author Elias
  */
 public record RobotView(String username, PlayerColor color, int x, int y,
 		Direction orientation) {

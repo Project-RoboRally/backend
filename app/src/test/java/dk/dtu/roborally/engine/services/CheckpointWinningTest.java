@@ -36,7 +36,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * Tests checkpoint rules, winning, outgoing player state, and reload state.
-  * @author Matthias, Sebastian, Elias
+ *
+ * @author Matthias, Sebastian, Elias
  */
 class CheckpointWinningTest {
 	private InMemoryGameRepository repository;
