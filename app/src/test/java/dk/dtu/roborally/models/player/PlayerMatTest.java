@@ -35,6 +35,58 @@ class PlayerMatTest {
 	}
 
 	@Test
+	void placedCardsMoveBetweenTheHandAndTheRegisters() {
+		PlayerMat mat = stacked();
+
+		mat.placeCard(0, "MOVE_2");
+
+		assertEquals(8, mat.getHand().size());
+		assertEquals(CommandInstruction.MOVE_2, card(mat, 0).getInstruction());
+		assertThrows(IllegalArgumentException.class,
+				() -> mat.placeCard(0, "MOVE_1"));
+		assertThrows(IllegalArgumentException.class,
+				() -> mat.placeCard(1, "U_TURN"));
+
+		mat.removeCard(0);
+
+		assertEquals(9, mat.getHand().size());
+		assertNull(mat.getRegisters().get(0).getCard());
+		assertThrows(IllegalArgumentException.class, () -> mat.removeCard(0));
+	}
+
+	@Test
+	void timeRunningOutKeepsPlacedCardsAndFillsTheEmptyOnes() {
+		PlayerMat mat = stacked();
+		mat.addToTopOfDeck(new ProgrammingCard(CommandInstruction.U_TURN));
+		mat.addToTopOfDeck(new ProgrammingCard(CommandInstruction.MOVE_3));
+		mat.placeCard(0, "MOVE_2");
+		mat.placeCard(1, "RIGHT_TURN");
+		mat.placeCard(2, "MOVE_1");
+
+		mat.fillRegistersFromDeck();
+
+		assertEquals(CommandInstruction.MOVE_2, card(mat, 0).getInstruction());
+		assertEquals(CommandInstruction.RIGHT_TURN,
+				card(mat, 1).getInstruction());
+		assertEquals(CommandInstruction.MOVE_1, card(mat, 2).getInstruction());
+		assertEquals(CommandInstruction.MOVE_3, card(mat, 3).getInstruction());
+		assertEquals(CommandInstruction.U_TURN, card(mat, 4).getInstruction());
+		assertTrue(mat.getHand().isEmpty());
+		assertTrue(mat.isSubmitted());
+	}
+
+	@Test
+	void submittingAfterPlacingCardsStillWorks() {
+		PlayerMat mat = stacked();
+		mat.placeCard(0, "MOVE_2");
+
+		mat.program(PROGRAM);
+
+		assertEquals(CommandInstruction.MOVE_1, card(mat, 0).getInstruction());
+		assertTrue(mat.isSubmitted());
+	}
+
+	@Test
 	void programUsesTheCardsFromTheHandAndDiscardsTheRest() {
 		PlayerMat mat = stacked();
 		ProgrammableCard moved = mat.getHand().get(0);
