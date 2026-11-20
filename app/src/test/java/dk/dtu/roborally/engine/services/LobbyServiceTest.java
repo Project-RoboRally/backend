@@ -1,5 +1,6 @@
 package dk.dtu.roborally.engine.services;
 
+import dk.dtu.roborally.helpers.TestResources;
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.exceptions.lobby.NotAuthorizedException;
@@ -148,6 +149,66 @@ class LobbyServiceTest {
 	void kickingUserOutsideTheLobbyThrows() {
 		assertThrows(UserNotInLobby.class, () -> lobbyService
 				.kickUser(lobby.getLobbyId(), "August", "Outsider"));
+	}
+
+	@Test
+	void newLobbiesStartOnTheDefaultBoard() {
+		assertEquals("level_0", lobby.getBoard().id());
+	}
+
+	@Test
+	void ownerCanChangeTheBoard() {
+		lobbyService.changeBoard(lobby.getLobbyId(), "August", "test_board");
+
+		assertEquals("test_board", lobby.getBoard().id());
+	}
+
+	@Test
+	void onlyTheOwnerCanChangeTheBoard() {
+		assertThrows(NotAuthorizedException.class, () -> lobbyService
+				.changeBoard(lobby.getLobbyId(), "Alice", "test_board"));
+		assertEquals("level_0", lobby.getBoard().id());
+	}
+
+	@Test
+	void unknownBoardIsRejected() {
+		assertThrows(IllegalArgumentException.class, () -> lobbyService
+				.changeBoard(lobby.getLobbyId(), "August", "no_such_board"));
+	}
+
+	@Test
+	void ownerCanUploadABoard() {
+		String json = TestResources.read("levels/test_board.json");
+
+		lobbyService.uploadBoard(lobby.getLobbyId(), "August", json);
+
+		assertEquals("Test board", lobby.getBoard().name());
+		assertEquals(json, lobby.getLevelJson());
+	}
+
+	@Test
+	void onlyTheOwnerCanUploadABoard() {
+		String json = TestResources.read("levels/test_board.json");
+
+		assertThrows(NotAuthorizedException.class, () -> lobbyService
+				.uploadBoard(lobby.getLobbyId(), "Alice", json));
+		assertEquals("level_0", lobby.getBoard().id());
+	}
+
+	@Test
+	void aTooLargeBoardFileIsRefusedBeforeItIsRead() {
+		String huge = " ".repeat(LobbyService.MAX_UPLOAD_LENGTH) + "{}";
+
+		assertThrows(IllegalArgumentException.class, () -> lobbyService
+				.uploadBoard(lobby.getLobbyId(), "August", huge));
+		assertEquals("level_0", lobby.getBoard().id());
+	}
+
+	@Test
+	void aBrokenBoardFileIsRefused() {
+		assertThrows(IllegalArgumentException.class, () -> lobbyService
+				.uploadBoard(lobby.getLobbyId(), "August", "{\"squares\":"));
+		assertEquals("level_0", lobby.getBoard().id());
 	}
 
 	private boolean isInLobby(String username) {

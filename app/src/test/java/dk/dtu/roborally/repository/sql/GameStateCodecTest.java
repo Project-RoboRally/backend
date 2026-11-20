@@ -7,7 +7,7 @@ import dk.dtu.roborally.enums.DamageInstruction;
 import dk.dtu.roborally.enums.RegisterStage;
 import dk.dtu.roborally.enums.UpgradeType;
 import dk.dtu.roborally.loaders.LevelLoader;
-import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.loaders.BoardCatalog;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.board.elements.EnergySpace;
@@ -41,7 +41,8 @@ class GameStateCodecTest {
 	@BeforeEach
 	void setUp() {
 		User owner = new User("owner");
-		lobby = new GameLobby(JsonLoader.loadConfig(), "Codec lobby", owner);
+		lobby = new GameLobby(BoardCatalog.load().defaultBoard(), "Codec lobby",
+				owner);
 		lobby.addUserToLobby(new User("other"));
 		lobby.setReady(
 				lobby.getUsersInLobby().stream().filter(user -> user != owner)

@@ -1,6 +1,7 @@
 {
     "_metadata": {
         "author": "Victor, Elias",
+        "name": "Conveyor cyclus",
         "description": "Roborally Board Level 0. 20x20 board: main board on rows 0-16 and a docking bay with six start points on rows 17-19. A blue express loop circles the center."
     },
     "squares": [

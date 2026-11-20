@@ -4,6 +4,7 @@ import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.services.GameService;
 import dk.dtu.roborally.engine.services.LobbyService;
 import dk.dtu.roborally.engine.services.UserService;
+import dk.dtu.roborally.loaders.BoardCatalog;
 import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
@@ -29,14 +30,14 @@ public class GameEngine {
 
 	public GameEngine(GameRepository gameRepository,
 			UserRepository userRepository, LobbyRepository lobbyRepository,
-			GameEventPublisher gameEventPublisher) {
+			GameEventPublisher gameEventPublisher, BoardCatalog boardCatalog) {
 
 		// Setup services
 		this.userService = new UserService(userRepository,
 				new BCryptPasswordEncoder());
 		this.gameService = new GameService(gameRepository, gameEventPublisher);
 		this.lobbyService = new LobbyService(lobbyRepository, userRepository,
-				gameService);
+				gameService, boardCatalog);
 		gameService.resumeTimers(lobbyRepository.getAll());
 	}
 }

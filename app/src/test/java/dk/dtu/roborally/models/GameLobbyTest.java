@@ -1,19 +1,24 @@
 package dk.dtu.roborally.models;
 
+import dk.dtu.roborally.helpers.TestResources;
 import dk.dtu.roborally.enums.Direction;
 import dk.dtu.roborally.enums.PlayerColor;
-import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.loaders.BoardCatalog;
+import dk.dtu.roborally.loaders.BoardInfo;
 import dk.dtu.roborally.models.board.Vector2D;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.lobby.GameLobby;
 import dk.dtu.roborally.models.lobby.LobbyMember;
 import dk.dtu.roborally.models.player.Player;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -23,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 /**
  * @author August, Elias
@@ -35,7 +41,8 @@ class GameLobbyTest {
 	@BeforeEach
 	void setUp() {
 		owner = new User("August");
-		lobby = new GameLobby(JsonLoader.loadConfig(), "Test lobby", owner);
+		lobby = new GameLobby(BoardCatalog.load().defaultBoard(), "Test lobby",
+				owner);
 	}
 
 	@Test
@@ -364,6 +371,131 @@ class GameLobbyTest {
 
 		assertThrows(IllegalStateException.class,
 				() -> lobby.unKickUser(alice.getId()));
+	}
+
+	@Test
+	void changingTheBoardSwapsWhatTheGameIsBuiltFrom() {
+		BoardInfo testBoard = BoardCatalog.load().byId("test_board")
+				.orElseThrow();
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+
+		lobby.changeBoard(testBoard);
+		lobby.setReady(alice.getId(), true);
+		Game game = lobby.startGame();
+
+		assertEquals(testBoard, lobby.getBoard());
+		assertEquals("levels/test_board.json", lobby.getLevelPath());
+		assertSame(lobby.getLevel(), game.getBoard());
+	}
+
+	@Test
+	void changingTheBoardMakesEveryoneReadyUpAgain() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.setReady(alice.getId(), true);
+
+		lobby.changeBoard(BoardCatalog.load().byId("test_board").orElseThrow());
+
+		assertFalse(readyOf(alice));
+	}
+
+	@Test
+	void pickingTheSameBoardAgainKeepsReadyFlags() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.setReady(alice.getId(), true);
+
+		lobby.changeBoard(lobby.getBoard());
+
+		assertTrue(readyOf(alice));
+	}
+
+	@Test
+	void cannotChangeTheBoardAfterTheGameStarted() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.setReady(alice.getId(), true);
+		lobby.startGame();
+		BoardInfo before = lobby.getBoard();
+
+		assertThrows(IllegalStateException.class, () -> lobby.changeBoard(
+				BoardCatalog.load().byId("test_board").orElseThrow()));
+		assertEquals(before, lobby.getBoard());
+	}
+
+	@Test
+	void cannotPickABoardWithTooFewStartingPoints() {
+		// This test level has no starting points at all
+		BoardInfo noRoom = new BoardInfo("empty", "Empty",
+				"levels/level_without_optional_objects.json");
+		BoardInfo before = lobby.getBoard();
+
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.changeBoard(noRoom));
+		assertEquals(before, lobby.getBoard());
+	}
+
+	@Test
+	void anUploadedBoardIsWhatTheGameIsBuiltFrom() {
+		String json = TestResources.read("levels/test_board.json");
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+
+		lobby.changeBoard(BoardInfo.uploaded(json));
+		lobby.setReady(alice.getId(), true);
+		Game game = lobby.startGame();
+
+		assertEquals("Test board", lobby.getBoard().name());
+		assertNull(lobby.getLevelPath());
+		assertEquals(json, lobby.getLevelJson());
+		assertSame(lobby.getLevel(), game.getBoard());
+	}
+
+	@Test
+	void aRestoredLobbyRebuildsItsUploadedBoard() {
+		BoardInfo uploaded = BoardInfo
+				.uploaded(TestResources.read("levels/test_board.json"));
+
+		GameLobby restored = new GameLobby("lobby-id", uploaded, "Restored",
+				owner);
+
+		assertEquals(uploaded.id(), restored.getBoard().id());
+		assertEquals(6, restored.getLevel().getStartingPoints().size());
+	}
+
+	@Test
+	void cannotPickABoardWithoutAPriorityAntenna() {
+		String json = testBoardEdited(level -> level.remove("antenna"));
+
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.changeBoard(BoardInfo.uploaded(json)));
+		assertEquals("level_0", lobby.getBoard().id());
+	}
+
+	@Test
+	void cannotPickABoardWithAGapInTheCheckpoints() {
+		// test_board has checkpoints 1 and 2; 1 and 3 can never be won
+		String json = testBoardEdited(level -> level
+				.getAsJsonArray("checkpoints").forEach(checkpoint -> {
+					JsonObject point = checkpoint.getAsJsonObject();
+					if (point.get("number").getAsInt() == 2) {
+						point.addProperty("number", 3);
+					}
+				}));
+
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.changeBoard(BoardInfo.uploaded(json)));
+		assertEquals("level_0", lobby.getBoard().id());
+	}
+
+	/** test_board.json as an uploaded file, with one thing changed. */
+	private static String testBoardEdited(Consumer<JsonObject> edit) {
+		JsonObject level = JsonParser
+				.parseString(TestResources.read("levels/test_board.json"))
+				.getAsJsonObject();
+		edit.accept(level);
+		return level.toString();
 	}
 
 	private boolean readyOf(User user) {

@@ -10,7 +10,7 @@ import dk.dtu.roborally.enums.GameStatus;
 import dk.dtu.roborally.enums.Phase;
 import dk.dtu.roborally.enums.ChoiceType;
 import dk.dtu.roborally.enums.PlayerColor;
-import dk.dtu.roborally.loaders.JsonLoader;
+import dk.dtu.roborally.loaders.BoardCatalog;
 import dk.dtu.roborally.loaders.LevelLoader;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
@@ -178,7 +178,8 @@ class WebSocketGameEventPublisherTest {
 		SimpMessagingTemplate template = mock(SimpMessagingTemplate.class);
 		WebSocketGameEventPublisher publisher = new WebSocketGameEventPublisher(
 				template);
-		Board level = LevelLoader.load(JsonLoader.loadConfig().levels.level_0);
+		Board level = LevelLoader
+				.load(BoardCatalog.load().defaultBoard().path());
 		Game game = new Game("game-1", level, Set.of());
 
 		publisher.publishBoard(game);

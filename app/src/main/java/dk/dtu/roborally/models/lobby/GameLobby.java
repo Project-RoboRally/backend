@@ -11,15 +11,17 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import dk.dtu.roborally.enums.PlayerColor;
-import dk.dtu.roborally.loaders.Config;
-import dk.dtu.roborally.loaders.LevelLoader;
+import dk.dtu.roborally.loaders.BoardInfo;
 import dk.dtu.roborally.models.User;
 import dk.dtu.roborally.models.board.Board;
+import dk.dtu.roborally.models.board.elements.Checkpoint;
+import dk.dtu.roborally.models.board.elements.PriorityAntenna;
 import dk.dtu.roborally.models.board.elements.StartingPoint;
 import dk.dtu.roborally.models.game.Game;
 import dk.dtu.roborally.models.player.Player;
@@ -46,11 +48,12 @@ public class GameLobby {
 
 	@Getter
 	private String gameId;
-	private String levelPath;
 
+	/** Which board was picked; {@link #level} is that board loaded. */
+	@Getter
+	private BoardInfo board;
 	@Getter
 	private Board level;
-	private Config config;
 
 	@Getter
 	private final String lobbyId;
@@ -59,9 +62,9 @@ public class GameLobby {
 	@Getter
 	private User lobbyOwner;
 
-	public GameLobby(Config config, String lobbyName, User lobbyOwner) {
-		this(java.util.UUID.randomUUID().toString(), config, lobbyName,
-				lobbyOwner, config.levels.level_0);
+	public GameLobby(BoardInfo board, String lobbyName, User lobbyOwner) {
+		this(java.util.UUID.randomUUID().toString(), board, lobbyName,
+				lobbyOwner);
 		addUserToLobby(lobbyOwner);
 	}
 
@@ -69,18 +72,86 @@ public class GameLobby {
 	 * Rebuilds a stored lobby. Membership and the linked game are applied with
 	 * {@link #restoreMembers}.
 	 */
-	public GameLobby(String lobbyId, Config config, String lobbyName,
-			User lobbyOwner, String levelPath) {
+	public GameLobby(String lobbyId, BoardInfo board, String lobbyName,
+			User lobbyOwner) {
 		this.lobbyId = Objects.requireNonNull(lobbyId);
 		this.lobbyName = Objects.requireNonNull(lobbyName);
 		this.lobbyOwner = Objects.requireNonNull(lobbyOwner);
-		this.config = config;
-		this.levelPath = Objects.requireNonNull(levelPath);
-		this.level = LevelLoader.load(levelPath);
+		this.board = Objects.requireNonNull(board);
+		this.level = board.load();
 	}
 
+	/**
+	 * Where {@link #board} is stored: its level file (lobbies.level_path), or
+	 * null when it was uploaded.
+	 */
 	public String getLevelPath() {
-		return levelPath;
+		return board.path();
+	}
+
+	/**
+	 * The uploaded file when {@link #board} was uploaded (lobbies.level_json),
+	 * otherwise null.
+	 */
+	public String getLevelJson() {
+		return board.json();
+	}
+
+	/**
+	 * Switches the lobby to another board, from resources or uploaded. The game
+	 * is built from {@link #level} when it starts, so the game is played on
+	 * this board.
+	 */
+	public void changeBoard(BoardInfo nextBoard) {
+		Objects.requireNonNull(nextBoard);
+
+		if (isGameStarted()) {
+			throw new IllegalStateException(
+					"The game has already been started.");
+		}
+
+		if (nextBoard.id().equals(board.id())) {
+			return;
+		}
+
+		Board nextLevel = nextBoard.load();
+		checkPlayable(nextBoard.name(), nextLevel);
+
+		this.board = nextBoard;
+		this.level = nextLevel;
+
+		// Everyone readied up for the old board, so they confirm the new one
+		lobbyUsers.replaceAll((userId, member) -> member.withReady(false));
+	}
+
+	/**
+	 * Checks if an uplaoded board can be played
+	 */
+	private static void checkPlayable(String name, Board candidate) {
+		long startPositions = candidate.getStartingPoints().stream()
+				.map(point -> point.getPosition()).distinct().count();
+		// Players can join after the board is picked, so room for a full lobby
+		if (startPositions < MAX_USERS) {
+			throw new IllegalArgumentException(name + " has " + startPositions
+					+ " different starting points, and needs " + MAX_USERS
+					+ ".");
+		}
+
+		// Priority throws when a round starts without one
+		if (candidate.getElements(PriorityAntenna.class).isEmpty()) {
+			throw new IllegalArgumentException(
+					name + " has no priority antenna.");
+		}
+
+		// A player wins on reaching checkpoint n after 1, 2, ... in order, so
+		// a missing number would make the game impossible to win
+		List<Integer> numbers = candidate.getElements(Checkpoint.class).stream()
+				.map(Checkpoint::getNumber).sorted().toList();
+		if (numbers.isEmpty() || !numbers.equals(
+				IntStream.rangeClosed(1, numbers.size()).boxed().toList())) {
+			throw new IllegalArgumentException(name
+					+ " needs checkpoints numbered 1, 2, 3 ... with none missing or repeated.");
+		}
 	}
 
 	/** Replaces membership and the linked game id from stored rows. */

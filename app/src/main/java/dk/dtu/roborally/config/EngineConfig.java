@@ -4,6 +4,7 @@ import dk.dtu.roborally.engine.GameEngine;
 import dk.dtu.roborally.engine.publishers.GameEventPublisher;
 import dk.dtu.roborally.engine.publishers.PresencePublisher;
 import dk.dtu.roborally.engine.services.*;
+import dk.dtu.roborally.loaders.BoardCatalog;
 import dk.dtu.roborally.repository.GameRepository;
 import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
@@ -22,14 +23,19 @@ import javax.sql.DataSource;
 public class EngineConfig {
 
 	@Bean
+	public BoardCatalog boardCatalog() {
+		return BoardCatalog.load();
+	}
+
+	@Bean
 	public UserRepository userRepository(DataSource dataSource) {
 		return new SqlUserRepository(dataSource);
 	}
 
 	@Bean
 	public LobbyRepository lobbyRepository(DataSource dataSource,
-			UserRepository userRepository) {
-		return new SqlLobbyRepository(dataSource, userRepository);
+			UserRepository userRepository, BoardCatalog boardCatalog) {
+		return new SqlLobbyRepository(dataSource, userRepository, boardCatalog);
 	}
 
 	@Bean
@@ -41,9 +47,9 @@ public class EngineConfig {
 	@Bean
 	public GameEngine gameEngine(GameRepository gameRepository,
 			UserRepository userRepository, LobbyRepository lobbyRepository,
-			GameEventPublisher gameEventPublisher) {
+			GameEventPublisher gameEventPublisher, BoardCatalog boardCatalog) {
 		return new GameEngine(gameRepository, userRepository, lobbyRepository,
-				gameEventPublisher);
+				gameEventPublisher, boardCatalog);
 	}
 
 	@Bean

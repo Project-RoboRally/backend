@@ -1,6 +1,7 @@
 package dk.dtu.roborally.loaders;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -24,6 +25,25 @@ public class JsonLoader {
 
 	public static LevelData loadLevel(String levelPath) {
 		return load(levelPath, LevelData.class);
+	}
+
+	/**
+	 * Reads level JSON that is not a file under resources, like a board a lobby
+	 * owner uploaded. Text that is not a level gives an
+	 * IllegalArgumentException, so the upload is answered with 400.
+	 */
+	public static LevelData parseLevel(String json) {
+		LevelData level;
+		try {
+			level = GSON.fromJson(json, LevelData.class);
+		} catch (JsonParseException e) {
+			throw new IllegalArgumentException(
+					"The board file is not valid JSON for a level.", e);
+		}
+		if (level == null) {
+			throw new IllegalArgumentException("The board file is empty.");
+		}
+		return level;
 	}
 
 	private static <T> T load(String path, Class<T> type) {

@@ -27,9 +27,17 @@ public final class SqlSchema {
 					    id VARCHAR(64) PRIMARY KEY,
 					    name VARCHAR(32) NOT NULL,
 					    owner_id VARCHAR(64) NOT NULL REFERENCES users (id),
-					    level_path VARCHAR(255) NOT NULL,
+					    level_path VARCHAR(255),
+					    level_json TEXT,
 					    game_id VARCHAR(64)
 					)
+					""",
+			// databases created before boards could be uploaded: an uploaded
+			// board is stored as its JSON and has no level file
+			"""
+					ALTER TABLE lobbies ADD COLUMN IF NOT EXISTS level_json TEXT
+					""", """
+					ALTER TABLE lobbies ALTER COLUMN level_path DROP NOT NULL
 					""",
 			"""
 					CREATE TABLE IF NOT EXISTS lobby_members (
