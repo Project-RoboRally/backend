@@ -120,8 +120,8 @@ public class GameService {
 	}
 
 	/**
-	 * Puts a card from the hand in a register while programming. It stays
-	 * there if the timer runs out, and when the page is reloaded.
+	 * Puts a card from the hand in a register while programming. It stays there
+	 * if the timer runs out, and when the page is reloaded.
 	 */
 	public synchronized void placeCard(String gameId, String username,
 			int register, String card) {

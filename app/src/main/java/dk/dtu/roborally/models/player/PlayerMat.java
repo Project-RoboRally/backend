@@ -274,11 +274,11 @@ public class PlayerMat {
 
 	/**
 	 * Moves the chosen cards from the hand to the five registers, discards the
-	 * rest of the hand and marks the mat submitted. Cards already placed one
-	 * by one go back to the hand first, so the five names are all picked from
-	 * the hand. Cards are named like MOVE_1
-	 * or SPAM, so damage cards can be programmed too. A second program is
-	 * rejected until {@link #clearProgram()} runs.
+	 * rest of the hand and marks the mat submitted. Cards already placed one by
+	 * one go back to the hand first, so the five names are all picked from the
+	 * hand. Cards are named like MOVE_1 or SPAM, so damage cards can be
+	 * programmed too. A second program is rejected until
+	 * {@link #clearProgram()} runs.
 	 */
 	public void programCards(List<String> cards) {
 		if (submitted) {

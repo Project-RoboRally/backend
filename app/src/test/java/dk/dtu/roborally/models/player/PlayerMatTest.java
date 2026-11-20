@@ -41,8 +41,7 @@ class PlayerMatTest {
 		mat.placeCard(0, "MOVE_2");
 
 		assertEquals(8, mat.getHand().size());
-		assertEquals(CommandInstruction.MOVE_2,
-				card(mat, 0).getInstruction());
+		assertEquals(CommandInstruction.MOVE_2, card(mat, 0).getInstruction());
 		assertThrows(IllegalArgumentException.class,
 				() -> mat.placeCard(0, "MOVE_1"));
 		assertThrows(IllegalArgumentException.class,
