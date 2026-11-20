@@ -19,7 +19,7 @@ import java.util.Map;
  * Login, logout and session checks. Issues the session tokens that the rest of
  * the API uses to know who is calling.
  *
- * @author Nicoleta
+ * @author Nicoleta, Elias, August
  */
 
 @RestController

@@ -10,7 +10,7 @@ import lombok.Setter;
  * Represents a conveyor belt placed on a board space. A conveyor belt moves
  * robots in a specified direction.
  *
- * @author Matthias, Victor
+ * @author Matthias, Victor, August, Sebastian
  */
 public class ConveyorBelt extends BoardElement {
 

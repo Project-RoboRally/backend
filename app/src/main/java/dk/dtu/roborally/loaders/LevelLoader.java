@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * Builds a board from a level file, placing every board element on the spaces
  * it covers.
  *
- * @author Victor, Sebastian
+ * @author Victor, Sebastian, August
  */
 
 public class LevelLoader {

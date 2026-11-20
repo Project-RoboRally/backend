@@ -20,6 +20,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+/**
+ * @author Nicoleta
+ */
 
 @WebMvcTest(LobbyController.class)
 @Import(LobbyControllerTest.Config.class)

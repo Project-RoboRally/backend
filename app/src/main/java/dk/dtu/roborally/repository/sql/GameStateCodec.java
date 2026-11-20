@@ -38,7 +38,7 @@ import java.util.Set;
  * Converts a live game to JSON and back. The board itself is reloaded from the
  * level file; this stores everything that changes during play.
  *
- * @author Elias
+ * @author Elias, Sebastian
  */
 public final class GameStateCodec {
 

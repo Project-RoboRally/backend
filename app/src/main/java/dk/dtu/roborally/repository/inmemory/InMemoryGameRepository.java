@@ -10,7 +10,7 @@ import java.util.Optional;
 /**
  * InMemory implementation of Game storage
  *
- * @author Elias
+ * @author Elias, Sebastian
  */
 public class InMemoryGameRepository implements GameRepository {
 	private final List<Game> games = new ArrayList<>();

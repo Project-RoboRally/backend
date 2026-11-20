@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 
 import static org.junit.jupiter.api.Assertions.*;
+/**
+ * @author Nicoleta
+ */
 
 class SessionServiceTest {
 	private SessionService sessionService;

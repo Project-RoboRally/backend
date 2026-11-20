@@ -1,4 +1,7 @@
 package dk.dtu.roborally.exceptions.lobby;
+/**
+ * @author Elias
+ */
 
 public class LobbyCreatorNotFoundOnCreate extends RuntimeException {
 	public LobbyCreatorNotFoundOnCreate(String lobbyName) {

@@ -11,7 +11,7 @@ import lombok.Getter;
 /**
  * Represents the Robo Rally game board and its spaces.
  *
- * @author Elias, Matthias, Victor, Sebastian
+ * @author Elias, Matthias, Victor, Sebastian, August
  */
 public class Board {
 	@Getter

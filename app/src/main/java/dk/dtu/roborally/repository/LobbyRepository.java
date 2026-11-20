@@ -4,6 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 import dk.dtu.roborally.models.lobby.GameLobby;
+/**
+ * @author Elias
+ */
 
 public interface LobbyRepository {
 	boolean add(GameLobby lobby);

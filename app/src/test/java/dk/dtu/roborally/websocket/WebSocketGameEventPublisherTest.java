@@ -1,7 +1,7 @@
 package dk.dtu.roborally.websocket;
 
 /**
- * @author Elias
+ * @author Elias, August, Sebastian
  */
 
 import dk.dtu.roborally.enums.CommandInstruction;

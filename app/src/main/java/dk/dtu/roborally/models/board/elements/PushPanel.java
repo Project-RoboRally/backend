@@ -10,7 +10,7 @@ import java.util.Set;
  * panels block robot movement and laser beams as well as push a player who
  * lands on them.
  *
- * @author Victor, Sebastian
+ * @author Victor, Sebastian, August
  */
 public class PushPanel extends BoardElement {
 

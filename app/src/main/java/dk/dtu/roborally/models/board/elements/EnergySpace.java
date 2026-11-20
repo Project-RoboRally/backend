@@ -9,7 +9,7 @@ import lombok.Setter;
  * space claims the cubes and gets an additional energy cube by standing on
  * there even if there are no cubes left.
  *
- * @author Victor
+ * @author Victor, August
  */
 public class EnergySpace extends BoardElement {
 	@Getter

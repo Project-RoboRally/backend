@@ -10,7 +10,7 @@ import java.util.Objects;
  * come back here. The direction is where a robot already on the token gets
  * pushed when another one reboots.
  *
- * @author Sebastian
+ * @author Sebastian, August
  */
 @Getter
 public class RebootPoint extends BoardElement {

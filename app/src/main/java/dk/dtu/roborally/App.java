@@ -9,7 +9,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * Main class for the application. Here we intialize the game engine and start
  * the Spring API.
  *
- * @author Elias & Nicoleta
+ * @author Elias, Nicoleta, Sebastian
  */
 
 public class App {
