@@ -300,9 +300,11 @@ class WebSocketGameEventPublisherTest {
 		var bobPublic = sent.getValue().players().stream()
 				.filter(player -> player.username().equals("bob")).findFirst()
 				.orElseThrow();
-		assertEquals(List.of(new CardDTO("PROGRAMMING", "MOVE_1"),
-				new CardDTO("PROGRAMMING", "LEFT_TURN"),
-				new CardDTO("PROGRAMMING", "MOVE_2")), bobPublic.program());
+		assertEquals(
+				List.of(new CardDTO("PROGRAMMING", "MOVE_1"),
+						new CardDTO("PROGRAMMING", "LEFT_TURN"),
+						new CardDTO("PROGRAMMING", "MOVE_2")),
+				bobPublic.program());
 		// She still sees all of her own cards
 		assertEquals(5, sent.getValue().playerMat().registers().stream()
 				.filter(register -> register.card() != null).count());

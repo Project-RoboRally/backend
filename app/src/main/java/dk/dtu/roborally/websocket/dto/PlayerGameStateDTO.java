@@ -94,12 +94,9 @@ public record PlayerGameStateDTO(String type, String gameId, GameStatus status,
 			Player recipient, RoundResult result) {
 		int revealedToOthers = revealedRegisters(game);
 		List<PlayerDTO> players = game.getPlayersInGame().stream()
-				.map(player -> PlayerDTO.from(player,
-						player == recipient
-								? revealedToOthers == 0
-										? 0
-										: PlayerMat.REGISTER_COUNT
-								: revealedToOthers))
+				.map(player -> PlayerDTO.from(player, player == recipient
+						? revealedToOthers == 0 ? 0 : PlayerMat.REGISTER_COUNT
+						: revealedToOthers))
 				.sorted(Comparator.comparing(PlayerDTO::username)).toList();
 
 		String winnerUsername = game.getWinner() == null
