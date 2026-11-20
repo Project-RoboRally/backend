@@ -1,7 +1,7 @@
 package dk.dtu.roborally.loaders;
 
 /**
- * @author Elias
+ * @author Elias, Victor, August, Sebastian
  */
 
 import dk.dtu.roborally.helpers.TestResources;

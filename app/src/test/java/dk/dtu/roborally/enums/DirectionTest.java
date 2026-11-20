@@ -4,6 +4,9 @@ import dk.dtu.roborally.models.board.Vector2D;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+/**
+ * @author Sebastian, Victor
+ */
 
 class DirectionTest {
 

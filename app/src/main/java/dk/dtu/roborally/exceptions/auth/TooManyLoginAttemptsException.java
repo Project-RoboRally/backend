@@ -1,4 +1,7 @@
 package dk.dtu.roborally.exceptions.auth;
+/**
+ * @author Nicoleta
+ */
 
 public class TooManyLoginAttemptsException extends RuntimeException {
 	public TooManyLoginAttemptsException() {

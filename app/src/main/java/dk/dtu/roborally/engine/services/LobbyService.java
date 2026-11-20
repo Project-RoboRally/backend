@@ -18,6 +18,9 @@ import dk.dtu.roborally.repository.LobbyRepository;
 import dk.dtu.roborally.repository.UserRepository;
 
 import java.util.List;
+/**
+ * @author Elias, August, Matthias
+ */
 
 public class LobbyService {
 	/** Characters in the largest board file an owner can upload. */

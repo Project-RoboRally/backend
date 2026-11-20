@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+/**
+ * @author August, Elias
+ */
 
 class GameLobbyTest {
 	private User owner;

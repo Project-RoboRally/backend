@@ -19,7 +19,7 @@ import java.util.Map;
  * Handles lobby creation, retrieval, and player joining, leaving, kicking other
  * players
  *
- * @author Nicoleta, Elias
+ * @author Nicoleta, Elias, August
  */
 
 @RestController

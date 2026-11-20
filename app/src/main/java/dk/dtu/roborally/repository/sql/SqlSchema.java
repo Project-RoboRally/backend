@@ -7,7 +7,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 /**
  * Creates the Postgres tables used to resume a game after a restart.
  *
- * @author Elias
+ * @author Elias, Nicoleta
  */
 public final class SqlSchema {
 

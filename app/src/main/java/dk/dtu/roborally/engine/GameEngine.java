@@ -14,7 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 /**
  * Game Engine entry point. Initializes from App.java
  *
- * @author Elias, Victor, Sebastian
+ * @author Elias, Victor, Sebastian, Matthias
  */
 public class GameEngine {
 

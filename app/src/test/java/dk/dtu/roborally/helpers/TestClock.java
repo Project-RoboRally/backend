@@ -6,6 +6,9 @@ import java.time.Duration;
 import java.time.Instant;
 
 // A clock for tests that only moves when the test says so.
+/**
+ * @author Nicoleta
+ */
 
 public class TestClock implements GameClock {
 	private Instant now = Instant.parse("2026-01-01T12:00:00Z");

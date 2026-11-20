@@ -1,7 +1,7 @@
 package dk.dtu.roborally.engine.activation;
 
 /**
- * @author Elias
+ * @author Elias, Sebastian
  */
 
 import dk.dtu.roborally.enums.ConveyorBeltType;

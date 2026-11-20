@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 /**
  * Tests for the Board class.
  *
- * @author Victor
+ * @author Victor, Sebastian
  */
 class BoardTest {
 

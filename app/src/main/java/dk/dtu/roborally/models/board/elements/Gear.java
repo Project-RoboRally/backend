@@ -8,7 +8,7 @@ import lombok.Getter;
  * Represents a rotating gear placed on a board tile. A gear rotates robots
  * standing on it.
  *
- * @author Matthias
+ * @author Matthias, August
  */
 public class Gear extends BoardElement {
 

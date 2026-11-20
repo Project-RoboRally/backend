@@ -10,7 +10,7 @@ import java.util.List;
  * the owner has started the game; once set, clients should navigate to that
  * game.
  *
- * @author Nicoleta, August
+ * @author Nicoleta, August, Elias
  */
 
 public record LobbyDTO(String id, String name, List<String> users,

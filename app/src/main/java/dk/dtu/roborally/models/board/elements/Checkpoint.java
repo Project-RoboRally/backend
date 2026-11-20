@@ -7,7 +7,7 @@ import lombok.Getter;
  * Represents a checkpoint on the game board. Checkpoints must be reached by
  * players in the required order.
  *
- * @author Matthias, Victor
+ * @author Matthias, Victor, August
  */
 public class Checkpoint extends BoardElement {
 

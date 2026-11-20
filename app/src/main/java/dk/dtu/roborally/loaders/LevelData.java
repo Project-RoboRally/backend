@@ -4,7 +4,7 @@ package dk.dtu.roborally.loaders;
  * This object is used to store and extract the loaded info from the levels via
  * the Config and other loaders
  *
- * @author Victor, Sebastian
+ * @author Victor, Sebastian, August
  */
 
 public class LevelData {

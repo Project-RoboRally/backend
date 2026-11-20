@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * Hardcoded enum for all possible instructions.
  *
- * @author Matthias, Sebastian
+ * @author Matthias, Sebastian, August, Elias
  */
 
 public enum CommandInstruction {

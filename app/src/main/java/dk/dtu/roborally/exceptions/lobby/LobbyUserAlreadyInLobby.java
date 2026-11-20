@@ -1,4 +1,7 @@
 package dk.dtu.roborally.exceptions.lobby;
+/**
+ * @author August
+ */
 
 public class LobbyUserAlreadyInLobby extends RuntimeException {
 	public LobbyUserAlreadyInLobby(String username) {
