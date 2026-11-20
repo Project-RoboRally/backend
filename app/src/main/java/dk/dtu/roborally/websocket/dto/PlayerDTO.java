@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Public information about a player that every player in the game may see,
  * installed upgrades included. {@code program} is only filled during
- * activation, when everyone's registers are public.
+ * activation, and then only up to the register being played for other players.
  *
  * @author Elias, Nicoleta, Sebastian
  */
@@ -30,20 +30,20 @@ public record PlayerDTO(String username, RobotDTO robot, int checkpointsReached,
 	}
 
 	public static PlayerDTO from(Player player) {
-		return from(player, false);
+		return from(player, 0);
 	}
 
 	/**
-	 * @param revealProgram
-	 *            when true (activation), include all five register cards so
-	 *            every client can show everyone's program
+	 * @param revealedRegisters
+	 *            how many registers to show from the first one, so an
+	 *            activation only gives away what has been played. 0 shows
+	 *            nothing, and the list is shorter than five when some are still
+	 *            hidden
 	 */
-	public static PlayerDTO from(Player player, boolean revealProgram) {
-		List<CardDTO> program = revealProgram
-				? player.getPlayerMat().getRegisters().stream()
-						.map(register -> cardOrNull(register.getCard()))
-						.toList()
-				: List.of();
+	public static PlayerDTO from(Player player, int revealedRegisters) {
+		List<CardDTO> program = player.getPlayerMat().getRegisters().stream()
+				.limit(revealedRegisters)
+				.map(register -> cardOrNull(register.getCard())).toList();
 		return new PlayerDTO(player.getUser().getUsername(),
 				RobotDTO.from(player.getRobot()),
 				player.getCheckpointsReached(), player.getEnergy(),
