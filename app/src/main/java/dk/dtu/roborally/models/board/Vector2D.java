@@ -3,7 +3,7 @@ package dk.dtu.roborally.models.board;
 /**
  * Represents an immutable two-dimensional integer coordinate.
  *
- * @author Matthias, Victor, Sebastian
+ * @author Matthias, Victor, Sebastian, August
  */
 
 public record Vector2D(int x, int y) {

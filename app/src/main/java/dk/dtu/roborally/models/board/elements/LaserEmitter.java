@@ -10,7 +10,7 @@ import lombok.Getter;
  * <p>
  * NOTE: Laser.java is left open in case we want to do a class for the "bullet".
  *
- * @author Matthias, Victor
+ * @author Matthias, Victor, August
  */
 public class LaserEmitter extends BoardElement {
 

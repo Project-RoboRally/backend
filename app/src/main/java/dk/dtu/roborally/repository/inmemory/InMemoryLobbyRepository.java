@@ -6,6 +6,9 @@ import dk.dtu.roborally.repository.LobbyRepository;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+/**
+ * @author Elias
+ */
 
 public class InMemoryLobbyRepository implements LobbyRepository {
 	private final List<GameLobby> lobbies = new ArrayList<>();

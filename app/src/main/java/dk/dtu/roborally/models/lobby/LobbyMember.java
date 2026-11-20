@@ -4,6 +4,9 @@ import java.util.Objects;
 
 import dk.dtu.roborally.enums.PlayerColor;
 import dk.dtu.roborally.models.User;
+/**
+ * @author August
+ */
 
 public record LobbyMember(User user, PlayerColor color, boolean ready) {
 

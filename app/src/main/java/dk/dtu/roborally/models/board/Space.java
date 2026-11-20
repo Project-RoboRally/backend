@@ -10,7 +10,7 @@ import java.util.List;
  * Represents a single space on the Robo Rally board. A tile has a fixed
  * position and may contain multiple board elements.
  *
- * @author Matthias
+ * @author Matthias, Elias, Sebastian
  */
 public class Space {
 

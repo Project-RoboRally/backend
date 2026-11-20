@@ -1,7 +1,7 @@
 package dk.dtu.roborally.websocket;
 
 /**
- * @author Elias
+ * @author Elias, Nicoleta, Sebastian
  */
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;

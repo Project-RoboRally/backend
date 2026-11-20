@@ -22,7 +22,7 @@ import java.util.List;
  * A board element placed on a space. Every variant carries a {@code type} field
  * so clients can tell them apart.
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Sebastian
  */
 public sealed interface BoardElementDTO {
 

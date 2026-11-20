@@ -16,6 +16,7 @@ import java.util.Optional;
 /**
  * Postgres storage for users. Loaded rows stay in memory so the rest of the
  * server keeps using the same user instances.
+  * @author Elias, Nicoleta
  */
 public class SqlUserRepository implements UserRepository {
 

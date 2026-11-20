@@ -12,7 +12,7 @@ import java.util.UUID;
 /**
  * Service for all user logic
  *
- * @author Elias
+ * @author Elias, August, Nicoleta, Sebastian
  */
 public class UserService {
 

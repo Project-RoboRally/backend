@@ -14,6 +14,9 @@ import org.springframework.messaging.support.MessageBuilder;
 import java.security.Principal;
 
 import static org.junit.jupiter.api.Assertions.*;
+/**
+ * @author Nicoleta, Elias
+ */
 
 class WebSocketLoginCheckTest {
 	private SessionService sessionService;

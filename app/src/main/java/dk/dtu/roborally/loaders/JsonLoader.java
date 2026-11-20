@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 /**
  * Loads the json files in resources, like the config and the levels.
  *
- * @author Victor, Sebastian
+ * @author Victor, Sebastian, August
  */
 
 public class JsonLoader {

@@ -7,6 +7,7 @@ import java.util.List;
 /**
  * A player using one of their upgrades during programming. cards names the hand
  * cards the upgrade works on, for the upgrades that need them.
+  * @author Sebastian
  */
 public record UseUpgradeDTO(UpgradeType upgrade, List<String> cards) {
 }

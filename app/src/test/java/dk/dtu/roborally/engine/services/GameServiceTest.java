@@ -1,7 +1,7 @@
 package dk.dtu.roborally.engine.services;
 
 /**
- * @author Elias
+ * @author Elias, Nicoleta, Sebastian, Victor
  */
 
 import dk.dtu.roborally.api.dto.CreateLobbyDTO;

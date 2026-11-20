@@ -15,7 +15,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
  * {@code /app} (routed to {@code @MessageMapping} controllers), and subscribe
  * to {@code /game/...} destinations to receive broadcasts.
  *
- * @author Elias, Nicoleta
+ * @author Elias, Nicoleta, Sebastian
  */
 @Configuration
 @EnableWebSocketMessageBroker
