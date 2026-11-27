@@ -14,13 +14,16 @@ class BoardCatalogTest {
 
 	@Test
 	void listsEveryBoardInConfigOrderWithItsName() {
-		assertEquals(List.of(
-				new BoardInfo("level_0", "Conveyor cyclus",
+		assertEquals(
+				List.of(new BoardInfo("level_0", "Conveyor cyclus",
 						"levels/level_0.json"),
-				new BoardInfo("test_board", "Test board",
-						"levels/test_board.json"),
-				new BoardInfo("dizzy_highway", "Dizzy Highway",
-						"levels/dizzy_highway.json")),
+						new BoardInfo("test_board", "Test board",
+								"levels/test_board.json"),
+						new BoardInfo("dizzy_highway", "Dizzy Highway",
+								"levels/dizzy_highway.json"),
+						new BoardInfo("corridor_blitz", "Corridor Blitz",
+								"levels/corridor_blitz.json")),
+
 				catalog.all());
 	}
 

@@ -1,0 +1,355 @@
+{
+    "_metadata": {
+        "author": "Victor",
+        "name": "Corridor Blitz",
+        "description": "The Corridor Blitz roborally board from the actual game. This is a beginner board, meaning it is harder than the Dizzy Highway board!"
+    },
+    "squares": [
+        {
+            "x1": 0,
+            "y1": 0,
+            "x2": 13,
+            "y2": 10
+        }
+    ],
+    "belts": [
+        {
+            "x": 2,
+            "y": 0,
+            "length": 1,
+            "direction": "east",
+            "type": "green_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 3,
+            "y": 1,
+            "length": 1,
+            "direction": "west",
+            "type": "green_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 2,
+            "y": 9,
+            "length": 1,
+            "direction": "east",
+            "type": "green_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 11,
+            "y": 0,
+            "length": 1,
+            "direction": "north",
+            "type": "green_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 12,
+            "y": 8,
+            "length": 1,
+            "direction": "east",
+            "type": "green_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 4,
+            "y": 0,
+            "length": 1,
+            "direction": "south",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 3,
+            "y": 8,
+            "length": 1,
+            "direction": "east",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 12,
+            "y": 1,
+            "length": 1,
+            "direction": "west",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 11,
+            "y": 9,
+            "length": 1,
+            "direction": "north",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 6,
+            "y": 5,
+            "length": 2,
+            "direction": "north",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 6,
+            "y": 3,
+            "length": 1,
+            "direction": "north",
+            "type": "blue_right_curve",
+            "converging_direction": "none"
+        },
+        {
+            "x": 7,
+            "y": 3,
+            "length": 2,
+            "direction": "east",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 9,
+            "y": 3,
+            "length": 1,
+            "direction": "east",
+            "type": "blue_right_curve",
+            "converging_direction": "none"
+        },
+        {
+            "x": 9,
+            "y": 4,
+            "length": 2,
+            "direction": "south",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 9,
+            "y": 6,
+            "length": 1,
+            "direction": "south",
+            "type": "blue_right_curve",
+            "converging_direction": "none"
+        },
+        {
+            "x": 8,
+            "y": 6,
+            "length": 2,
+            "direction": "west",
+            "type": "blue_straight",
+            "converging_direction": "none"
+        },
+        {
+            "x": 6,
+            "y": 6,
+            "length": 1,
+            "direction": "west",
+            "type": "blue_right_curve",
+            "converging_direction": "none"
+        },
+        {
+            "x": 4,
+            "y": 9,
+            "length": 1,
+            "direction": "north",
+            "type": "green_straight",
+            "converging_direction": "none"
+        }
+    ],
+    "start_points": [
+        {
+            "x": 1,
+            "y": 1,
+            "orientation": "east"
+        },
+        {
+            "x": 0,
+            "y": 3,
+            "orientation": "east"
+        },
+        {
+            "x": 1,
+            "y": 4,
+            "orientation": "east"
+        },
+        {
+            "x": 1,
+            "y": 5,
+            "orientation": "east"
+        },
+        {
+            "x": 0,
+            "y": 6,
+            "orientation": "east"
+        },
+        {
+            "x": 1,
+            "y": 8,
+            "orientation": "east"
+        }
+    ],
+    "checkpoints": [
+        {
+            "x": 8,
+            "y": 1,
+            "number": 1
+        },
+        {
+            "x": 9,
+            "y": 8,
+            "number": 2
+        }
+    ],
+    "antenna": {
+        "x": 0,
+        "y": 4,
+        "direction": "east"
+    },
+    "reboot_points": [
+        {
+            "x": 3,
+            "y": 5,
+            "direction": "north",
+            "x1": 0,
+            "y1": 0,
+            "x2": 13,
+            "y2": 10
+        }
+    ],
+    "gears": [
+        {
+            "x": 7,
+            "y": 5,
+            "rotation_direction": "clockwise"
+        }
+    ],
+    "push_panels": [],
+    "walls": [
+        {
+            "x1": 1,
+            "y1": 2,
+            "x2": 1,
+            "y2": 2,
+            "direction": "north"
+        },
+        {
+            "x1": 2,
+            "y1": 4,
+            "x2": 2,
+            "y2": 5,
+            "direction": "east"
+        },
+        {
+            "x1": 1,
+            "y1": 7,
+            "x2": 1,
+            "y2": 7,
+            "direction": "south"
+        }
+    ],
+    "laser_emitters": [
+        {
+            "x": 5,
+            "y": 2,
+            "amount": 1,
+            "direction": "south"
+        },
+        {
+            "x": 6,
+            "y": 2,
+            "amount": 1,
+            "direction": "east"
+        },
+        {
+            "x": 10,
+            "y": 2,
+            "amount": 1,
+            "direction": "west"
+        },
+        {
+            "x": 10,
+            "y": 3,
+            "amount": 1,
+            "direction": "south"
+        },
+        {
+            "x": 10,
+            "y": 7,
+            "amount": 1,
+            "direction": "north"
+        },
+        {
+            "x": 9,
+            "y": 7,
+            "amount": 1,
+            "direction": "west"
+        },
+        {
+            "x": 5,
+            "y": 7,
+            "amount": 1,
+            "direction": "east"
+        },
+        {
+            "x": 5,
+            "y": 6,
+            "amount": 1,
+            "direction": "north"
+        }
+    ],
+    "pits": [
+        {
+            "x1": 7,
+            "y1": 1,
+            "x2": 7,
+            "y2": 1
+        },
+        {
+            "x1": 8,
+            "y1": 8,
+            "x2": 8,
+            "y2": 8
+        },
+        {
+            "x1": 11,
+            "y1": 4,
+            "x2": 11,
+            "y2": 4
+        },
+        {
+            "x1": 4,
+            "y1": 5,
+            "x2": 4,
+            "y2": 5
+        }
+    ],
+    "energy_spaces": [
+        {
+            "x": 3,
+            "y": 0,
+            "energy_cubes": 1
+        },
+        {
+            "x": 4,
+            "y": 4,
+            "energy_cubes": 1
+        },
+        {
+            "x": 8,
+            "y": 5,
+            "energy_cubes": 1
+        },
+        {
+            "x": 11,
+            "y": 5,
+            "energy_cubes": 1
+        },
+        {
+            "x": 12,
+            "y": 9,
+            "energy_cubes": 1
+        }
+    ]
+}
