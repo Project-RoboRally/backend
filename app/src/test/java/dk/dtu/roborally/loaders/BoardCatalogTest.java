@@ -19,8 +19,11 @@ class BoardCatalogTest {
 						"levels/level_0.json"),
 				new BoardInfo("test_board", "Test board",
 						"levels/test_board.json"),
+				new BoardInfo("corridor_blitz", "Corridor Blitz",
+						"levels/corridor_blitz.json"),
 				new BoardInfo("dizzy_highway", "Dizzy Highway",
 						"levels/dizzy_highway.json")),
+
 				catalog.all());
 	}
 

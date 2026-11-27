@@ -30,6 +30,14 @@
             "converging_direction": "none"
         },
         {
+            "x": 5,
+            "y": 1,
+            "length": 1,
+            "direction": "west",
+            "type": "blue_straight",
+            "converging_direction": "south"
+        },
+        {
             "x": 4,
             "y": 0,
             "length": 7,
@@ -184,10 +192,10 @@
             "direction": "north"
         },
         {
-            "x1": 4,
-            "y1": 2,
-            "x2": 5,
-            "y2": 2,
+            "x1": 2,
+            "y1": 4,
+            "x2": 2,
+            "y2": 5,
             "direction": "east"
         },
         {
