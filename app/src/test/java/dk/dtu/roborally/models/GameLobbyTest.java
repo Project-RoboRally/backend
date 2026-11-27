@@ -489,6 +489,92 @@ class GameLobbyTest {
 		assertEquals("level_0", lobby.getBoard().id());
 	}
 
+	@Test
+	void newLobbyAllowsSixUsers() {
+		assertEquals(6, lobby.getUserAmountAllowed());
+	}
+
+	@Test
+	void userAmountAllowedIsEnforcedBetween2and6() {
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.changeUserAmountAllowed(1));
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.changeUserAmountAllowed(7));
+		// A rejected value leaves the old limit in place
+		assertEquals(6, lobby.getUserAmountAllowed());
+
+		// The edges themselves are allowed
+		lobby.changeUserAmountAllowed(2);
+		assertEquals(2, lobby.getUserAmountAllowed());
+		lobby.changeUserAmountAllowed(6);
+		assertEquals(6, lobby.getUserAmountAllowed());
+	}
+
+	@Test
+	void userAmountAllowedCannotBeLowerThanTheCurrentMembers() {
+		lobby.addUserToLobby(new User("Alice"));
+		lobby.addUserToLobby(new User("Bob"));
+
+		assertThrows(IllegalArgumentException.class,
+				() -> lobby.changeUserAmountAllowed(2));
+		assertEquals(6, lobby.getUserAmountAllowed());
+
+		// Exactly the current members is fine: the lobby is then full
+		lobby.changeUserAmountAllowed(3);
+		assertEquals(3, lobby.getUserAmountAllowed());
+		assertTrue(lobby.isFull());
+	}
+
+	@Test
+	void newUsersCannotJoinIfUsersAmountAllowedIsReached() {
+		lobby.changeUserAmountAllowed(3);
+		lobby.addUserToLobby(new User("Alice"));
+		lobby.addUserToLobby(new User("Bob"));
+		User carol = new User("Carol");
+
+		assertTrue(lobby.isFull());
+		assertThrows(IllegalStateException.class,
+				() -> lobby.addUserToLobby(carol));
+
+		assertEquals(3, lobby.getUsersInLobby().size());
+		assertFalse(lobby.getUsersInLobby().contains(carol));
+	}
+
+	@Test
+	void raisingUserAmountAllowedLetsMoreUsersJoin() {
+		lobby.changeUserAmountAllowed(2);
+		lobby.addUserToLobby(new User("Alice"));
+		assertTrue(lobby.isFull());
+
+		lobby.changeUserAmountAllowed(3);
+
+		assertFalse(lobby.isFull());
+		assertDoesNotThrow(() -> lobby.addUserToLobby(new User("Bob")));
+	}
+
+	@Test
+	void lobbyMembersAreSetToUnreadyAfterMembersAllowedChange() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.setReady(alice.getId(), true);
+
+		lobby.changeUserAmountAllowed(4);
+
+		assertFalse(readyOf(alice));
+	}
+
+	@Test
+	void cannotChangeUserAmountAllowedAfterTheGameStarted() {
+		User alice = new User("Alice");
+		lobby.addUserToLobby(alice);
+		lobby.setReady(alice.getId(), true);
+		lobby.startGame();
+
+		assertThrows(IllegalStateException.class,
+				() -> lobby.changeUserAmountAllowed(4));
+		assertEquals(6, lobby.getUserAmountAllowed());
+	}
+
 	/** test_board.json as an uploaded file, with one thing changed. */
 	private static String testBoardEdited(Consumer<JsonObject> edit) {
 		JsonObject level = JsonParser

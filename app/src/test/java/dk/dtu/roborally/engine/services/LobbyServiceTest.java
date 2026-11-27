@@ -215,4 +215,18 @@ class LobbyServiceTest {
 		return lobby.getUsersInLobby().stream()
 				.anyMatch(user -> user.getUsername().equals(username));
 	}
+
+	@Test
+	void ownerCanChangeUserAmountAllowed() {
+		lobbyService.changeUserAmount(lobby.getLobbyId(), "August", 4);
+
+		assertEquals(4, lobby.getUserAmountAllowed());
+	}
+
+	@Test
+	void onlyTheOwnerCanChangeUserAmountAllowed() {
+		assertThrows(NotAuthorizedException.class, () -> lobbyService
+				.changeUserAmount(lobby.getLobbyId(), "Alice", 4));
+		assertEquals(6, lobby.getUserAmountAllowed());
+	}
 }

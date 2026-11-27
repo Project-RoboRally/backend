@@ -19,6 +19,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThan;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -143,5 +144,23 @@ class LobbyControllerTest {
 				.andExpect(jsonPath("$.width").value(greaterThan(0)))
 				.andExpect(jsonPath("$.spaces.length()").value(greaterThan(0)))
 				.andExpect(jsonPath("$.robots").value(empty()));
+	}
+
+	@Test
+	void changingUserAmountAllowedReadsTheNumberFromTheBody() throws Exception {
+		GameLobby lobby = lobbyService.getLobby("lobby1");
+		lobby.changeUserAmountAllowed(4);
+		when(lobbyService.changeUserAmount("lobby1", "alice", 4))
+				.thenReturn(lobby);
+
+		// The same JSON names the frontend sends and reads
+		mockMvc.perform(post("/api/lobbies/lobby1/amount")
+				.header("Authorization", "Bearer " + aliceToken)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content("{\"userAmountAllowed\":4}"))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.userAmountAllowed").value(4));
+
+		verify(lobbyService).changeUserAmount("lobby1", "alice", 4);
 	}
 }

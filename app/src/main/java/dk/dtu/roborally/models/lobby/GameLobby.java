@@ -45,6 +45,8 @@ public class GameLobby {
 																			// order
 	private static final int MIN_USERS = 2;
 	private static final int MAX_USERS = 6;
+	@Getter
+	private int userAmountAllowed = 6;
 
 	@Getter
 	private String gameId;
@@ -152,6 +154,24 @@ public class GameLobby {
 			throw new IllegalArgumentException(name
 					+ " needs checkpoints numbered 1, 2, 3 ... with none missing or repeated.");
 		}
+	}
+	public void changeUserAmountAllowed(int newUserAmountAllowed) {
+		if (isGameStarted()) {
+			throw new IllegalStateException(
+					"The game has already been started.");
+		}
+		if (newUserAmountAllowed > MAX_USERS
+				|| newUserAmountAllowed < MIN_USERS) {
+			throw new IllegalArgumentException(
+					newUserAmountAllowed + " needs to be 2-6 users");
+		}
+		if (lobbyUsers.size() > newUserAmountAllowed) {
+			throw new IllegalArgumentException(newUserAmountAllowed
+					+ " can't be less than the current lobby member amount");
+		}
+		this.userAmountAllowed = newUserAmountAllowed;
+		lobbyUsers.replaceAll((userId, member) -> member.withReady(false));
+
 	}
 
 	/** Replaces membership and the linked game id from stored rows. */
@@ -373,7 +393,7 @@ public class GameLobby {
 	}
 
 	public boolean isFull() {
-		return lobbyUsers.size() >= MAX_USERS;
+		return lobbyUsers.size() >= userAmountAllowed;
 	}
 
 	public boolean hasEnoughPlayers() {
