@@ -16,7 +16,7 @@ import java.util.List;
 public record LobbyDTO(String id, String name, List<String> users,
 		String createdBy, List<LobbyMemberDTO> members,
 		List<String> kickedUsers, String gameId, boolean started,
-		String boardId, String boardName) {
+		String boardId, String boardName, int userAmountAllowed) {
 
 	public static LobbyDTO from(GameLobby lobby) {
 		List<String> usernames = lobby.getUsersInLobby().stream()
@@ -34,6 +34,6 @@ public record LobbyDTO(String id, String name, List<String> users,
 		return new LobbyDTO(lobby.getLobbyId(), lobby.getLobbyName(), usernames,
 				createdBy, members, kickedUsers, lobby.getGameId(),
 				lobby.isGameStarted(), lobby.getBoard().id(),
-				lobby.getBoard().name());
+				lobby.getBoard().name(), lobby.getUserAmountAllowed());
 	}
 }

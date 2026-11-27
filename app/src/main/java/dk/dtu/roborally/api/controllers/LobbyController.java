@@ -125,6 +125,14 @@ public class LobbyController {
 				currentUsername(authorization), payload.boardId())));
 	}
 
+	@PostMapping("/{id}/amount")
+	public ResponseEntity<LobbyDTO> changeUserAmount(@PathVariable String id,
+			@RequestHeader(value = "Authorization", required = false) String authorization,
+			@RequestBody ChangeUserAmountDTO payload) {
+		return ResponseEntity.ok(LobbyDTO.from(lobbyService.changeUserAmount(id,
+				currentUsername(authorization), payload.userAmountAllowed())));
+	}
+
 	/**
 	 * The body is the board JSON file in string format. Taking it as text skips
 	 * Jackson: the level is read by Gson like the files in resources, and the

@@ -176,6 +176,17 @@ public class LobbyService {
 		return lobby;
 	}
 
+	public GameLobby changeUserAmount(String id, String username,
+			int userAmountAllowed) {
+		GameLobby lobby = getLobby(id);
+
+		validateIsLobbyOwner(lobby, username);
+
+		lobby.changeUserAmountAllowed(userAmountAllowed);
+		lobbyRepository.update(lobby);
+		return lobby;
+	}
+
 	public void kickUser(String id, String kickedBy, String toKickUsername) {
 		User userToKick = userRepository.getByUsername(toKickUsername)
 				.orElseThrow(UserNotFound::new);
