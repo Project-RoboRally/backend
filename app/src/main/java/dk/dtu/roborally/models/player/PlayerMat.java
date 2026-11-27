@@ -221,10 +221,64 @@ public class PlayerMat {
 	}
 
 	/**
+	 * Puts a hand card in an empty register while programming. A card already
+	 * placed there has to be taken back first.
+	 */
+	public void placeCard(int index, String name) {
+		requireProgramming();
+		Register register = register(index);
+		if (register.getCard() != null) {
+			throw new IllegalArgumentException(
+					"Register " + (index + 1) + " already has a card");
+		}
+		if (!isAllowed(name)) {
+			throw new IllegalArgumentException(
+					"Instruction is not allowed: " + name);
+		}
+		if (index == 0 && repeatsPreviousRegister(name)) {
+			throw new IllegalArgumentException(
+					name + " cannot be placed in register 1");
+		}
+		register.setCard(takeCard(hand, name));
+	}
+
+	/** Takes the card in a register back to the hand while programming. */
+	public void removeCard(int index) {
+		requireProgramming();
+		Register register = register(index);
+		if (register.getCard() == null) {
+			throw new IllegalArgumentException(
+					"Register " + (index + 1) + " is empty");
+		}
+		hand.add(register.getCard());
+		register.setCard(null);
+	}
+
+	private void requireProgramming() {
+		if (submitted) {
+			throw new IllegalStateException(
+					"Program has already been submitted");
+		}
+		if (cardsToPutBack > 0) {
+			throw new IllegalStateException(
+					"Put " + cardsToPutBack + " cards back on the deck first");
+		}
+	}
+
+	private Register register(int index) {
+		if (index < 0 || index >= REGISTER_COUNT) {
+			throw new IllegalArgumentException("No register " + (index + 1));
+		}
+		return registers[index];
+	}
+
+	/**
 	 * Moves the chosen cards from the hand to the five registers, discards the
-	 * rest of the hand and marks the mat submitted. Cards are named like MOVE_1
-	 * or SPAM, so damage cards can be programmed too. A second program is
-	 * rejected until {@link #clearProgram()} runs.
+	 * rest of the hand and marks the mat submitted. Cards already placed one by
+	 * one go back to the hand first, so the five names are all picked from the
+	 * hand. Cards are named like MOVE_1 or SPAM, so damage cards can be
+	 * programmed too. A second program is rejected until
+	 * {@link #clearProgram()} runs.
 	 */
 	public void programCards(List<String> cards) {
 		if (submitted) {
@@ -250,6 +304,11 @@ public class PlayerMat {
 					cards.get(0) + " cannot be placed in register 1");
 		}
 		List<ProgrammableCard> remaining = new ArrayList<>(hand);
+		for (Register register : registers) {
+			if (register.getCard() != null) {
+				remaining.add(register.getCard());
+			}
+		}
 		List<ProgrammableCard> chosen = new ArrayList<>();
 		for (String card : cards) {
 			chosen.add(takeCard(remaining, card));
@@ -264,13 +323,16 @@ public class PlayerMat {
 
 	/**
 	 * Used when programming time runs out: the hand is discarded and every
-	 * register gets the next card off the deck, whatever it is.
+	 * empty register gets the next card off the deck, whatever it is. Cards
+	 * already placed stay where they are.
 	 */
 	public void fillRegistersFromDeck() {
 		discardPile.addAll(hand);
 		hand.clear();
 		for (Register register : registers) {
-			register.setCard(drawTop().orElse(null));
+			if (register.getCard() == null) {
+				register.setCard(drawTop().orElse(null));
+			}
 		}
 		submitted = true;
 	}
